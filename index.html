@@ -1,0 +1,3417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CPSPL CTO Safety Management</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Firebase SDK (compat v10) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            construction: {
+              orange: '#f97316',   /* Alert & Primary highlight */
+              green: '#22c55e',    /* Safe & Active */
+              darkBg: '#0b0f19',   /* Professional dark background */
+              cardBg: '#161e2f',   /* High-contrast dark cards */
+              border: '#2e3a50'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Premium touch target improvements */
+    input, button, select, textarea {
+      min-height: 44px;
+    }
+    /* Hide scrollbar for clean app design */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e3a50;
+      border-radius: 3px;
+    }
+    /* Print Specific Styles to replicate master forms exactly */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        color: #000 !important;
+        background: #fff !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      /* Keep checkmarks and inputs visible on print */
+      input[type="checkbox"] {
+        -webkit-appearance: checkbox !important;
+        appearance: checkbox !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-construction-darkBg text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-construction-orange selection:text-white">
+
+  <!-- Main Vue-like Single Page App Controller mount point -->
+  <div id="app" class="flex-grow flex flex-col">
+    <!-- Screen overlay loader -->
+    <div id="loading-overlay" class="fixed inset-0 bg-construction-darkBg bg-opacity-95 z-50 flex flex-col justify-center items-center hidden">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-construction-orange mb-4"></div>
+      <p id="loading-text" class="text-sm text-slate-300 font-medium tracking-wide">Initializing Safety Portal...</p>
+    </div>
+
+    <!-- FIREBASE SETUP BANNER — shown when FIREBASE_CONFIG has placeholder values -->
+    <div id="firebase-setup-banner" class="hidden fixed inset-0 bg-slate-950/95 z-[60] flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
+      <div class="bg-construction-cardBg border border-orange-500/40 rounded-xl p-8 max-w-xl w-full space-y-5 my-auto">
+        <div class="w-14 h-14 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto">
+          <i data-lucide="flame" class="w-7 h-7 text-orange-400"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-orange-400 uppercase tracking-widest">Firebase Setup Required</h2>
+          <p class="text-xs text-slate-400 mt-2">Open <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">index.html</code>, find the <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">FIREBASE_CONFIG</code> block near the top of the main <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">&lt;script&gt;</code>, and fill in your Firebase project credentials.</p>
+        </div>
+        <div class="bg-slate-900 rounded-lg p-4 text-left font-mono text-[11px] text-slate-300 border border-construction-border space-y-0.5">
+          <p class="text-slate-500">// Fill these in with your project values:</p>
+          <p><span class="text-blue-400">const</span> <span class="text-slate-200">FIREBASE_CONFIG</span> = {</p>
+          <p class="pl-4">apiKey: <span class="text-green-400">"AIza..."</span>,</p>
+          <p class="pl-4">authDomain: <span class="text-green-400">"your-project.firebaseapp.com"</span>,</p>
+          <p class="pl-4">projectId: <span class="text-green-400">"your-project-id"</span>,</p>
+          <p class="pl-4">storageBucket: <span class="text-green-400">"your-project.appspot.com"</span>,</p>
+          <p class="pl-4">messagingSenderId: <span class="text-green-400">"123456789"</span>,</p>
+          <p class="pl-4">appId: <span class="text-green-400">"1:123:web:abc"</span></p>
+          <p>};</p>
+        </div>
+        <div class="bg-slate-900 rounded-lg p-4 text-left text-[11px] text-slate-400 border border-construction-border space-y-2">
+          <p class="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Firestore Security Rules (paste in Firebase Console)</p>
+          <pre class="text-[10px] text-green-400 font-mono whitespace-pre-wrap">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cpspl_safety/{doc=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</pre>
+        </div>
+        <p class="text-[11px] text-slate-500">Until Firebase is configured, the app runs in <strong class="text-slate-400">local-only offline mode</strong> using your browser's localStorage.</p>
+        <button onclick="document.getElementById('firebase-setup-banner').classList.add('hidden')"
+          class="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-lg transition-all uppercase tracking-wider">
+          Continue in Offline Mode
+        </button>
+      </div>
+    </div>
+
+    <!-- Customized Toast Notifications System -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="bg-construction-cardBg border-b border-construction-border sticky top-0 z-40 no-print">
+      <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+        <!-- Logo & branding combined -->
+        <div class="flex items-center gap-3">
+          <!-- Hand-crafted precise SVG of the Chettinad Logo from uploaded PNG -->
+          <div class="w-12 h-12 bg-white rounded-md p-1 flex items-center justify-center shadow-lg">
+            <svg viewBox="0 0 100 100" class="w-10 h-10">
+              <!-- Blue Chevron shape representing the left 'C' bracket -->
+              <path d="M 32,15 L 12,15 L 12,85 L 32,85 L 32,71 L 24,63 L 24,37 L 32,29 Z" fill="#0f59a4" />
+              <!-- Green triangle pointing pointing inwards / direction -->
+              <polygon points="34,50 82,18 82,82" fill="#70c144" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.1</span>
+            </div>
+            <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
+              Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
+            </h1>
+            <p class="text-[11px] text-slate-400">Site Safety Portal</p>
+          </div>
+        </div>
+
+        <!-- User controls / active session info -->
+        <div class="flex items-center gap-2">
+          <!-- Notifications Bell -->
+          <div class="relative hidden sm:block">
+            <button onclick="toggleNotifications()" class="p-2 text-slate-300 hover:text-construction-orange hover:bg-slate-800 rounded-lg transition-colors relative">
+              <i data-lucide="bell" class="w-5 h-5"></i>
+              <span id="nav-notif-count" class="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+            </button>
+            <!-- Dropdown list -->
+            <div id="notif-dropdown" class="absolute right-0 mt-2 w-80 bg-construction-cardBg border border-construction-border rounded-lg shadow-2xl p-4 hidden z-50">
+              <div class="flex items-center justify-between border-b border-construction-border pb-2 mb-2">
+                <span class="text-xs font-bold text-slate-300">Recent Updates</span>
+                <button onclick="clearNotifications()" class="text-[10px] text-construction-orange hover:underline">Mark all read</button>
+              </div>
+              <div id="notif-list" class="space-y-2 max-h-60 overflow-y-auto text-xs">
+                <!-- Loaded dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- User Card -->
+          <div id="user-header-card" class="hidden flex items-center gap-2 pl-3 border-l border-construction-border">
+            <div class="text-right">
+              <p id="user-display-name" class="text-xs font-bold text-slate-200">Engineer Name</p>
+              <p id="user-display-role" class="text-[10px] text-construction-orange uppercase tracking-wider font-semibold">Admin</p>
+            </div>
+            <button onclick="handleLogout()" class="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors" title="Log Out">
+              <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MOBILE NAVIGATION BOTTOM TAB BAR (DYNAMICAL TO SUPPORT ADMIN VIEWS) -->
+    <nav id="mobile-nav" class="bg-construction-cardBg border-t border-construction-border fixed bottom-0 left-0 right-0 z-40 flex justify-around py-1.5 sm:hidden no-print shadow-xl">
+      <!-- Generated Dynamically based on current user role -->
+    </nav>
+
+    <!-- MAIN BODY WRAPPER WITH RESPONSIVE TAB-BAR OFFSET -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 pb-20 sm:pb-8 flex flex-col gap-6">
+
+      <!-- DESKTOP / TABLET SIDEBAR + MAIN WORKSPACE LAYOUT -->
+      <div class="flex flex-col lg:flex-row gap-6 items-start flex-grow w-full">
+        
+        <!-- SIDE NAVIGATION BAR (FOR TABLET & DESKTOP SCREEN RESOLUTIONS) -->
+        <aside class="w-full lg:w-64 bg-construction-cardBg border border-construction-border rounded-xl p-4 hidden sm:block shrink-0 shadow-lg space-y-4 no-print">
+          <div class="px-2 py-1 bg-slate-800/50 rounded-lg border border-construction-border flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span class="text-xs text-slate-300 font-semibold uppercase">Chennai Node Active</span>
+          </div>
+          <!-- Firebase status -->
+          <div id="firebase-status-pill" class="px-2 py-1 bg-slate-800/50 rounded-lg border border-construction-border flex items-center gap-2">
+            <div id="firebase-status-dot" class="w-2 h-2 rounded-full bg-slate-600 shrink-0"></div>
+            <span id="firebase-status-text" class="text-[10px] text-slate-500 font-medium uppercase tracking-wide">Connecting…</span>
+          </div>
+          
+          <nav class="space-y-1" id="desktop-sidebar-nav">
+            <!-- Rendered via JavaScript dynamically on login state change -->
+          </nav>
+        </aside>
+
+        <!-- APP WORKSPACE (TAB-VIEWS DISPLAY AREA) -->
+        <section class="flex-grow w-full space-y-6">
+
+          <!-- ==============================================
+               1. LOGIN / CREDENTIALS ENTRY SCREEN (DEFAULT VIEW)
+               ============================================== -->
+          <div id="view-login" class="max-w-md mx-auto w-full bg-construction-cardBg border border-construction-border rounded-xl p-6 sm:p-8 shadow-2xl mt-4 sm:mt-12 no-print">
+            <div class="text-center space-y-4 mb-6">
+              <!-- Inline SVG Logo for high speed load & no external dependencies -->
+              <div class="w-20 h-20 bg-white rounded-xl p-2 mx-auto flex items-center justify-center shadow-md">
+                <svg viewBox="0 0 100 100" class="w-16 h-16">
+                  <path d="M 32,15 L 12,15 L 12,85 L 32,85 L 32,71 L 24,63 L 24,37 L 32,29 Z" fill="#0f59a4" />
+                  <polygon points="34,50 82,18 82,82" fill="#70c144" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl font-extrabold tracking-tight">CHETTINAD</h2>
+                <p class="text-xs text-construction-orange uppercase tracking-widest font-semibold mt-1">Products and Services Pvt. Ltd.</p>
+                <div class="mt-4 py-2 px-3 bg-slate-900 rounded-lg border border-construction-border">
+                  <p class="text-xs font-medium text-slate-300">CTO Project -- Site Operations</p>
+                  <p class="text-[10px] text-slate-400 mt-0.5">Chennai, India</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Login Input Fields -->
+            <form id="login-form" onsubmit="event.preventDefault(); triggerLogin();" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Username</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                  </span>
+                  <input id="login-username" type="text" required placeholder="Enter Username (e.g., admin)" class="w-full pl-10 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-construction-orange transition-colors">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Security PIN / Password</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none">
+                    <i data-lucide="lock" class="w-4 h-4"></i>
+                  </span>
+                  <input id="login-pin" type="password" required placeholder="Enter 5-Digit PIN" class="w-full pl-10 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-construction-orange transition-colors">
+                </div>
+              </div>
+
+              <button type="submit" class="w-full py-2.5 px-4 bg-gradient-to-r from-construction-orange to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-bold rounded-lg shadow-lg hover:shadow-orange-500/20 active:translate-y-px transition-all">
+                Access Safety Terminal
+              </button>
+            </form>
+
+            <div class="text-center mt-6">
+              <button onclick="forgotPasswordDialog()" class="text-xs text-slate-400 hover:text-construction-orange underline">Forgot your credentials?</button>
+            </div>
+          </div>
+
+          <!-- FORCE PIN CHANGE SCREEN -->
+          <div id="view-force-pin" class="max-w-md mx-auto w-full bg-construction-cardBg border-2 border-construction-orange rounded-xl p-6 sm:p-8 shadow-2xl mt-4 sm:mt-12 hidden no-print">
+            <div class="text-center mb-6 space-y-2">
+              <div class="w-12 h-12 bg-construction-orange/20 text-construction-orange rounded-full flex items-center justify-center mx-auto">
+                <i data-lucide="shield-alert" class="w-6 h-6"></i>
+              </div>
+              <h3 class="text-lg font-bold">First-Time Security Configuration</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">For safety enforcement compliance, you must change the default login PIN (<strong class="text-construction-orange">12345</strong>) before continuing to access the dashboard portal.</p>
+            </div>
+            
+            <form onsubmit="event.preventDefault(); updateAdminPin();" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">New 5-Digit Secure PIN</label>
+                <input id="force-pin-new" type="password" pattern="[0-9]{5}" required placeholder="5 Numeric Digits Only" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 tracking-widest text-center text-lg focus:outline-none focus:border-construction-orange">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Confirm New Secure PIN</label>
+                <input id="force-pin-confirm" type="password" pattern="[0-9]{5}" required placeholder="Confirm Security PIN" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 tracking-widest text-center text-lg focus:outline-none focus:border-construction-orange">
+              </div>
+              <button type="submit" class="w-full py-2.5 px-4 bg-construction-orange hover:bg-orange-600 text-white font-bold text-sm rounded-lg shadow-lg">
+                Update Permanent PIN & Log In
+              </button>
+            </form>
+          </div>
+
+          <!-- ==============================================
+               2. MAIN DASHBOARD VIEW
+               ============================================== -->
+          <div id="view-dashboard" class="space-y-6 hidden no-print">
+            
+            <!-- Quick Actions Header Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                  <i data-lucide="hard-hat" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Today's Staff</p>
+                  <p id="kpi-staff" class="text-xl font-extrabold text-blue-400 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Personnel</span></p>
+                </div>
+              </div>
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-construction-orange/10 flex items-center justify-center text-construction-orange shrink-0">
+                  <i data-lucide="users-2" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Today's Workers</p>
+                  <p id="kpi-labour" class="text-xl font-extrabold text-slate-100 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Workers</span></p>
+                </div>
+              </div>
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+                  <i data-lucide="users" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Total Manpower</p>
+                  <p id="kpi-total-manpower" class="text-xl font-extrabold text-purple-400 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">On Site</span></p>
+                </div>
+              </div>
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-construction-green/10 flex items-center justify-center text-construction-green shrink-0">
+                  <i data-lucide="timer" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Today's Manhours</p>
+                  <p id="kpi-manhours" class="text-xl font-extrabold text-construction-green mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Hrs</span></p>
+                </div>
+              </div>
+            </div>
+            <!-- Monthly Safe Manhours Bar -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-4">
+              <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                <i data-lucide="award" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-grow">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Accumulated Safe Manhours</p>
+                <p id="kpi-safehours" class="text-2xl font-extrabold text-emerald-400 mt-1">0 <span class="text-xs font-normal text-emerald-500">Hours this month</span></p>
+              </div>
+              <div class="text-right hidden sm:block">
+                <p class="text-[10px] text-slate-500 uppercase tracking-wider">Formula</p>
+                <p class="text-xs text-slate-400 font-mono">(Staff + Workers) × 8 hrs/day</p>
+              </div>
+            </div>
+
+            <!-- TODAY'S CONTRACTOR-WISE WORKER BREAKDOWN (visible to all logged-in users) -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
+                  <i data-lucide="building-2" class="w-4 h-4"></i>
+                  Today's Contractor-wise Workers
+                </h3>
+                <span id="dashboard-ctr-date" class="text-[10px] text-slate-500 font-mono"></span>
+              </div>
+              <div id="dashboard-contractor-table" class="overflow-x-auto">
+                <!-- Rendered by renderDashboardStats -->
+              </div>
+            </div>
+
+            <!-- PERMIT KPI COUNT BAR -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Work Permits</p>
+                <p id="kpi-permits-open" class="text-3xl font-extrabold text-construction-orange mt-1">0</p>
+              </div>
+              <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Approved Permits</p>
+                <p id="kpi-permits-approved" class="text-3xl font-extrabold text-construction-green mt-1">0</p>
+              </div>
+              <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Unresolved Hazards</p>
+                <p id="kpi-hazards" class="text-3xl font-extrabold text-yellow-500 mt-1">0</p>
+              </div>
+              <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Incidents</p>
+                <p id="kpi-incidents" class="text-3xl font-extrabold text-red-500 mt-1">0</p>
+              </div>
+            </div>
+
+            <!-- DASHBOARD QUICK LINKS GRID -->
+            <div>
+              <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-3">Instant Action Terminal</h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button onclick="switchTab('permits')" class="bg-gradient-to-b from-slate-800 to-slate-900 border border-construction-border p-4 rounded-xl text-center hover:border-construction-orange transition-all flex flex-col items-center justify-center gap-2">
+                  <i data-lucide="file-plus" class="w-6 h-6 text-construction-orange"></i>
+                  <span class="text-xs font-bold">Apply Permit</span>
+                </button>
+                <button onclick="switchTab('labour')" class="bg-gradient-to-b from-slate-800 to-slate-900 border border-construction-border p-4 rounded-xl text-center hover:border-construction-orange transition-all flex flex-col items-center justify-center gap-2">
+                  <i data-lucide="calculator" class="w-6 h-6 text-construction-green"></i>
+                  <span class="text-xs font-bold">Log Manpower</span>
+                </button>
+                <button onclick="switchTab('reports')" class="bg-gradient-to-b from-slate-800 to-slate-900 border border-construction-border p-4 rounded-xl text-center hover:border-construction-orange transition-all flex flex-col items-center justify-center gap-2">
+                  <i data-lucide="alert-octagon" class="w-6 h-6 text-yellow-500"></i>
+                  <span class="text-xs font-bold">Log Hazard</span>
+                </button>
+                <button onclick="switchTab('emergency')" class="bg-gradient-to-b from-slate-800 to-slate-900 border border-construction-border p-4 rounded-xl text-center hover:border-construction-orange transition-all flex flex-col items-center justify-center gap-2">
+                  <i data-lucide="phone-call" class="w-6 h-6 text-red-500"></i>
+                  <span class="text-xs font-bold">Quick SOS Contacts</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- RECENT NOTIFICATIONS FEED & EMERGENCY SHORTCUTS -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Safety Feed -->
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+                <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-3">
+                  <h4 class="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                    <i data-lucide="message-square" class="w-4 h-4 text-construction-orange"></i>
+                    Site Safety Activity Feed
+                  </h4>
+                  <span class="text-xs text-slate-500">Live</span>
+                </div>
+                <div id="dashboard-notif-list" class="space-y-3 text-xs max-h-64 overflow-y-auto pr-1">
+                  <!-- Generated dynamically -->
+                </div>
+              </div>
+
+              <!-- Hot Contacts Summary -->
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+                <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-3">
+                  <h4 class="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-red-500"></i>
+                    Site Emergency SOS Contacts
+                  </h4>
+                  <button onclick="switchTab('emergency')" class="text-xs text-construction-orange hover:underline">View All</button>
+                </div>
+                <div id="dashboard-sos-list" class="space-y-2 max-h-64 overflow-y-auto">
+                  <!-- Generated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==============================================
+               3. WORK PERMIT MODULE VIEW
+               ============================================== -->
+          <div id="view-permits" class="space-y-6 hidden no-print">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
+                  <i data-lucide="file-check-2" class="w-5 h-5 text-construction-orange"></i>
+                  Work Permit Manager
+                </h2>
+                <p class="text-xs text-slate-400">Create, review, and issue critical site safety operation clearance forms.</p>
+              </div>
+              <button id="btn-create-permit" onclick="openCreatePermitModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-sm py-2 px-4 rounded-lg shadow flex items-center justify-center gap-2">
+                <i data-lucide="file-plus" class="w-4 h-4"></i>
+                Create New Safety Permit
+              </button>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="bg-construction-cardBg border border-construction-border p-3 rounded-xl flex flex-wrap gap-2 items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400 uppercase">Filters:</span>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="filterPermits('all')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md active-filter" data-filter="all">All</button>
+                <button onclick="filterPermits('Submitted')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Submitted">Submitted</button>
+                <button onclick="filterPermits('Pending Staff Review')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Staff Review">Pending Staff</button>
+                <button onclick="filterPermits('Pending Admin Approval')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Admin Approval">Pending Admin</button>
+                <button onclick="filterPermits('Approved')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Approved">Approved</button>
+              </div>
+            </div>
+
+            <!-- Active Permits List Layout -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl overflow-hidden shadow-md">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs md:text-sm">
+                  <thead>
+                    <tr class="bg-slate-800/80 border-b border-construction-border text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                      <th class="p-3">Permit No / Type</th>
+                      <th class="p-3">Contractor / Location</th>
+                      <th class="p-3">Status</th>
+                      <th class="p-3">Timestamps / Validity</th>
+                      <th class="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="permits-table-body" class="divide-y divide-construction-border">
+                    <!-- Loaded dynamically -->
+                  </tbody>
+                </table>
+              </div>
+              <div id="empty-permits-message" class="text-center py-8 text-slate-500 hidden">
+                <i data-lucide="file-warning" class="w-12 h-12 mx-auto text-slate-600 mb-2"></i>
+                <p class="text-xs">No Safety Work Permits match your current filter.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==============================================
+               4. DAILY WORKER & STAFF MANPOWER VIEW (CONTRACTOR-WISE)
+               ============================================== -->
+          <div id="view-labour" class="space-y-6 hidden no-print">
+            <div class="bg-construction-cardBg border border-construction-border p-5 rounded-xl">
+              <h2 class="text-base font-bold uppercase tracking-wider flex items-center gap-2 mb-1">
+                <i data-lucide="users-2" class="w-5 h-5 text-construction-orange"></i>
+                Daily Worker &amp; Staff Manpower
+              </h2>
+              <p class="text-xs text-slate-400 mb-4">Log today's site manpower date-wise. Workers are entered per contractor (Day &amp; Night). Staff counts are entered once for the whole site. Manhours auto-calculated at 8 hrs per head.</p>
+
+              <form id="labour-form" onsubmit="event.preventDefault(); submitManpowerEntry();" class="space-y-5">
+
+                <!-- Date -->
+                <div class="bg-slate-900 border border-construction-border rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <label class="text-xs font-bold uppercase text-slate-400 shrink-0">Site Date</label>
+                  <input id="labour-date" type="date" required class="w-full sm:w-48 px-3 py-2 bg-slate-800 border border-construction-border rounded-lg text-slate-100 focus:outline-none focus:border-construction-orange">
+                </div>
+
+                <!-- Staff Section -->
+                <div class="bg-slate-900 border border-blue-900/50 rounded-lg p-4 space-y-3">
+                  <p class="text-[11px] font-bold uppercase tracking-widest text-blue-400 flex items-center gap-2"><i data-lucide="hard-hat" class="w-3.5 h-3.5"></i> Site Staff (CPSPL)</p>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase flex items-center gap-1"><i data-lucide="sun" class="w-3 h-3 text-amber-400"></i> Day Staff</label>
+                      <input id="labour-day-staff" type="number" min="0" placeholder="e.g. 8" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase flex items-center gap-1"><i data-lucide="moon" class="w-3 h-3 text-indigo-400"></i> Night Staff</label>
+                      <input id="labour-night-staff" type="number" min="0" placeholder="e.g. 2" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Contractor Workers Section — rows injected by JS -->
+                <div>
+                  <p class="text-[11px] font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2 mb-2"><i data-lucide="building-2" class="w-3.5 h-3.5"></i> Contractor Workers</p>
+                  <div id="contractor-worker-rows" class="space-y-2">
+                    <!-- Dynamic rows per contractor -->
+                  </div>
+                  <p id="no-contractors-notice" class="hidden text-[11px] text-slate-500 italic bg-slate-900 p-3 rounded-lg border border-construction-border">No contractors added yet. Ask Admin to add contractors in the Admin Panel first.</p>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
+                  <p class="text-[10px] text-slate-500">Leave fields blank if no workers for that shift. Saving again on the same date will update existing record.</p>
+                  <button type="submit" class="py-2.5 px-6 bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider">
+                    Save Day's Manpower
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- History — card layout, one card per date -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest">Manpower History Log</h3>
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider">W = Workers · S = Staff</span>
+              </div>
+              <div id="labour-history-body" class="space-y-3">
+                <!-- Dynamic date cards -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ==============================================
+               5. HAZARDS & INCIDENTS VIEW (EDIT & DELETE INCLUDED FOR ADMIN)
+               ============================================== -->
+          <div id="view-reports" class="space-y-6 hidden no-print">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-construction-border pb-4">
+              <div>
+                <h2 class="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
+                  <i data-lucide="alert-octagon" class="w-5 h-5 text-yellow-500"></i>
+                  Site Hazard & Incident Tracker
+                </h2>
+                <p class="text-xs text-slate-400">Log hazards immediately on detection or document accidents to maintain project compliance audits.</p>
+              </div>
+              <div class="flex gap-2 w-full sm:w-auto">
+                <button onclick="openReportModal('hazard')" class="flex-grow sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Log Hazard
+                </button>
+                <button onclick="openReportModal('incident')" class="flex-grow sm:flex-none bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="alert-triangle" class="w-4 h-4"></i> Log Incident
+                </button>
+              </div>
+            </div>
+
+            <!-- GRID FOR HAZARD & INCIDENT LISTS -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              <!-- HAZARDS LIST PANEL -->
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+                <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                  Identified Site Hazards
+                </h3>
+                <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="hazards-list-panel">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- INCIDENTS LIST PANEL -->
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+                <h3 class="text-sm font-bold text-red-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                  Recorded Accidents / Incidents
+                </h3>
+                <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="incidents-list-panel">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ==============================================
+               6. EMERGENCY SOS CONTACTS VIEW
+               ============================================== -->
+          <div id="view-emergency" class="space-y-6 hidden no-print">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-bold uppercase tracking-wider text-red-500 flex items-center gap-2">
+                  <i data-lucide="phone-call" class="w-5 h-5 animate-bounce"></i>
+                  CTO Project - Emergency SOS Directory
+                </h2>
+                <p class="text-xs text-slate-400">Immediate telephone links for active site operations and Chennai response nodes.</p>
+              </div>
+              <button id="admin-add-contact-btn" onclick="openAddContactModal()" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 border border-construction-border font-semibold text-xs py-2 px-4 rounded-lg shadow hidden">
+                + Add Contact Entry
+              </button>
+            </div>
+
+            <!-- Main Contacts Directory Card Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="emergency-contacts-grid">
+              <!-- Contacts load automatically -->
+            </div>
+          </div>
+
+          <!-- ==============================================
+               7. DOCUMENT LIBRARY VIEW
+               ============================================== -->
+          <div id="view-documents" class="space-y-6 hidden no-print">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
+                  <i data-lucide="folder-git" class="w-5 h-5 text-construction-orange"></i>
+                  CTO Project Site Document Vault
+                </h2>
+                <p class="text-xs text-slate-400">Download and view essential site safety manuals, training sheets, and blank templates.</p>
+              </div>
+              <button id="admin-upload-doc-btn" onclick="openUploadDocModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center justify-center gap-1.5 hidden">
+                <i data-lucide="upload" class="w-4 h-4"></i> Upload Safety Document
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="document-library-grid">
+              <!-- Loaded dynamically -->
+            </div>
+          </div>
+
+          <!-- ==============================================
+               8. ADMIN PANEL VIEW (FULLY ADAPTIVE FOR MOBILE AND DESKTOP)
+               ============================================== -->
+          <div id="view-admin" class="space-y-6 hidden no-print">
+            <div class="border-b border-construction-border pb-4">
+              <h2 class="text-lg font-extrabold uppercase tracking-wider text-construction-orange flex items-center gap-2">
+                <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                Site Security Control Node (Admin Options)
+              </h2>
+              <p class="text-xs text-slate-400">Admin terminal to create/delete site user accounts, reset credentials, and oversee safety approvals.</p>
+            </div>
+
+            <!-- Manage Users Container -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300">Registered Personnel Directory</h3>
+                <button onclick="openCreateUserModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow">
+                  + Provision New Account
+                </button>
+              </div>
+
+              <!-- Users list table -->
+              <div class="overflow-x-auto rounded-lg border border-construction-border">
+                <table class="w-full text-left border-collapse text-xs md:text-sm">
+                  <thead>
+                    <tr class="bg-slate-800 text-slate-400 uppercase tracking-wider text-[10px] border-b border-construction-border">
+                      <th class="p-3">User Profile Name</th>
+                      <th class="p-3">Assigned Role</th>
+                      <th class="p-3">Contact</th>
+                      <th class="p-3">Safety Authority Details</th>
+                      <th class="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-users-table-body" class="divide-y divide-construction-border">
+                    <!-- Dynamic generation -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Contractor Management — Admin adds/edits/removes contractors here -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
+                    <i data-lucide="building-2" class="w-4 h-4"></i>
+                    Contractor Registry
+                  </h3>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Add and manage contractor companies on site. Workers are logged per-contractor in the Manpower tab daily.</p>
+                </div>
+                <button onclick="openContractorModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Contractor
+                </button>
+              </div>
+              <div class="overflow-x-auto rounded-lg border border-construction-border">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-800 text-slate-400 uppercase tracking-wider text-[10px] border-b border-construction-border">
+                      <th class="p-3">#</th>
+                      <th class="p-3">Contractor Company Name</th>
+                      <th class="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-contractor-table-body" class="divide-y divide-construction-border">
+                    <!-- Dynamic rows -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Today's Manpower — contractor-wise breakdown sourced from daily log -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    Today's Manpower
+                  </h3>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Live figures for <strong id="admin-manpower-date" class="text-slate-300">today</strong> from the daily log. Contractor-wise worker breakdown plus site staff.</p>
+                </div>
+                <button onclick="switchTab('labour')" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
+                  <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Add / Edit Manpower
+                </button>
+              </div>
+
+              <!-- Contractor-wise worker table -->
+              <div id="admin-contractor-workers-table" class="overflow-x-auto rounded-lg border border-construction-border mb-4">
+                <!-- Dynamic table rendered by renderAdminManpower -->
+              </div>
+
+              <!-- Staff + Totals -->
+              <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="bg-slate-900 rounded-lg border border-construction-border p-3 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Total Workers</p>
+                  <p id="admin-total-workers" class="text-2xl font-extrabold text-construction-orange mt-0.5">0</p>
+                </div>
+                <div class="bg-slate-900 rounded-lg border border-construction-border p-3 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Total Staff</p>
+                  <p id="admin-total-staff" class="text-2xl font-extrabold text-blue-400 mt-0.5">0</p>
+                  <p class="text-[9px] text-slate-600 mt-0.5" id="admin-staff-shift-detail">Day: 0 · Night: 0</p>
+                </div>
+                <div class="bg-slate-900 rounded-lg border border-construction-border p-3 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Total Manpower</p>
+                  <p id="admin-total-manpower" class="text-2xl font-extrabold text-purple-400 mt-0.5">0</p>
+                </div>
+                <div class="bg-slate-900 rounded-lg border border-construction-border p-3 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Today's Manhours</p>
+                  <p id="admin-total-manhours" class="text-2xl font-extrabold text-emerald-400 mt-0.5">0</p>
+                </div>
+              </div>
+              <p id="admin-manpower-empty" class="hidden text-[11px] text-slate-500 italic mt-3">No manpower logged for today. Use "Add / Edit Manpower" to record it.</p>
+            </div>
+
+        </section>
+      </div>
+
+    </main>
+
+    <!-- FOOTER COMPANY MARKER -->
+    <footer class="bg-construction-darkBg border-t border-construction-border py-6 mt-auto text-center text-xs text-slate-500 no-print flex flex-col gap-1 items-center justify-center">
+      <div class="flex items-center gap-2 mb-2">
+        <svg viewBox="0 0 100 100" class="w-5 h-5 bg-white p-0.5 rounded">
+          <path d="M 32,15 L 12,15 L 12,85 L 32,85 L 32,71 L 24,63 L 24,37 L 32,29 Z" fill="#0f59a4" />
+          <polygon points="34,50 82,18 82,82" fill="#70c144" />
+        </svg>
+        <span class="font-bold text-slate-400">CHETTINAD Products & Services Pvt. Ltd.</span>
+      </div>
+      <p>Developed &amp; Maintained by CPASPL Safety Department for CTO Project Internal Purpose Only.</p>
+      <p class="text-[10px] text-slate-600 mt-1">Strict Compliance Monitoring System. All modifications &amp; login attempts are audited.</p>
+    </footer>
+
+    <!-- ==============================================
+         GLOBAL DIALOGS / POP-UP COMPONENT OVERLAYS
+         ============================================== -->
+
+    <!-- Modal Background overlay backdrop -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-950 bg-opacity-80 z-40 hidden flex items-center justify-center p-4">
+      
+      <!-- Create Permit Modal -->
+      <div id="modal-create-permit" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Select Safety Permit Template</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button onclick="startPermitCreation('general')" class="flex flex-col text-left p-4 bg-slate-900 hover:border-construction-orange border border-construction-border rounded-lg transition-all gap-2">
+            <span class="text-xs font-mono text-construction-orange">Form: CPSPL/02/F06/R</span>
+            <h4 class="font-bold text-sm text-slate-100">General Work Permit</h4>
+            <p class="text-xs text-slate-400">Core standard permit covering job supervisor verification and 10 safety checkpoints.</p>
+          </button>
+          
+          <button onclick="startPermitCreation('height')" class="flex flex-col text-left p-4 bg-slate-900 hover:border-construction-orange border border-construction-border rounded-lg transition-all gap-2">
+            <span class="text-xs font-mono text-construction-orange">Form: CPSPL/02/F08/R0</span>
+            <h4 class="font-bold text-sm text-slate-100">Work At Height Permit</h4>
+            <p class="text-xs text-slate-400">Extended 13-point height safety checklist, lifeline, and safety harness verification.</p>
+          </button>
+          
+          <button onclick="startPermitCreation('hot')" class="flex flex-col text-left p-4 bg-slate-900 hover:border-construction-orange border border-construction-border rounded-lg transition-all gap-2">
+            <span class="text-xs font-mono text-construction-orange">Form: CPSPL/02/F07/R0</span>
+            <h4 class="font-bold text-sm text-slate-100">Hot Work Permit</h4>
+            <p class="text-xs text-slate-400">Covers hot work preventative checks, electrical isolations, and fire watch safety duties.</p>
+          </button>
+          
+          <button onclick="startPermitCreation('night')" class="flex flex-col text-left p-4 bg-slate-900 hover:border-construction-orange border border-construction-border rounded-lg transition-all gap-2">
+            <span class="text-xs font-mono text-construction-orange">Form: CPSPL/02/F42/R0</span>
+            <h4 class="font-bold text-sm text-slate-100">Night Work Permit</h4>
+            <p class="text-xs text-slate-400">Special shift coordination sheet detailing electrician contacts, emergency vehicles, and light fixtures.</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- MASTER DYNAMIC PERMIT SUBMISSION FORM -->
+      <div id="modal-permit-form" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <div>
+            <h3 id="permit-form-title" class="text-sm font-bold uppercase tracking-wider text-slate-200">Permit Creation</h3>
+            <p id="permit-form-subtitle" class="text-[10px] text-construction-orange font-mono">Form Serial ID</p>
+          </div>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <form id="dynamic-permit-form-el" onsubmit="event.preventDefault(); triggerSubmitPermitForm();" class="space-y-6 text-xs text-slate-300">
+          <!-- Main Form Metadata Fields -->
+          <div class="bg-slate-900 p-4 rounded-lg border border-construction-border space-y-4">
+            <h4 class="font-bold uppercase tracking-wider text-slate-300 border-b border-construction-border pb-2">Part A: General Details</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Name of Site / Project</label>
+                <input id="permit-field-project" type="text" required class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg focus:outline-none focus:border-construction-orange text-slate-200">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contractor / Agency Name</label>
+                <input id="permit-field-contractor" type="text" required class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg focus:outline-none focus:border-construction-orange text-slate-200">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Exact Location of Work</label>
+                <input id="permit-field-location" type="text" required class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg focus:outline-none focus:border-construction-orange text-slate-200">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">No. of workers engaged for work</label>
+                <input id="permit-field-workers" type="number" required min="1" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg focus:outline-none focus:border-construction-orange text-slate-200">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Detailed Description of Work Activity</label>
+                <textarea id="permit-field-description" required rows="2" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg focus:outline-none focus:border-construction-orange text-slate-200"></textarea>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Validity Start (Date/Time)</label>
+                <input id="permit-field-start" type="datetime-local" required class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg focus:outline-none focus:border-construction-orange text-slate-200">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Validity End (Date/Time)</label>
+                <input id="permit-field-end" type="datetime-local" required class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg focus:outline-none focus:border-construction-orange text-slate-200">
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Checklist Sections injected depending on the type of permit -->
+          <div class="bg-slate-900 p-4 rounded-lg border border-construction-border space-y-4">
+            <h4 class="font-bold uppercase tracking-wider text-slate-300 border-b border-construction-border pb-2">Part B: Safety Requirement Checklists</h4>
+            <p class="text-[10px] text-slate-400 italic mb-2">Check each physical condition as observed at job location.</p>
+            
+            <div id="permit-dynamic-checklist-container" class="space-y-4">
+              <!-- Checklist injected dynamically based on permit selected -->
+            </div>
+          </div>
+
+          <!-- Special Night Shift contact fields injected if Night Permit -->
+          <div id="permit-night-shift-extra" class="bg-slate-900 p-4 rounded-lg border border-construction-border space-y-4 hidden">
+            <h4 class="font-bold uppercase tracking-wider text-red-500 border-b border-construction-border pb-2">Part C: Night Coordination details</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Emergency Vehicle No. & Driver</label>
+                <input id="permit-extra-driver" type="text" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg text-slate-200">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">HSE Officer & contact No.</label>
+                <input id="permit-extra-hse" type="text" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg text-slate-200">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Site Electrician & Contact No.</label>
+                <input id="permit-extra-electrician" type="text" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg text-slate-200">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Submit Permit for Review</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- STAFF/ADMIN PERMIT REVIEWS & ACTIONS DIALOG -->
+      <div id="modal-permit-review" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-xl w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Review Safety Permit</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <form id="review-form" onsubmit="event.preventDefault(); triggerReviewAction();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1.5">Action decision</label>
+            <select id="review-decision" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <!-- Dynamically populated based on active user privileges -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1.5">Site Comments & Directions</label>
+            <textarea id="review-comment" required rows="3" placeholder="Enter review remarks, missing PPE warnings or notes here." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
+          </div>
+
+          <!-- Integrated Digital Signature Pad using HTML5 Canvas -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1.5 flex justify-between">
+              <span>Sign Digitally Below</span>
+              <button type="button" onclick="clearSignatureCanvas()" class="text-[10px] text-red-400 hover:underline">Clear Signature</button>
+            </label>
+            <div class="border border-construction-border rounded-lg bg-white overflow-hidden h-32 relative">
+              <canvas id="signature-canvas" class="w-full h-full cursor-crosshair block"></canvas>
+            </div>
+            <p class="text-[9px] text-slate-500 mt-1 italic">Draw your signature using mouse pointer or touch interaction on mobile screens.</p>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Apply Signature & Submit</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- REPORT HAZARD/INCIDENT MODAL (NOW DUAL PURPOSE - CREATE & EDIT) -->
+      <div id="modal-report" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 id="report-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Log Observation</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <form id="report-modal-form" onsubmit="event.preventDefault(); submitSafetyObservation();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Occurrence Date</label>
+            <input id="report-field-date" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Location Details</label>
+            <input id="report-field-loc" type="text" required placeholder="e.g. Block B, Crane Yard No 4" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation Details / Incident Description</label>
+            <textarea id="report-field-desc" required rows="3" placeholder="Provide description of hazard, machinery risk or accident..." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div id="photo-ref-field-wrapper">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Photo Reference</label>
+            <input id="report-field-photo" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-xs">
+            <p class="text-[9px] text-slate-500 mt-1">Select an image representing the hazard or safety incident.</p>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Submit Observation</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- EDIT MANPOWER ENTRY MODAL -->
+      <div id="modal-edit-labour" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-lg w-full p-6 hidden" style="max-height:90vh;overflow-y:auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Edit Manpower Record</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form onsubmit="event.preventDefault(); saveManpowerEntryEdit();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Site Date</label>
+            <input id="edit-labour-date" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div class="bg-slate-900 border border-blue-900/40 rounded-lg p-3">
+            <p class="text-[10px] font-bold uppercase text-blue-400 flex items-center gap-1 mb-2"><i data-lucide="hard-hat" class="w-3 h-3"></i> Staff (CPSPL)</p>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-amber-400 mb-1">Day Staff</label>
+                <input id="edit-labour-day-staff" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg text-slate-100">
+              </div>
+              <div>
+                <label class="block text-[10px] text-indigo-400 mb-1">Night Staff</label>
+                <input id="edit-labour-night-staff" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-800 border border-construction-border rounded-lg text-slate-100">
+              </div>
+            </div>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase text-construction-orange flex items-center gap-1 mb-2"><i data-lucide="building-2" class="w-3 h-3"></i> Contractor Workers</p>
+            <div id="edit-contractor-worker-rows" class="space-y-2"></div>
+          </div>
+          <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Update Entry</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- CONTRACTOR MODAL (Admin only — name only) -->
+      <div id="modal-contractor" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 id="contractor-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Add Contractor</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form onsubmit="event.preventDefault(); saveContractor();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contractor Company Name</label>
+            <input id="contractor-field-name" type="text" required placeholder="e.g. SafeBuild Infra Pvt. Ltd." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <p class="text-[10px] text-slate-500 bg-slate-900 rounded p-2 border border-construction-border">Worker counts are entered daily in the Manpower tab — not stored here.</p>
+          <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Save Contractor</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- CREATE NEW USER PANEL MODAL -->
+      <div id="modal-create-user" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Create New Site User Profile</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <form id="create-user-form" onsubmit="event.preventDefault(); triggerCreateUser();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Full Name</label>
+            <input id="user-new-name" type="text" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Username (Used for login)</label>
+            <input id="user-new-username" type="text" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Role Type</label>
+            <select id="user-new-role" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <option value="Staff">Staff</option>
+              <option value="Contractor">Contractor</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Designation</label>
+            <input id="user-new-designation" type="text" required placeholder="e.g. HSE Assistant, Safety Supervisor" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contact Phone Number</label>
+            <input id="user-new-phone" type="tel" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Setup PIN (Must be 5-digits)</label>
+            <input id="user-new-pin" type="password" required pattern="[0-9]{5}" placeholder="e.g. 54321" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Provision User</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ADMIN PASSWORD/PIN RESET MODAL -->
+      <div id="modal-reset-password" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Force Reset User Security PIN</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <form onsubmit="event.preventDefault(); triggerAdminResetPassword();" class="space-y-4 text-xs">
+          <div>
+            <p class="text-slate-400 mb-2">Configure a new secure login security PIN for <strong id="reset-user-fullname" class="text-construction-orange">User</strong>. Their profile data, work permit logs, and safety reports will remain safe.</p>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">New 5-Digit PIN</label>
+            <input id="reset-user-pin" type="password" required pattern="[0-9]{5}" placeholder="Enter 5 numeric digits" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-center tracking-widest text-lg">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Confirm PIN</label>
+            <input id="reset-user-pin-confirm" type="password" required pattern="[0-9]{5}" placeholder="Confirm 5 numeric digits" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-center tracking-widest text-lg">
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Apply Pin Update</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- EMERGENCY CONTACT DIALOG MODAL -->
+      <div id="modal-contact" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 id="contact-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Contact Configuration</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <form id="contact-modal-form" onsubmit="event.preventDefault(); saveContactEntry();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Personnel / Organization Name</label>
+            <input id="contact-field-name" type="text" required placeholder="e.g. Safety Team Lead" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Designation Role</label>
+            <input id="contact-field-designation" type="text" required placeholder="e.g. Ambulance / Nearest Hospital" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Telephone contact Number</label>
+            <input id="contact-field-phone" type="tel" required placeholder="e.g. +91 98765 43210" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save Contact Details</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- (Contractor & fixed staff-strength modals removed — manpower is now logged date-wise in the Worker & Staff tab) -->
+
+
+      <!-- USER PROFILE RESET / EDIT MODAL -->
+      <div id="modal-edit-profile" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Modify Personnel Profile</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <form id="edit-profile-form" onsubmit="event.preventDefault(); saveUserChanges();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Full Name</label>
+            <input id="edit-user-fullname" type="text" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Designation</label>
+            <input id="edit-user-designation" type="text" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contact Number</label>
+            <input id="edit-user-phone" type="tel" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save Changes</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- UPLOAD DOCUMENT MODAL -->
+      <div id="modal-upload-doc" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Upload Site Safety Manual</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <form id="upload-doc-form" onsubmit="event.preventDefault(); triggerUploadDoc();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Document Title</label>
+            <input id="doc-new-title" type="text" required placeholder="e.g. Scaffolding Inspection Checklist" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Category / Grouping</label>
+            <select id="doc-new-category" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <option value="Standard Operating Procedure">Standard Operating Procedure</option>
+              <option value="Safety Checklist">Safety Checklist</option>
+              <option value="Permit Manual">Permit Manual</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Attach File (PDF formats only)</label>
+            <input id="doc-new-file" type="file" required accept=".pdf" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-xs">
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Add to Vault</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- ==============================================
+         PRINTING & PDF MASTER LAYOUT GENERATION AREA
+         ============================================== -->
+    <div id="print-area" class="hidden bg-white text-black p-8 font-sans">
+      <!-- Generated Dynamically via javascript during printable rendering of specific permits -->
+    </div>
+
+  </div>
+
+  <!-- FIREBASE INTEGRATION GATEWAY -->
+
+  <!-- ROOT SITE LOGIC AND INTERACTIVE COMPONENT MECHANICS -->
+  <script>
+    // Mock Database initialization with localized storage
+    let dbState = {
+      users: [
+        { id: 'usr-0', username: 'admin', fullname: 'CTO Safety Admin', role: 'Admin', designation: 'General Safety Admin', phone: '+91 99999 88888', pin: '12345', isDefaultPin: true },
+        { id: 'usr-1', username: 'staff1', fullname: 'R. K. Raman', role: 'Staff', designation: 'HSE Officer', phone: '+91 98840 12345', pin: '11111', isDefaultPin: false, canApprove: true },
+        { id: 'usr-2', username: 'staff2', fullname: 'M. S. Sundar', role: 'Staff', designation: 'Site Supervisor', phone: '+91 98840 54321', pin: '11111', isDefaultPin: false, canApprove: false },
+        { id: 'usr-3', username: 'contractor1', fullname: 'A. Kumar (SafeBuild)', role: 'Contractor', designation: 'Lead Contractor', phone: '+91 94440 12345', pin: '22222', isDefaultPin: false }
+      ],
+      // Contractor list — managed by Admin only (name only; workers are logged date-wise)
+      contractors: [
+        { id: 'ctr-1', name: 'SafeBuild Infra Pvt. Ltd.' },
+        { id: 'ctr-2', name: 'Apex Fabricators' }
+      ],
+      permits: [],
+      // Date-wise manpower. Staff (day/night) logged as flat fields.
+      // Workers logged per-contractor as contractorWorkers array.
+      manpower: [
+        {
+          id: 'mp-1', date: '2026-06-11', dayStaff: 6, nightStaff: 2,
+          contractorWorkers: [
+            { contractorId: 'ctr-1', dayWorkers: 30, nightWorkers: 8 },
+            { contractorId: 'ctr-2', dayWorkers: 15, nightWorkers: 2 }
+          ]
+        },
+        {
+          id: 'mp-2', date: '2026-06-12', dayStaff: 8, nightStaff: 2,
+          contractorWorkers: [
+            { contractorId: 'ctr-1', dayWorkers: 35, nightWorkers: 10 },
+            { contractorId: 'ctr-2', dayWorkers: 15, nightWorkers: 2 }
+          ]
+        }
+      ],
+      hazards: [
+        { id: 'haz-1', date: '2026-06-10', location: 'Silo Yard Area C', description: 'Scaffolding boards found damaged without inspection tags', status: 'Open', reporter: 'R. K. Raman' }
+      ],
+      incidents: [],
+      contacts: [
+        { id: 'con-1', name: 'R. K. Raman', designation: 'HSE Safety Manager', phone: '+91 98840 12345' },
+        { id: 'con-2', name: 'A. Pillai', designation: 'Project Director', phone: '+91 98840 66778' },
+        { id: 'con-3', name: 'Dr. Suresh (Fortis Chennai)', designation: 'Nearest Partner Hospital', phone: '+91 44 2424 2424' },
+        { id: 'con-4', name: 'Emergency Vehicle Desk', designation: 'Site Ambulance Unit', phone: '+91 99401 91199' }
+      ],
+      documents: [
+        { id: 'doc-1', title: 'CTO Project General Safety Framework', category: 'Standard Operating Procedure', filename: 'General_Safety_Framework.pdf' },
+        { id: 'doc-2', title: 'Scaffolding Clearance Guidelines', category: 'Safety Checklist', filename: 'Scaffolding_Clearance.pdf' },
+        { id: 'doc-3', title: 'Work At Height - Double Harness SOP', category: 'Standard Operating Procedure', filename: 'Height_Harness_SOP.pdf' }
+      ],
+      notifications: [
+        { id: 'not-1', message: 'First-time admin credentials activated. Setup requires modification.', timestamp: 'Just now' }
+      ]
+    };
+
+
+    // ============================================================
+    // FIREBASE CONFIGURATION — Fill in your project credentials
+    // Get these from Firebase Console → Project Settings → Your apps
+    // ============================================================
+   const FIREBASE_CONFIG = {
+  authDomain: "cpspl-safety-portal.firebaseapp.com",
+  projectId: "cpspl-safety-portal",
+  storageBucket: "cpspl-safety-portal.firebasestorage.app",
+  messagingSenderId: "222167051757",
+  appId: "1:222167051757:web:9c3dd4db151a89b5d9cbe4"
+};
+    // Firestore path: /cpspl_safety/state (single shared document)
+    const FS_COL = 'cpspl_safety';
+    const FS_DOC = 'state';
+
+    // Firebase runtime references
+    let db   = null;         // Firestore instance
+    let auth = null;         // Firebase Auth instance
+    let _fsListenerOff = null; // unsubscribe handle for snapshot listener
+    let _saveDebounce  = null; // debounce timer for writes
+    let _firebaseMode  = false; // true = using Firestore, false = localStorage fallback
+
+    // ------ helpers ------
+    function setLoadingText(msg) {
+      const el = document.getElementById('loading-text');
+      if (el) el.innerText = msg;
+    }
+
+    function setFirebaseStatus(state) {
+      // state: 'online' | 'offline' | 'syncing' | 'connecting'
+      const dot  = document.getElementById('firebase-status-dot');
+      const text = document.getElementById('firebase-status-text');
+      if (!dot || !text) return;
+      const map = {
+        online:     { color: 'bg-emerald-500', label: '☁ Firebase Online' },
+        syncing:    { color: 'bg-blue-400 animate-pulse', label: '↕ Syncing…' },
+        connecting: { color: 'bg-yellow-400 animate-pulse', label: 'Connecting…' },
+        offline:    { color: 'bg-slate-500', label: '⚠ Offline (Local)' }
+      };
+      const s = map[state] || map.offline;
+      dot.className  = `w-2 h-2 rounded-full shrink-0 ${s.color}`;
+      text.innerText = s.label;
+    }
+
+    // ------ data migrations (run after any load) ------
+    function runMigrations() {
+      if (!dbState.contractors)  dbState.contractors = [];
+      if (!dbState.manpower) {
+        if (Array.isArray(dbState.labour)) {
+          dbState.manpower = dbState.labour.map(l => ({
+            id: l.id || `mp-${Math.random().toString(36).slice(2)}`,
+            date: l.date, dayStaff: 0, nightStaff: 0,
+            contractorWorkers: [{ contractorId: 'ctr-migrated', dayWorkers: parseInt(l.workers)||0, nightWorkers: 0 }]
+          }));
+        } else { dbState.manpower = []; }
+      }
+      (dbState.manpower || []).forEach(e => {
+        if (!e.contractorWorkers) {
+          e.contractorWorkers = [{ contractorId: 'ctr-migrated', dayWorkers: parseInt(e.dayWorkers)||0, nightWorkers: parseInt(e.nightWorkers)||0 }];
+          delete e.dayWorkers; delete e.nightWorkers;
+        }
+      });
+      delete dbState.staffStrength;
+      delete dbState.labour;
+    }
+
+    // ------ localStorage fallback ------
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem('cpspl_safety_v1');
+      if (saved) {
+        try { dbState = JSON.parse(saved); runMigrations(); } catch(e) {}
+      }
+    }
+    function saveToLocalStorage() {
+      localStorage.setItem('cpspl_safety_v1', JSON.stringify(dbState));
+    }
+
+    // ------ real-time Firestore listener ------
+    function setupFirestoreListener() {
+      if (_fsListenerOff) _fsListenerOff();
+      let skipFirst = true;
+      _fsListenerOff = db.collection(FS_COL).doc(FS_DOC).onSnapshot({
+        next(snap) {
+          if (skipFirst) { skipFirst = false; return; }
+          if (snap.exists && !snap.metadata.hasPendingWrites) {
+            setFirebaseStatus('syncing');
+            dbState = snap.data();
+            runMigrations();
+            refreshCurrentView();
+            setTimeout(() => setFirebaseStatus('online'), 1500);
+          }
+        },
+        error(err) {
+          console.warn('Firestore listener error:', err);
+          setFirebaseStatus('offline');
+        }
+      });
+    }
+
+    // ------ refresh currently active view ------
+    function refreshCurrentView() {
+      if (!currentUser) return;
+      if      (activeTab === 'dashboard') renderDashboardStats();
+      else if (activeTab === 'labour')    renderLabourHistory();
+      else if (activeTab === 'permits')   renderPermitsTable();
+      else if (activeTab === 'reports')   renderObservations();
+      else if (activeTab === 'emergency') renderEmergencyGrid();
+      else if (activeTab === 'documents') renderDocumentLibrary();
+      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); }
+    }
+
+    // ------ Firestore load ------
+    async function loadFromFirestore() {
+      const ref = db.collection(FS_COL).doc(FS_DOC);
+      const snap = await ref.get();
+      if (snap.exists) {
+        dbState = snap.data();
+        runMigrations();
+      } else {
+        // First run — check if there is localStorage data to migrate
+        const local = localStorage.getItem('cpspl_safety_v1');
+        if (local) {
+          try {
+            dbState = JSON.parse(local);
+            runMigrations();
+            showToast('Existing data migrated to Firebase ☁', 'success');
+          } catch(e) { /* keep defaults */ }
+        }
+        // Push seed / migrated data to Firestore
+        await ref.set(dbState);
+        localStorage.removeItem('cpspl_safety_v1');
+      }
+    }
+
+    // ------ Firebase initialisation (called from window.onload) ------
+    async function initFirebase() {
+      const isConfigured = FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY';
+
+      if (!isConfigured) {
+        // Show setup banner then fall back to localStorage
+        document.getElementById('firebase-setup-banner').classList.remove('hidden');
+        lucide.createIcons();
+        loadFromLocalStorage();
+        setFirebaseStatus('offline');
+        return;
+      }
+
+      setLoadingText('Connecting to Firebase…');
+      setFirebaseStatus('connecting');
+
+      try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        db   = firebase.firestore();
+        auth = firebase.auth();
+
+        // Enable offline persistence (single-tab; multi-tab shows a warning, not an error)
+        await db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+          if (err.code !== 'failed-precondition' && err.code !== 'unimplemented') throw err;
+        });
+
+        setLoadingText('Authenticating…');
+        await auth.signInAnonymously();
+
+        setLoadingText('Loading site data…');
+        await loadFromFirestore();
+
+        _firebaseMode = true;
+        setFirebaseStatus('online');
+        setupFirestoreListener();
+
+      } catch (err) {
+        console.error('Firebase init failed:', err);
+        setFirebaseStatus('offline');
+        showToast(`Firebase error: ${err.message}. Running offline.`, 'error');
+        loadFromLocalStorage();
+      }
+    }
+
+    // ------ SAVE — debounced Firestore write (falls back to localStorage) ------
+    function saveCurrentState() {
+      if (_saveDebounce) clearTimeout(_saveDebounce);
+      _saveDebounce = setTimeout(async () => {
+        if (_firebaseMode && db) {
+          setFirebaseStatus('syncing');
+          try {
+            await db.collection(FS_COL).doc(FS_DOC).set(dbState);
+            setFirebaseStatus('online');
+          } catch (err) {
+            console.error('Firestore save error:', err);
+            showToast('Save to Firebase failed. Data saved locally.', 'error');
+            saveToLocalStorage();
+            setFirebaseStatus('offline');
+          }
+        } else {
+          saveToLocalStorage();
+        }
+      }, 600); // 600 ms debounce — batches rapid edits into one write
+    }
+
+    // Legacy alias kept so any code that calls loadSavedState() still works
+    function loadSavedState() { /* no-op — replaced by initFirebase() */ }
+
+    // STATE CONTROLLERS
+    let currentUser = null;
+    let activeTab = 'dashboard';
+    let activePermitFilter = 'all';
+    let drawingSignature = false;
+    let sigCanvas = null;
+    let sigCtx = null;
+    let selectedPermitType = null;
+    let currentEditPermit = null;
+    let currentReportType = 'hazard';
+    let editingContactId = null;
+    let editingUserId = null;
+    let editingLabourId = null;
+    let editingObservationId = null;
+    let resettingPasswordUserId = null;
+
+    // Toast Notification generator
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `p-4 rounded-lg shadow-lg text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto border`;
+      
+      if (type === 'success') {
+        toast.className += ' bg-emerald-950 text-emerald-400 border-emerald-800';
+        toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 shrink-0"></i> <span>${message}</span>`;
+      } else if (type === 'error') {
+        toast.className += ' bg-red-950 text-red-400 border-red-800';
+        toast.innerHTML = `<i data-lucide="alert-octagon" class="w-4 h-4 shrink-0"></i> <span>${message}</span>`;
+      } else {
+        toast.className += ' bg-slate-900 text-slate-300 border-construction-border';
+        toast.innerHTML = `<i data-lucide="info" class="w-4 h-4 shrink-0"></i> <span>${message}</span>`;
+      }
+
+      container.appendChild(toast);
+      lucide.createIcons();
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Modal Control wrappers
+    function openModal(modalId) {
+      document.getElementById('modal-backdrop').classList.remove('hidden');
+      document.getElementById(modalId).classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+      const modals = [
+        'modal-create-permit', 'modal-permit-form', 'modal-permit-review', 
+        'modal-report', 'modal-create-user', 'modal-contact', 
+        'modal-edit-profile', 'modal-upload-doc', 'modal-edit-labour', 'modal-reset-password',
+        'modal-contractor', 'modal-staff-strength'
+      ];
+      modals.forEach(m => {
+        const el = document.getElementById(m);
+        if (el) el.classList.add('hidden');
+      });
+    }
+
+    // Toggle Notifications Dropdown
+    function toggleNotifications() {
+      const dropdown = document.getElementById('notif-dropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function clearNotifications() {
+      dbState.notifications = [];
+      saveCurrentState();
+      renderNotifications();
+      showToast('Notifications cleared successfully.', 'success');
+    }
+
+    // TAB SWITCHER
+    function switchTab(tabId) {
+      if (!currentUser) return;
+      activeTab = tabId;
+      
+      // Hide all standard views
+      const views = ['view-dashboard', 'view-permits', 'view-labour', 'view-reports', 'view-emergency', 'view-documents', 'view-admin', 'view-force-pin'];
+      views.forEach(v => document.getElementById(v).classList.add('hidden'));
+      
+      // Show requested tab view
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+
+      // Sync active states inside Desktop Sidebar Nav Buttons
+      document.querySelectorAll('#desktop-sidebar-nav button').forEach(btn => {
+        btn.classList.remove('text-construction-orange', 'bg-slate-800');
+        if (btn.getAttribute('data-tab-desktop') === tabId) {
+          btn.classList.add('text-construction-orange', 'bg-slate-800');
+        }
+      });
+
+      // Sync active states inside Mobile Nav Bar Buttons
+      document.querySelectorAll('#mobile-nav button').forEach(btn => {
+        btn.classList.remove('text-construction-orange');
+        if (btn.getAttribute('data-tab-mobile') === tabId) {
+          btn.classList.add('text-construction-orange');
+        }
+      });
+
+      // Fetch dynamic records rendering depending on section
+      if (tabId === 'dashboard') {
+        renderDashboardStats();
+      } else if (tabId === 'permits') {
+        renderPermitsTable();
+      } else if (tabId === 'labour') {
+        renderLabourHistory();
+      } else if (tabId === 'reports') {
+        renderObservations();
+      } else if (tabId === 'emergency') {
+        renderEmergencyGrid();
+      } else if (tabId === 'documents') {
+        renderDocumentLibrary();
+      } else if (tabId === 'admin') {
+        renderPersonnelTable();
+        renderContractorRegistry();
+        renderAdminManpower();
+      }
+
+      lucide.createIcons();
+    }
+
+    // DYNAMIC NAVIGATION GENERATOR (RESOLVES MOBILE ADMIN VISIBILITY ISSUES)
+    function buildDynamicNavs() {
+      if (!currentUser) return;
+
+      // 1. Desktop Nav Aside Aside Builder
+      const sidebar = document.getElementById('desktop-sidebar-nav');
+      sidebar.innerHTML = `
+        <button onclick="switchTab('dashboard')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="dashboard">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Dashboard View</span>
+        </button>
+        <button onclick="switchTab('permits')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="permits">
+          <i data-lucide="file-check-2" class="w-4 h-4"></i>
+          <span>Work Permits</span>
+        </button>
+        <button onclick="switchTab('labour')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="labour">
+          <i data-lucide="users-2" class="w-4 h-4"></i>
+          <span>Worker &amp; Staff</span>
+        </button>
+        <button onclick="switchTab('reports')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="reports">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+          <span>Hazards & Incidents</span>
+        </button>
+        <button onclick="switchTab('emergency')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="emergency">
+          <i data-lucide="phone-call" class="w-4 h-4"></i>
+          <span>Emergency SOS</span>
+        </button>
+        <button onclick="switchTab('documents')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="documents">
+          <i data-lucide="folder-git" class="w-4 h-4"></i>
+          <span>Safety Documents</span>
+        </button>
+      `;
+
+      if (currentUser.role === 'Admin') {
+        sidebar.insertAdjacentHTML('beforeend', `
+          <button onclick="switchTab('admin')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="admin">
+            <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            <span>Admin Control Panel</span>
+          </button>
+        `);
+      }
+
+      // 2. Mobile Responsive Tab Bar Builder (Resolving the missing mobile admin feature)
+      const mobileNav = document.getElementById('mobile-nav');
+      let mobileTabsHtml = `
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="dashboard">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[9px] font-medium">Home</span>
+        </button>
+        <button onclick="switchTab('permits')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="permits">
+          <i data-lucide="file-check-2" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[9px] font-medium">Permits</span>
+        </button>
+        <button onclick="switchTab('labour')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="labour">
+          <i data-lucide="users-2" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[9px] font-medium">Manpower</span>
+        </button>
+        <button onclick="switchTab('reports')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="reports">
+          <i data-lucide="alert-triangle" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[9px] font-medium">Hazards</span>
+        </button>
+      `;
+
+      if (currentUser.role === 'Admin') {
+        // Embed direct Admin tab entry explicitly inside the active mobile bottom navbar
+        mobileTabsHtml += `
+          <button onclick="switchTab('admin')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="admin">
+            <i data-lucide="shield-alert" class="w-5 h-5 mb-0.5"></i>
+            <span class="text-[9px] font-medium">Admin</span>
+          </button>
+        `;
+      } else {
+        // Fallback standard safety shortcuts
+        mobileTabsHtml += `
+          <button onclick="switchTab('emergency')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="emergency">
+            <i data-lucide="phone-call" class="w-5 h-5 mb-0.5"></i>
+            <span class="text-[9px] font-medium">SOS</span>
+          </button>
+        `;
+      }
+
+      mobileNav.innerHTML = mobileTabsHtml;
+      lucide.createIcons();
+    }
+
+    // AUTHENTICATION LOGISTICS
+    function triggerLogin() {
+      const usernameInput = document.getElementById('login-username').value.trim().toLowerCase();
+      const pinInput = document.getElementById('login-pin').value;
+
+      // Find matched user
+      const user = dbState.users.find(u => u.username === usernameInput && u.pin === pinInput);
+      
+      if (!user) {
+        showToast('Invalid credentials provided. Verify and retry.', 'error');
+        return;
+      }
+
+      // Check for Admin Default Pin Reset lock
+      if (user.username === 'admin' && user.isDefaultPin && pinInput === '12345') {
+        // Enforce Force Reset Screen
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-force-pin').classList.remove('hidden');
+        currentUser = user;
+        showToast('Administrative PIN update mandatory.', 'error');
+        return;
+      }
+
+      // Login Successful
+      authenticateSession(user);
+    }
+
+    function authenticateSession(user) {
+      currentUser = user;
+      document.getElementById('view-login').classList.add('hidden');
+      document.getElementById('user-header-card').classList.remove('hidden');
+      
+      // Bind User Cards In Top Header
+      document.getElementById('user-display-name').innerText = user.fullname;
+      document.getElementById('user-display-role').innerText = `${user.role} (${user.designation})`;
+
+      // Compile responsive mobile bottom tab bar options
+      buildDynamicNavs();
+
+      // Adapt Interface limits depending on roles
+      if (user.role === 'Admin') {
+        document.getElementById('admin-add-contact-btn').classList.remove('hidden');
+        document.getElementById('admin-upload-doc-btn').classList.remove('hidden');
+        document.getElementById('btn-create-permit').classList.remove('hidden');
+      } else {
+        document.getElementById('admin-add-contact-btn').classList.add('hidden');
+        document.getElementById('admin-upload-doc-btn').classList.add('hidden');
+        
+        // Hide standard features if role lacks execution authorization
+        if (user.role === 'Contractor') {
+          document.getElementById('btn-create-permit').classList.remove('hidden');
+        } else {
+          document.getElementById('btn-create-permit').classList.add('hidden');
+        }
+      }
+
+      showToast(`Welcome back, ${user.fullname}! Session active.`, 'success');
+      switchTab('dashboard');
+    }
+
+    function updateAdminPin() {
+      const newPin = document.getElementById('force-pin-new').value;
+      const confirmPin = document.getElementById('force-pin-confirm').value;
+
+      if (newPin.length !== 5 || !/^\d+$/.test(newPin)) {
+        showToast('PIN must be exactly 5 numeric digits.', 'error');
+        return;
+      }
+
+      if (newPin !== confirmPin) {
+        showToast('PIN values do not match.', 'error');
+        return;
+      }
+
+      if (newPin === '12345') {
+        showToast('You cannot reuse the default PIN.', 'error');
+        return;
+      }
+
+      // Update PIN
+      const adminUser = dbState.users.find(u => u.username === 'admin');
+      adminUser.pin = newPin;
+      adminUser.isDefaultPin = false;
+      saveCurrentState();
+
+      showToast('Admin Security PIN updated successfully.', 'success');
+      authenticateSession(adminUser);
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      document.getElementById('user-header-card').classList.add('hidden');
+      document.getElementById('view-dashboard').classList.add('hidden');
+      document.getElementById('view-login').classList.remove('hidden');
+      
+      // Clear forms
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-pin').value = '';
+
+      showToast('Session terminated.', 'info');
+    }
+
+    function forgotPasswordDialog() {
+      showToast('Please contact your CTO Site Admin to reset your security PIN.', 'info');
+    }
+
+    // ---- Manpower helpers (contractor-wise workers, date-wise staff) ----
+    function ctrWorkers(ctrArr) { // total workers from contractorWorkers array
+      return (ctrArr || []).reduce((s,c) => s + (parseInt(c.dayWorkers)||0) + (parseInt(c.nightWorkers)||0), 0);
+    }
+    function mpWorkers(e) { return ctrWorkers(e.contractorWorkers); }
+    function mpStaff(e)   { return (parseInt(e.dayStaff) || 0) + (parseInt(e.nightStaff) || 0); }
+    function mpManpower(e){ return mpWorkers(e) + mpStaff(e); }
+    function mpManhours(e){ return mpManpower(e) * 8; }
+    function getTodayStr(){ return new Date().toISOString().split('T')[0]; }
+    function getManpowerForDate(d){ return (dbState.manpower || []).find(e => e.date === d) || null; }
+    function getContractorName(id) {
+      const c = (dbState.contractors || []).find(x => x.id === id);
+      return c ? c.name : (id === 'ctr-migrated' ? 'Migrated Contractor' : id);
+    }
+
+    // Build contractor-worker input rows into a container element
+    function buildContractorRows(containerId, prefix, existingData) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+      const contractors = dbState.contractors || [];
+      if (contractors.length === 0) {
+        container.innerHTML = '<p class="text-[11px] text-slate-500 italic">No contractors registered. Admin must add contractors first.</p>';
+        return;
+      }
+      contractors.forEach(c => {
+        const existing = (existingData || []).find(x => x.contractorId === c.id) || {};
+        const dW = existing.dayWorkers || 0;
+        const nW = existing.nightWorkers || 0;
+        container.insertAdjacentHTML('beforeend', `
+          <div class="bg-slate-900 border border-construction-border rounded-lg p-3">
+            <p class="text-[10px] font-bold text-slate-300 mb-2 truncate">${c.name}</p>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[9px] text-amber-400 mb-1 uppercase">Day Workers</label>
+                <input id="${prefix}cw-day-${c.id}" type="number" min="0" value="${dW||''}" placeholder="0"
+                  class="w-full px-2 py-1.5 bg-slate-800 border border-construction-border rounded text-slate-100 text-xs focus:outline-none focus:border-construction-orange">
+              </div>
+              <div>
+                <label class="block text-[9px] text-indigo-400 mb-1 uppercase">Night Workers</label>
+                <input id="${prefix}cw-night-${c.id}" type="number" min="0" value="${nW||''}" placeholder="0"
+                  class="w-full px-2 py-1.5 bg-slate-800 border border-construction-border rounded text-slate-100 text-xs focus:outline-none focus:border-construction-orange">
+              </div>
+            </div>
+          </div>
+        `);
+      });
+    }
+
+    // Collect contractor workers from built rows
+    function collectContractorWorkers(prefix) {
+      const contractors = dbState.contractors || [];
+      return contractors.map(c => ({
+        contractorId: c.id,
+        dayWorkers: parseInt(document.getElementById(`${prefix}cw-day-${c.id}`)?.value) || 0,
+        nightWorkers: parseInt(document.getElementById(`${prefix}cw-night-${c.id}`)?.value) || 0
+      }));
+    }
+
+    // DASHBOARD KPI STATISTICS
+    function renderDashboardStats() {
+      const today = getTodayStr();
+      const entry = getManpowerForDate(today);
+
+      const staffCount = entry ? mpStaff(entry) : 0;
+      const workerCount = entry ? mpWorkers(entry) : 0;
+      const totalManpower = staffCount + workerCount;
+      const todayManhours = totalManpower * 8;
+
+      const ym = today.slice(0, 7);
+      const monthlyManhours = (dbState.manpower || [])
+        .filter(e => e.date && e.date.slice(0, 7) === ym)
+        .reduce((s, e) => s + mpManhours(e), 0);
+
+      document.getElementById('kpi-staff').innerHTML = `${staffCount} <span class="text-[10px] font-normal text-slate-400">Personnel</span>`;
+      document.getElementById('kpi-labour').innerHTML = `${workerCount} <span class="text-[10px] font-normal text-slate-400">Workers</span>`;
+      document.getElementById('kpi-total-manpower').innerHTML = `${totalManpower} <span class="text-[10px] font-normal text-slate-400">On Site</span>`;
+      document.getElementById('kpi-manhours').innerHTML = `${todayManhours} <span class="text-[10px] font-normal text-slate-400">Hrs</span>`;
+      document.getElementById('kpi-safehours').innerHTML = `${monthlyManhours.toLocaleString()} <span class="text-xs font-normal text-emerald-500">Hours this month</span>`;
+
+      // Render contractor-wise breakdown for today on dashboard
+      const dateEl = document.getElementById('dashboard-ctr-date');
+      if (dateEl) dateEl.innerText = today;
+      const ctrTable = document.getElementById('dashboard-contractor-table');
+      if (ctrTable) {
+        const contractors = dbState.contractors || [];
+        const cws = entry ? (entry.contractorWorkers || []) : [];
+        if (!entry || contractors.length === 0) {
+          ctrTable.innerHTML = `<p class="text-[11px] text-slate-500 italic py-2">${contractors.length === 0 ? 'No contractors registered yet.' : 'No manpower logged for today yet.'}</p>`;
+        } else {
+          let rows = '';
+          contractors.forEach(c => {
+            const cw = cws.find(x => x.contractorId === c.id) || {};
+            const dW = parseInt(cw.dayWorkers)||0, nW = parseInt(cw.nightWorkers)||0;
+            rows += `<tr class="hover:bg-slate-800/20">
+              <td class="p-2 text-slate-300 text-xs font-medium">${c.name}</td>
+              <td class="p-2 text-center text-amber-400 font-bold text-xs">${dW}</td>
+              <td class="p-2 text-center text-indigo-400 font-bold text-xs">${nW}</td>
+              <td class="p-2 text-center text-construction-orange font-bold text-xs">${dW+nW}</td>
+            </tr>`;
+          });
+          const totalD = cws.reduce((s,c)=>s+(parseInt(c.dayWorkers)||0),0);
+          const totalN = cws.reduce((s,c)=>s+(parseInt(c.nightWorkers)||0),0);
+          ctrTable.innerHTML = `<table class="w-full text-left border-collapse">
+            <thead><tr class="bg-slate-800 text-slate-400 uppercase text-[9px] tracking-wider">
+              <th class="p-2">Contractor</th>
+              <th class="p-2 text-center">Day W</th>
+              <th class="p-2 text-center">Night W</th>
+              <th class="p-2 text-center">Total</th>
+            </tr></thead>
+            <tbody class="divide-y divide-construction-border">${rows}</tbody>
+            <tfoot><tr class="bg-slate-800/50 text-[10px] font-bold">
+              <td class="p-2 text-slate-400">Total Workers</td>
+              <td class="p-2 text-center text-amber-400">${totalD}</td>
+              <td class="p-2 text-center text-indigo-400">${totalN}</td>
+              <td class="p-2 text-center text-construction-orange">${totalD+totalN}</td>
+            </tr>
+            <tr class="bg-slate-800/30 text-[10px]">
+              <td class="p-2 text-slate-400" colspan="3">Staff (Day ${entry.dayStaff||0} · Night ${entry.nightStaff||0})</td>
+              <td class="p-2 text-center text-blue-400 font-bold">${staffCount}</td>
+            </tr></tfoot>
+          </table>`;
+        }
+      }
+
+      // Permit counts
+      const openPermits = dbState.permits.filter(p => ['Submitted', 'Pending Staff Review', 'Pending Admin Approval'].includes(p.status)).length;
+      const approvedPermits = dbState.permits.filter(p => p.status === 'Approved').length;
+      const unresolvedHazards = dbState.hazards.filter(h => h.status === 'Open').length;
+      const openIncidents = dbState.incidents.filter(i => i.status === 'Open').length;
+
+      document.getElementById('kpi-permits-open').innerText = openPermits;
+      document.getElementById('kpi-permits-approved').innerText = approvedPermits;
+      document.getElementById('kpi-hazards').innerText = unresolvedHazards;
+      document.getElementById('kpi-incidents').innerText = openIncidents;
+
+      renderNotifications();
+      renderDashboardSOSShortcuts();
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notif-list');
+      const dList = document.getElementById('dashboard-notif-list');
+      if(!list || !dList) return;
+      list.innerHTML = '';
+      dList.innerHTML = '';
+
+      const count = dbState.notifications.length;
+      const badge = document.getElementById('nav-notif-count');
+      if (badge) {
+        if (count > 0) {
+          badge.innerText = count;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+
+      if (dbState.notifications.length === 0) {
+        list.innerHTML = '<p class="text-slate-500 italic text-center py-4">No recent notifications</p>';
+        dList.innerHTML = '<p class="text-slate-500 italic py-2">All systems running smoothly.</p>';
+        return;
+      }
+
+      dbState.notifications.forEach(n => {
+        const item = `
+          <div class="p-2 bg-slate-800 rounded border border-construction-border text-left">
+            <p class="text-slate-200 font-medium">${n.message}</p>
+            <p class="text-[9px] text-slate-500 mt-1">${n.timestamp || 'Just now'}</p>
+          </div>
+        `;
+        list.insertAdjacentHTML('beforeend', item);
+        dList.insertAdjacentHTML('beforeend', item);
+      });
+    }
+
+    function pushNotification(msg) {
+      dbState.notifications.unshift({ id: `not-${Date.now()}`, message: msg, timestamp: 'Just now' });
+      saveCurrentState();
+      renderNotifications();
+    }
+
+    function renderDashboardSOSShortcuts() {
+      const container = document.getElementById('dashboard-sos-list');
+      if(!container) return;
+      container.innerHTML = '';
+      dbState.contacts.slice(0, 3).forEach(c => {
+        container.insertAdjacentHTML('beforeend', `
+          <div class="flex items-center justify-between p-2.5 bg-slate-800/40 border border-construction-border rounded-lg text-xs">
+            <div class="text-left">
+              <p class="font-bold text-slate-200">${c.name}</p>
+              <p class="text-[10px] text-slate-400">${c.designation}</p>
+            </div>
+            <a href="tel:${c.phone}" class="p-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition-all">
+              <i data-lucide="phone" class="w-4 h-4"></i>
+            </a>
+          </div>
+        `);
+      });
+      lucide.createIcons();
+    }
+
+    // EMERGENCY DIRECTORY OPERATIONS
+    function renderEmergencyGrid() {
+      const grid = document.getElementById('emergency-contacts-grid');
+      if(!grid) return;
+      grid.innerHTML = '';
+      dbState.contacts.forEach(c => {
+        const isAdmin = currentUser && currentUser.role === 'Admin';
+        const actions = isAdmin ? `
+          <div class="flex gap-2 mt-3 pt-3 border-t border-construction-border">
+            <button onclick="editContact('${c.id}')" class="text-xs text-construction-orange hover:underline">Edit</button>
+            <button onclick="deleteContact('${c.id}')" class="text-xs text-red-400 hover:underline">Remove</button>
+          </div>
+        ` : '';
+
+        grid.insertAdjacentHTML('beforeend', `
+          <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl flex flex-col justify-between text-left">
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="font-bold text-slate-200 text-sm">${c.name}</h4>
+                <p class="text-xs text-construction-orange mt-0.5 font-medium">${c.designation}</p>
+                <p class="text-xs text-slate-400 mt-2 font-mono">${c.phone}</p>
+              </div>
+              <a href="tel:${c.phone}" class="p-3 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-xl transition-all">
+                <i data-lucide="phone-call" class="w-5 h-5"></i>
+              </a>
+            </div>
+            ${actions}
+          </div>
+        `);
+      });
+      lucide.createIcons();
+    }
+
+    function openAddContactModal() {
+      editingContactId = null;
+      document.getElementById('contact-modal-title').innerText = "Add New SOS Contact Entry";
+      document.getElementById('contact-field-name').value = '';
+      document.getElementById('contact-field-designation').value = '';
+      document.getElementById('contact-field-phone').value = '';
+      openModal('modal-contact');
+    }
+
+    function editContact(id) {
+      editingContactId = id;
+      const target = dbState.contacts.find(c => c.id === id);
+      if (!target) return;
+      document.getElementById('contact-modal-title').innerText = "Modify Emergency Contact Details";
+      document.getElementById('contact-field-name').value = target.name;
+      document.getElementById('contact-field-designation').value = target.designation;
+      document.getElementById('contact-field-phone').value = target.phone;
+      openModal('modal-contact');
+    }
+
+    function saveContactEntry() {
+      const name = document.getElementById('contact-field-name').value;
+      const des = document.getElementById('contact-field-designation').value;
+      const ph = document.getElementById('contact-field-phone').value;
+
+      if (editingContactId) {
+        const idx = dbState.contacts.findIndex(c => c.id === editingContactId);
+        dbState.contacts[idx] = { ...dbState.contacts[idx], name, designation: des, phone: ph };
+        showToast('Emergency Contact updated successfully.', 'success');
+      } else {
+        dbState.contacts.push({ id: `con-${Date.now()}`, name, designation: des, phone: ph });
+        showToast('New Emergency Contact registered.', 'success');
+      }
+      saveCurrentState();
+      closeModal();
+      renderEmergencyGrid();
+    }
+
+    function deleteContact(id) {
+      if (!confirm("Are you sure you want to remove this emergency contact?")) return;
+      dbState.contacts = dbState.contacts.filter(c => c.id !== id);
+      saveCurrentState();
+      renderEmergencyGrid();
+      showToast('Contact removed.', 'info');
+    }
+
+    // DAILY WORKER & STAFF MANPOWER — contractor-wise
+    // renderLabourHistory is called by switchTab
+    function renderLabourHistory() {
+      const container = document.getElementById('labour-history-body');
+      if (!container) return;
+      container.innerHTML = '';
+
+      // Render contractor input rows into the main form
+      const noNotice = document.getElementById('no-contractors-notice');
+      const rowsDiv = document.getElementById('contractor-worker-rows');
+      if (rowsDiv) {
+        buildContractorRows('contractor-worker-rows', 'labour-', null);
+        if (noNotice) noNotice.classList.toggle('hidden', (dbState.contractors||[]).length > 0);
+      }
+
+      const dateInput = document.getElementById('labour-date');
+      if (dateInput && !dateInput.value) dateInput.value = getTodayStr();
+
+      // When date changes, pre-fill existing entry values
+      if (dateInput && !dateInput._mpListener) {
+        dateInput._mpListener = true;
+        dateInput.addEventListener('change', () => {
+          const existing = getManpowerForDate(dateInput.value);
+          if (existing) {
+            document.getElementById('labour-day-staff').value = existing.dayStaff || '';
+            document.getElementById('labour-night-staff').value = existing.nightStaff || '';
+            buildContractorRows('contractor-worker-rows', 'labour-', existing.contractorWorkers);
+          } else {
+            document.getElementById('labour-day-staff').value = '';
+            document.getElementById('labour-night-staff').value = '';
+            buildContractorRows('contractor-worker-rows', 'labour-', null);
+          }
+          lucide.createIcons();
+        });
+        // Pre-fill for today if entry exists
+        dateInput.dispatchEvent(new Event('change'));
+      }
+
+      // History cards — one per date, sorted desc
+      const entries = [...(dbState.manpower || [])].sort((a,b) => b.date.localeCompare(a.date));
+      if (entries.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No manpower logged yet.</p>';
+        return;
+      }
+
+      const contractors = dbState.contractors || [];
+      const isAdmin = currentUser && currentUser.role === 'Admin';
+
+      entries.forEach(entry => {
+        const cws = entry.contractorWorkers || [];
+        const staff = mpStaff(entry);
+        const workers = mpWorkers(entry);
+        const manpower = workers + staff;
+        const manhours = manpower * 8;
+
+        // Contractor rows
+        let ctrRows = '';
+        if (cws.length === 0) {
+          ctrRows = '<tr><td colspan="4" class="px-3 py-2 text-slate-500 italic text-[10px]">No contractor data</td></tr>';
+        } else {
+          cws.forEach(cw => {
+            const dW = parseInt(cw.dayWorkers)||0, nW = parseInt(cw.nightWorkers)||0;
+            if (dW===0 && nW===0) return;
+            ctrRows += `<tr>
+              <td class="px-3 py-1.5 text-slate-300 text-[11px]">${getContractorName(cw.contractorId)}</td>
+              <td class="px-3 py-1.5 text-center text-amber-400 text-[11px] font-semibold">${dW}</td>
+              <td class="px-3 py-1.5 text-center text-indigo-400 text-[11px] font-semibold">${nW}</td>
+              <td class="px-3 py-1.5 text-center text-construction-orange text-[11px] font-bold">${dW+nW}</td>
+            </tr>`;
+          });
+          if (!ctrRows) ctrRows = '<tr><td colspan="4" class="px-3 py-2 text-slate-500 italic text-[10px]">All zeros</td></tr>';
+        }
+
+        const actionsHtml = isAdmin ? `
+          <div class="flex gap-3">
+            <button onclick="editLabourRecord('${entry.id}')" class="text-xs text-construction-orange hover:underline">Edit</button>
+            <button onclick="deleteLabourRecord('${entry.id}')" class="text-xs text-red-400 hover:underline">Delete</button>
+          </div>
+        ` : `<span class="text-slate-500 italic text-[10px]">Logged</span>`;
+
+        container.insertAdjacentHTML('beforeend', `
+          <div class="bg-slate-900 border border-construction-border rounded-lg overflow-hidden">
+            <!-- Date header -->
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-construction-border bg-slate-800/60">
+              <span class="text-xs font-bold text-slate-200">${entry.date}</span>
+              <div class="flex items-center gap-4 text-[10px]">
+                <span class="text-purple-400 font-bold">${manpower} on site</span>
+                <span class="text-emerald-400 font-bold">${manhours} Manhours</span>
+                ${actionsHtml}
+              </div>
+            </div>
+            <!-- Contractor breakdown table -->
+            <table class="w-full border-collapse">
+              <thead><tr class="bg-slate-800/30 text-slate-500 uppercase text-[9px] tracking-wider">
+                <th class="px-3 py-1.5 text-left">Contractor</th>
+                <th class="px-3 py-1.5 text-center">Day W</th>
+                <th class="px-3 py-1.5 text-center">Night W</th>
+                <th class="px-3 py-1.5 text-center">Total W</th>
+              </tr></thead>
+              <tbody class="divide-y divide-slate-800">${ctrRows}</tbody>
+            </table>
+            <!-- Staff footer -->
+            <div class="px-3 py-2 border-t border-construction-border bg-slate-800/20 flex gap-4 text-[10px] text-slate-400">
+              <span class="text-blue-400 font-semibold">Staff — Day: ${entry.dayStaff||0} · Night: ${entry.nightStaff||0} · Total: ${staff}</span>
+              <span class="text-slate-500">Workers total: <span class="text-construction-orange font-bold">${workers}</span></span>
+            </div>
+          </div>
+        `);
+      });
+      lucide.createIcons();
+    }
+
+    function submitManpowerEntry() {
+      const date = document.getElementById('labour-date').value;
+      if (!date) { showToast('Please select a site date.', 'error'); return; }
+
+      const dayStaff = parseInt(document.getElementById('labour-day-staff').value) || 0;
+      const nightStaff = parseInt(document.getElementById('labour-night-staff').value) || 0;
+      const contractorWorkers = collectContractorWorkers('labour-');
+
+      const totalWorkers = ctrWorkers(contractorWorkers);
+      const totalStaff = dayStaff + nightStaff;
+      const total = totalWorkers + totalStaff;
+
+      if (total <= 0) {
+        showToast('Enter at least one worker or staff count.', 'error');
+        return;
+      }
+
+      if (!dbState.manpower) dbState.manpower = [];
+      const existing = dbState.manpower.find(e => e.date === date);
+      if (existing) {
+        existing.dayStaff = dayStaff;
+        existing.nightStaff = nightStaff;
+        existing.contractorWorkers = contractorWorkers;
+        showToast(`Manpower for ${date} updated — ${total} on site (${total*8} manhours).`, 'success');
+        pushNotification(`${currentUser?.fullname||'Staff'} updated manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
+      } else {
+        dbState.manpower.push({ id: `mp-${Date.now()}`, date, dayStaff, nightStaff, contractorWorkers });
+        showToast(`Manpower logged for ${date} — ${total} on site (${total*8} manhours).`, 'success');
+        pushNotification(`${currentUser?.fullname||'Staff'} logged manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
+      }
+      saveCurrentState();
+      document.getElementById('labour-day-staff').value = '';
+      document.getElementById('labour-night-staff').value = '';
+      buildContractorRows('contractor-worker-rows', 'labour-', null);
+      renderLabourHistory();
+      renderDashboardStats();
+    }
+
+    function editLabourRecord(id) {
+      const target = (dbState.manpower || []).find(l => l.id === id);
+      if (!target) return;
+      editingLabourId = id;
+      document.getElementById('edit-labour-date').value = target.date;
+      document.getElementById('edit-labour-day-staff').value = target.dayStaff || 0;
+      document.getElementById('edit-labour-night-staff').value = target.nightStaff || 0;
+      buildContractorRows('edit-contractor-worker-rows', 'edit-', target.contractorWorkers);
+      openModal('modal-edit-labour');
+      lucide.createIcons();
+    }
+
+    function saveManpowerEntryEdit() {
+      const idx = (dbState.manpower || []).findIndex(l => l.id === editingLabourId);
+      if (idx === -1) return;
+      const date = document.getElementById('edit-labour-date').value;
+      const dayStaff = parseInt(document.getElementById('edit-labour-day-staff').value) || 0;
+      const nightStaff = parseInt(document.getElementById('edit-labour-night-staff').value) || 0;
+      const contractorWorkers = collectContractorWorkers('edit-');
+      const total = ctrWorkers(contractorWorkers) + dayStaff + nightStaff;
+      if (!date || total <= 0) {
+        showToast('Provide a date and at least one count.', 'error');
+        return;
+      }
+      dbState.manpower[idx] = { ...dbState.manpower[idx], date, dayStaff, nightStaff, contractorWorkers };
+      saveCurrentState();
+      closeModal();
+      renderLabourHistory();
+      renderDashboardStats();
+      showToast('Manpower record updated.', 'success');
+      pushNotification(`Admin edited manpower for ${date}.`);
+    }
+
+    function deleteLabourRecord(id) {
+      if (!confirm("Permanently delete this day's manpower entry? This updates safe manhours immediately.")) return;
+      dbState.manpower = (dbState.manpower || []).filter(l => l.id !== id);
+      saveCurrentState();
+      renderLabourHistory();
+      renderDashboardStats();
+      showToast('Manpower entry deleted.', 'info');
+    }
+
+    // HAZARDS & INCIDENTS (WITH EDIT & DELETE FOR ADMIN)
+    function renderObservations() {
+      const hazardsList = document.getElementById('hazards-list-panel');
+      const incidentsList = document.getElementById('incidents-list-panel');
+      if (!hazardsList || !incidentsList) return;
+      
+      hazardsList.innerHTML = '';
+      incidentsList.innerHTML = '';
+
+      const isAdmin = currentUser && currentUser.role === 'Admin';
+
+      if (dbState.hazards.length === 0) {
+        hazardsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No safety hazards reported.</p>';
+      } else {
+        dbState.hazards.forEach(h => {
+          const statusBadge = h.status === 'Open' 
+            ? `<span class="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Open</span>`
+            : `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Closed</span>`;
+
+          const adminActions = isAdmin ? `
+            <div class="flex gap-2 items-center">
+              <button onclick="editObservation('hazard', '${h.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
+              <button onclick="deleteObservation('hazard', '${h.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
+              ${h.status === 'Open' ? `<button onclick="closeObservation('hazard', '${h.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Mark Safe</button>` : ''}
+            </div>
+          ` : (h.status === 'Open' && currentUser.role === 'Staff' ? `
+            <button onclick="closeObservation('hazard', '${h.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Mark Safe</button>
+          ` : '');
+
+          hazardsList.insertAdjacentHTML('beforeend', `
+            <div class="bg-slate-900 border border-construction-border p-3.5 rounded-lg space-y-2 text-left">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] text-slate-500 font-mono">${h.date}</span>
+                ${statusBadge}
+              </div>
+              <p class="text-xs font-semibold text-slate-300">${h.location}</p>
+              <p class="text-xs text-slate-400 leading-relaxed">${h.description}</p>
+              <div class="flex items-center justify-between pt-2 border-t border-slate-800/50">
+                <span class="text-[9px] text-slate-500">By: ${h.reporter || 'Field Team'}</span>
+                ${adminActions}
+              </div>
+            </div>
+          `);
+        });
+      }
+
+      if (dbState.incidents.length === 0) {
+        incidentsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">All clear. No site incidents reported.</p>';
+      } else {
+        dbState.incidents.forEach(i => {
+          const statusBadge = i.status === 'Open'
+            ? `<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Unresolved</span>`
+            : `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Resolved</span>`;
+
+          const adminActions = isAdmin ? `
+            <div class="flex gap-2 items-center">
+              <button onclick="editObservation('incident', '${i.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
+              <button onclick="deleteObservation('incident', '${i.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
+              ${i.status === 'Open' ? `<button onclick="closeObservation('incident', '${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>` : ''}
+            </div>
+          ` : (i.status === 'Open' && currentUser.role === 'Staff' ? `
+            <button onclick="closeObservation('incident', '${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>
+          ` : '');
+
+          incidentsList.insertAdjacentHTML('beforeend', `
+            <div class="bg-slate-900 border border-construction-border p-3.5 rounded-lg space-y-2 text-left">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] text-slate-500 font-mono">${i.date}</span>
+                ${statusBadge}
+              </div>
+              <p class="text-xs font-semibold text-slate-300">${i.location}</p>
+              <p class="text-xs text-slate-400 leading-relaxed">${i.description}</p>
+              <div class="flex items-center justify-between pt-2 border-t border-slate-800/50">
+                <span class="text-[9px] text-slate-500">By: ${i.reporter || 'Field Team'}</span>
+                ${adminActions}
+              </div>
+            </div>
+          `);
+        });
+      }
+    }
+
+    function openReportModal(type) {
+      currentReportType = type;
+      editingObservationId = null;
+      document.getElementById('report-modal-title').innerText = type === 'hazard' ? 'Report Identified Site Hazard' : 'Record Site Incident / Accident';
+      document.getElementById('report-field-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('report-field-loc').value = '';
+      document.getElementById('report-field-desc').value = '';
+      document.getElementById('report-field-photo').value = '';
+      document.getElementById('photo-ref-field-wrapper').classList.remove('hidden');
+      openModal('modal-report');
+    }
+
+    function editObservation(type, id) {
+      currentReportType = type;
+      editingObservationId = id;
+
+      const list = type === 'hazard' ? dbState.hazards : dbState.incidents;
+      const target = list.find(item => item.id === id);
+      if (!target) return;
+
+      document.getElementById('report-modal-title').innerText = type === 'hazard' ? 'Modify Hazard Report' : 'Modify Incident Log';
+      document.getElementById('report-field-date').value = target.date;
+      document.getElementById('report-field-loc').value = target.location;
+      document.getElementById('report-field-desc').value = target.description;
+      
+      // Hide photo attachment during quick edits
+      document.getElementById('photo-ref-field-wrapper').classList.add('hidden');
+      openModal('modal-report');
+    }
+
+    function submitSafetyObservation() {
+      const date = document.getElementById('report-field-date').value;
+      const location = document.getElementById('report-field-loc').value;
+      const description = document.getElementById('report-field-desc').value;
+
+      if (editingObservationId) {
+        // Edit flow
+        const list = currentReportType === 'hazard' ? dbState.hazards : dbState.incidents;
+        const idx = list.findIndex(item => item.id === editingObservationId);
+        if (idx !== -1) {
+          list[idx] = { ...list[idx], date, location, description };
+          showToast('Record changes updated successfully.', 'success');
+          pushNotification(`Admin modified ${currentReportType} at ${location}`);
+        }
+      } else {
+        // Create flow
+        const record = {
+          id: `${currentReportType}-${Date.now()}`,
+          date,
+          location,
+          description,
+          status: 'Open',
+          reporter: currentUser.fullname
+        };
+
+        if (currentReportType === 'hazard') {
+          dbState.hazards.unshift(record);
+          showToast('Safety hazard report saved.', 'success');
+          pushNotification(`Hazard reported: ${location} - ${description.substring(0, 30)}...`);
+        } else {
+          dbState.incidents.unshift(record);
+          showToast('Incident recorded & queued for audit.', 'error');
+          pushNotification(`Incident logged: ${location} - ${description.substring(0, 30)}...`);
+        }
+      }
+
+      saveCurrentState();
+      closeModal();
+      renderObservations();
+    }
+
+    function deleteObservation(type, id) {
+      if (!confirm(`Are you sure you want to permanently delete this ${type} report?`)) return;
+      if (type === 'hazard') {
+        dbState.hazards = dbState.hazards.filter(h => h.id !== id);
+      } else {
+        dbState.incidents = dbState.incidents.filter(i => i.id !== id);
+      }
+      saveCurrentState();
+      renderObservations();
+      showToast('Observation deleted successfully.', 'info');
+    }
+
+    function closeObservation(type, id) {
+      if (type === 'hazard') {
+        const item = dbState.hazards.find(h => h.id === id);
+        if (item) item.status = 'Closed';
+      } else {
+        const item = dbState.incidents.find(i => i.id === id);
+        if (item) item.status = 'Closed';
+      }
+      saveCurrentState();
+      renderObservations();
+      showToast('Status successfully updated to Closed / Resolved.', 'success');
+    }
+
+    // DOCUMENT LIBRARY LOGICS
+    function renderDocumentLibrary() {
+      const container = document.getElementById('document-library-grid');
+      if(!container) return;
+      container.innerHTML = '';
+      dbState.documents.forEach(d => {
+        container.insertAdjacentHTML('beforeend', `
+          <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl flex flex-col justify-between h-40 text-left">
+            <div>
+              <span class="text-[10px] uppercase font-semibold text-construction-orange tracking-wider bg-construction-orange/10 px-1.5 py-0.5 rounded">${d.category}</span>
+              <h4 class="font-bold text-slate-100 text-xs mt-3 leading-tight">${d.title}</h4>
+              <p class="text-[10px] text-slate-500 font-mono mt-1">${d.filename}</p>
+            </div>
+            <button onclick="downloadMockPdf('${d.title}')" class="w-full mt-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-construction-border rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+              <i data-lucide="download" class="w-4 h-4 text-construction-orange"></i> Download Document PDF
+            </button>
+          </div>
+        `);
+      });
+      lucide.createIcons();
+    }
+
+    function openUploadDocModal() {
+      document.getElementById('doc-new-title').value = '';
+      document.getElementById('doc-new-file').value = '';
+      openModal('modal-upload-doc');
+    }
+
+    function triggerUploadDoc() {
+      const title = document.getElementById('doc-new-title').value;
+      const cat = document.getElementById('doc-new-category').value;
+      const file = document.getElementById('doc-new-file').files[0];
+
+      if (!file) return;
+
+      dbState.documents.push({
+        id: `doc-${Date.now()}`,
+        title,
+        category: cat,
+        filename: file.name
+      });
+      saveCurrentState();
+      closeModal();
+      renderDocumentLibrary();
+      showToast('Document securely uploaded to compliance vault.', 'success');
+    }
+
+    function downloadMockPdf(title) {
+      showToast(`Generating file copy: "${title}.pdf"`, 'info');
+      setTimeout(() => {
+        showToast('Download complete.', 'success');
+      }, 1000);
+    }
+
+    // WORK PERMIT COMPLEX SYSTEMS & DIGITAL MATCHING FORMS
+    const PERMIT_CHECKLISTS = {
+      general: [
+        { label: "Job required necessary PPEs provided.", default: "YES" },
+        { label: "Safety awareness training conducted before work start.", default: "YES" },
+        { label: "Job engineers/ supervisors present near at job location", default: "YES" },
+        { label: "Job hazards identified and communicated with workers.", default: "YES" },
+        { label: "Engaged workers and staffs are fully aware about hazards and control measures.", default: "YES" },
+        { label: "Proper housekeeping done at work location", default: "YES" },
+        { label: "Safe means of access provided", default: "YES" },
+        { label: "Adequate light arrangement provided if requires.", default: "YES" },
+        { label: "Sign board and barricade provided.", default: "YES" },
+        { label: "Emergency driver, First aider available.", default: "YES" }
+      ],
+      height: [
+        { label: "❖PPEs as required for job have been provided.", default: "YES" },
+        { label: "Barricade and caution sign placed in the job location & affected areas.", default: "YES" },
+        { label: "Method of work and Risk Assessment has been prepared and addressed with the site team and workers.", default: "YES" },
+        { label: "Workers are fully aware about the risk & hazards of job and have knowledge of prevention.", default: "YES" },
+        { label: "Workers are trained and competent to carry out the job.", default: "YES" },
+        { label: "Physically good conditioned worker engaged for height work.", default: "YES" },
+        { label: "Safe working condition / working platform available / provided.", default: "YES" },
+        { label: "Safety precaution provided for preventing fall of tool & equipments.", default: "YES" },
+        { label: "☑ Safety nets have been provided for fall protection. (Above 6m height)", default: "YES" },
+        { label: "Supervisor/Foreman will be available to supervise the work.", default: "YES" },
+        { label: "All persons are in possession of full body Safety Harness with double lanyards & Fall Arrester if need.", default: "YES" },
+        { label: "Life line where required is provided as per standard.", default: "YES" },
+        { label: "Safe Ladder access for work platform is provided as per standard.", default: "YES" }
+      ],
+      hot: [
+        { label: "Electrical isolation required for equipment isolated", default: "YES" },
+        { label: "Electrical cables covered", default: "YES" },
+        { label: "Fire extinguishers are in service", default: "YES" },
+        { label: "Cutting and welding machines are in good condition", default: "YES" },
+        { label: "Area technician notified", default: "YES" },
+        { label: "Well experienced worker engaged for the hot work activity", default: "YES" },
+        { label: "Nearby area swept clear of combustibles", default: "YES" },
+        { label: "No combustible, flammable liquids are near by", default: "YES" },
+        { label: "Fire watch to be provided during operation", default: "YES" },
+        { label: "Trained in use of fire extinguisher and other equipment for fire fighting", default: "YES" }
+      ],
+      night: [
+        { label: "Required illumination for the assigned work", default: "YES" },
+        { label: "Required PPE's are issued", default: "YES" },
+        { label: "Required respective work permit issued", default: "YES" },
+        { label: "Tool box talk conducted.", default: "YES" },
+        { label: "Availability of emergency vehicle / First Aider / Safety personal/Electrician", default: "YES" }
+      ]
+    };
+
+    function openCreatePermitModal() {
+      openModal('modal-create-permit');
+    }
+
+    function startPermitCreation(type) {
+      selectedPermitType = type;
+      currentEditPermit = null;
+      closeModal();
+      
+      const formTitle = {
+        general: "General Work Permit -- F06/R",
+        height: "Work At Height Permit -- F08/R0",
+        hot: "Hot Work Permit -- F07/R0",
+        night: "Night Work Permit -- F42/R0"
+      }[type];
+
+      document.getElementById('permit-form-title').innerText = formTitle;
+      document.getElementById('permit-form-subtitle').innerText = `CPSPL/02/CTO-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      // Reset static fields
+      document.getElementById('permit-field-project').value = "CTO Project";
+      document.getElementById('permit-field-contractor').value = currentUser.fullname;
+      document.getElementById('permit-field-location').value = "";
+      document.getElementById('permit-field-workers').value = "";
+      document.getElementById('permit-field-description').value = "";
+      
+      // Default dates
+      const startEl = document.getElementById('permit-field-start');
+      const endEl = document.getElementById('permit-field-end');
+      const now = new Date();
+      startEl.value = now.toISOString().slice(0, 16);
+      now.setHours(now.getHours() + 8);
+      endEl.value = now.toISOString().slice(0, 16);
+
+      // Inject checklists matching the specific permit exactly
+      renderFormChecklist(type);
+
+      // Extra fields for Night shift
+      if (type === 'night') {
+        document.getElementById('permit-night-shift-extra').classList.remove('hidden');
+        document.getElementById('permit-extra-driver').required = true;
+        document.getElementById('permit-extra-hse').required = true;
+        document.getElementById('permit-extra-electrician').required = true;
+      } else {
+        document.getElementById('permit-night-shift-extra').classList.add('hidden');
+        document.getElementById('permit-extra-driver').required = false;
+        document.getElementById('permit-extra-hse').required = false;
+        document.getElementById('permit-extra-electrician').required = false;
+      }
+
+      openModal('modal-permit-form');
+    }
+
+    function renderFormChecklist(type) {
+      const container = document.getElementById('permit-dynamic-checklist-container');
+      container.innerHTML = '';
+      
+      PERMIT_CHECKLISTS[type].forEach((item, idx) => {
+        container.insertAdjacentHTML('beforeend', `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 bg-slate-800 rounded border border-construction-border text-xs text-left">
+            <span class="font-medium text-slate-300 pr-2">${idx + 1}. ${item.label}</span>
+            <div class="flex gap-1.5 shrink-0">
+              <label class="flex items-center gap-1 cursor-pointer">
+                <input type="radio" name="chk-${idx}" value="YES" checked class="accent-construction-green"> <span class="text-emerald-400 font-bold">YES</span>
+              </label>
+              <label class="flex items-center gap-1 cursor-pointer">
+                <input type="radio" name="chk-${idx}" value="NO" class="accent-red-500"> <span class="text-red-400 font-bold">NO</span>
+              </label>
+              <label class="flex items-center gap-1 cursor-pointer">
+                <input type="radio" name="chk-${idx}" value="NA" class="accent-slate-500"> <span class="text-slate-400 font-bold">N/A</span>
+              </label>
+            </div>
+          </div>
+        `);
+      });
+    }
+
+    function triggerSubmitPermitForm() {
+      const permitNo = document.getElementById('permit-form-subtitle').innerText;
+      const project = document.getElementById('permit-field-project').value;
+      const contractor = document.getElementById('permit-field-contractor').value;
+      const location = document.getElementById('permit-field-location').value;
+      const workers = document.getElementById('permit-field-workers').value;
+      const description = document.getElementById('permit-field-description').value;
+      const validityStart = document.getElementById('permit-field-start').value;
+      const validityEnd = document.getElementById('permit-field-end').value;
+
+      // Capture checklist states
+      const checklistResponses = [];
+      const checklistItems = PERMIT_CHECKLISTS[selectedPermitType];
+      checklistItems.forEach((item, idx) => {
+        const radios = document.getElementsByName(`chk-${idx}`);
+        let selection = "YES";
+        for (const r of radios) {
+          if (r.checked) {
+            selection = r.value;
+            break;
+          }
+        }
+        checklistResponses.push({ label: item.label, response: selection });
+      });
+
+      // Extra Night Details
+      let extra = {};
+      if (selectedPermitType === 'night') {
+        extra = {
+          driver: document.getElementById('permit-extra-driver').value,
+          hse: document.getElementById('permit-extra-hse').value,
+          electrician: document.getElementById('permit-extra-electrician').value
+        };
+      }
+
+      const permitObject = {
+        id: `prm-${Date.now()}`,
+        permitNo,
+        type: selectedPermitType,
+        project,
+        contractor,
+        location,
+        workers,
+        description,
+        validityStart,
+        validityEnd,
+        checklist: checklistResponses,
+        extra,
+        status: 'Submitted',
+        comments: [],
+        signatures: {},
+        updatedAt: new Date().toLocaleString()
+      };
+
+      if (currentEditPermit) {
+        const idx = dbState.permits.findIndex(p => p.id === currentEditPermit.id);
+        permitObject.id = currentEditPermit.id;
+        permitObject.status = 'Submitted'; 
+        dbState.permits[idx] = permitObject;
+        showToast('Work Permit resubmitted successfully for review.', 'success');
+      } else {
+        dbState.permits.push(permitObject);
+        showToast('Work Permit submitted successfully.', 'success');
+      }
+
+      saveCurrentState();
+      closeModal();
+      pushNotification(`New ${selectedPermitType} Permit submitted: ${permitNo} by ${contractor}`);
+      renderPermitsTable();
+    }
+
+    function renderPermitsTable() {
+      const tbody = document.getElementById('permits-table-body');
+      if(!tbody) return;
+      tbody.innerHTML = '';
+
+      let list = [...dbState.permits];
+      if (activePermitFilter !== 'all') {
+        list = list.filter(p => p.status === activePermitFilter);
+      }
+
+      if (list.length === 0) {
+        document.getElementById('empty-permits-message').classList.remove('hidden');
+        return;
+      } else {
+        document.getElementById('empty-permits-message').classList.add('hidden');
+      }
+
+      list.forEach(p => {
+        let statusClass = "bg-slate-800 text-slate-300";
+        if (p.status === 'Approved') statusClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
+        else if (p.status === 'Rejected') statusClass = "bg-red-950 text-red-400 border border-red-800/50";
+        else if (p.status === 'Submitted') statusClass = "bg-blue-950 text-blue-400 border border-blue-800/50";
+        else if (p.status === 'Returned To Contractor') statusClass = "bg-yellow-950 text-yellow-400 border border-yellow-800/50";
+
+        let actions = `
+          <button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>
+        `;
+
+        if (currentUser.role === 'Admin') {
+          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
+        } else if (currentUser.role === 'Staff' && currentUser.canApprove) {
+          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
+        } else if (currentUser.role === 'Contractor' && p.status === 'Returned To Contractor') {
+          actions += ` <button onclick="editReturnedPermit('${p.id}')" class="text-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 py-1 px-2.5 rounded border border-yellow-500/20">Edit</button>`;
+        }
+
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr class="hover:bg-slate-800/40">
+            <td class="p-3">
+              <p class="font-bold text-slate-200 text-xs">${p.permitNo}</p>
+              <p class="text-[10px] text-construction-orange font-mono uppercase mt-0.5">${p.type} Permit</p>
+            </td>
+            <td class="p-3">
+              <p class="font-semibold text-slate-300 text-xs">${p.contractor}</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">${p.location}</p>
+            </td>
+            <td class="p-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${statusClass}">${p.status}</span>
+            </td>
+            <td class="p-3">
+              <p class="text-[11px] text-slate-400">Valid: ${p.validityStart.replace('T',' ')}</p>
+              <p class="text-[11px] text-slate-500">Till: ${p.validityEnd.replace('T',' ')}</p>
+            </td>
+            <td class="p-3 text-right space-x-1">
+              ${actions}
+            </td>
+          </tr>
+        `);
+      });
+    }
+
+    function filterPermits(status) {
+      activePermitFilter = status;
+      document.querySelectorAll('.permit-filter-btn').forEach(btn => {
+        btn.classList.remove('active-filter', 'bg-construction-orange', 'text-white');
+        if (btn.getAttribute('data-filter') === status) {
+          btn.classList.add('active-filter', 'bg-construction-orange', 'text-white');
+        }
+      });
+      renderPermitsTable();
+    }
+
+    function editReturnedPermit(id) {
+      const target = dbState.permits.find(p => p.id === id);
+      if (!target) return;
+
+      currentEditPermit = target;
+      selectedPermitType = target.type;
+      
+      document.getElementById('permit-form-title').innerText = `Modify Returned Permit -- ${target.type.toUpperCase()}`;
+      document.getElementById('permit-form-subtitle').innerText = target.permitNo;
+
+      document.getElementById('permit-field-project').value = target.project;
+      document.getElementById('permit-field-contractor').value = target.contractor;
+      document.getElementById('permit-field-location').value = target.location;
+      document.getElementById('permit-field-workers').value = target.workers;
+      document.getElementById('permit-field-description').value = target.description;
+      document.getElementById('permit-field-start').value = target.validityStart;
+      document.getElementById('permit-field-end').value = target.validityEnd;
+
+      renderFormChecklist(target.type);
+      
+      target.checklist.forEach((item, idx) => {
+        const radios = document.getElementsByName(`chk-${idx}`);
+        for (const r of radios) {
+          if (r.value === item.response) {
+            r.checked = true;
+          }
+        }
+      });
+
+      if (target.type === 'night') {
+        document.getElementById('permit-night-shift-extra').classList.remove('hidden');
+        document.getElementById('permit-extra-driver').value = target.extra.driver || '';
+        document.getElementById('permit-extra-hse').value = target.extra.hse || '';
+        document.getElementById('permit-extra-electrician').value = target.extra.electrician || '';
+      }
+
+      openModal('modal-permit-form');
+    }
+
+    // SIGNATURE PAD IMPLEMENTATIONS (CANVAS LOGIC)
+    function setupSignaturePad() {
+      sigCanvas = document.getElementById('signature-canvas');
+      sigCtx = sigCanvas.getContext('2d');
+      
+      const rect = sigCanvas.getBoundingClientRect();
+      sigCanvas.width = rect.width;
+      sigCanvas.height = rect.height;
+
+      sigCtx.strokeStyle = "#0f172a"; 
+      sigCtx.lineWidth = 2;
+      sigCtx.lineCap = 'round';
+
+      sigCanvas.addEventListener('mousedown', startDrawing);
+      sigCanvas.addEventListener('mousemove', draw);
+      sigCanvas.addEventListener('mouseup', stopDrawing);
+      sigCanvas.addEventListener('mouseleave', stopDrawing);
+
+      sigCanvas.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        sigCanvas.dispatchEvent(mouseEvent);
+      }, { passive: true });
+
+      sigCanvas.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        sigCanvas.dispatchEvent(mouseEvent);
+      }, { passive: true });
+
+      sigCanvas.addEventListener('touchend', () => {
+        const mouseEvent = new MouseEvent('mouseup', {});
+        sigCanvas.dispatchEvent(mouseEvent);
+      }, { passive: true });
+    }
+
+    function startDrawing(e) {
+      drawingSignature = true;
+      const rect = sigCanvas.getBoundingClientRect();
+      sigCtx.beginPath();
+      sigCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    function draw(e) {
+      if (!drawingSignature) return;
+      const rect = sigCanvas.getBoundingClientRect();
+      sigCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      sigCtx.stroke();
+    }
+
+    function stopDrawing() {
+      drawingSignature = false;
+    }
+
+    function clearSignatureCanvas() {
+      if (sigCtx && sigCanvas) {
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      }
+    }
+
+    function openReviewModal(permitId) {
+      currentEditPermit = dbState.permits.find(p => p.id === permitId);
+      if (!currentEditPermit) return;
+
+      const decisionSel = document.getElementById('review-decision');
+      decisionSel.innerHTML = '';
+
+      if (currentUser.role === 'Admin') {
+        decisionSel.innerHTML = `
+          <option value="Approved">Final Approve Permit</option>
+          <option value="Rejected">Final Reject Permit</option>
+          <option value="Returned To Contractor">Return with Corrections</option>
+        `;
+      } else if (currentUser.role === 'Staff' && currentUser.canApprove) {
+        decisionSel.innerHTML = `
+          <option value="Pending Admin Approval">Approve (Forward to Admin)</option>
+          <option value="Returned To Contractor">Return with Corrections</option>
+          <option value="Rejected">Reject Permit</option>
+        `;
+      }
+
+      document.getElementById('review-comment').value = '';
+      openModal('modal-permit-review');
+      
+      setTimeout(setupSignaturePad, 200);
+    }
+
+    function triggerReviewAction() {
+      const decision = document.getElementById('review-decision').value;
+      const comment = document.getElementById('review-comment').value;
+      const sigData = sigCanvas.toDataURL('image/png');
+
+      const updatedIdx = dbState.permits.findIndex(p => p.id === currentEditPermit.id);
+      const permit = dbState.permits[updatedIdx];
+
+      permit.status = decision;
+      permit.comments.push({
+        author: currentUser.fullname,
+        role: currentUser.role,
+        text: comment,
+        timestamp: new Date().toLocaleString()
+      });
+
+      permit.signatures[currentUser.role] = {
+        name: currentUser.fullname,
+        designation: currentUser.designation,
+        timestamp: new Date().toLocaleString(),
+        signatureImage: sigData
+      };
+
+      saveCurrentState();
+      closeModal();
+      showToast(`Safety Permit updated to: ${decision}`, 'success');
+      pushNotification(`Permit ${permit.permitNo} reviewed: status ${decision} by ${currentUser.fullname}`);
+      renderPermitsTable();
+    }
+
+    // PRINT PREVIEW GENERATOR TO MIMIC PHYSICAL FORMS
+    function previewPermit(id) {
+      const p = dbState.permits.find(p => p.id === id);
+      if (!p) return;
+
+      const printContainer = document.getElementById('print-area');
+      printContainer.innerHTML = '';
+
+      let chkHtml = '';
+      p.checklist.forEach((item, idx) => {
+        chkHtml += `
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 6px; font-size: 11px; text-align: left;">${idx + 1}. ${item.label}</td>
+            <td style="padding: 6px; font-size: 11px; font-weight: bold; text-align: center; color: ${item.response === 'YES' ? 'green' : item.response === 'NO' ? 'red' : 'gray'}">${item.response}</td>
+          </tr>
+        `;
+      });
+
+      let sigsHtml = '';
+      Object.keys(p.signatures).forEach(role => {
+        const s = p.signatures[role];
+        sigsHtml += `
+          <div style="border: 1px solid #ccc; padding: 8px; border-radius: 4px; text-align: center; width: 45%;">
+            <p style="font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">Verified / Signed By: ${role}</p>
+            <img src="${s.signatureImage}" style="height: 40px; margin: 0 auto; display: block;" />
+            <p style="font-size: 11px; margin-top: 4px; font-weight: bold;">${s.name}</p>
+            <p style="font-size: 10px; color: #555;">${s.designation}</p>
+            <p style="font-size: 9px; color: #777;">${s.timestamp}</p>
+          </div>
+        `;
+      });
+
+      let nightExtraHtml = '';
+      if (p.type === 'night' && p.extra) {
+        nightExtraHtml = `
+          <div style="margin-top: 15px; padding: 10px; border: 1px solid #ff4500; border-radius: 6px; background-color: #fffaf0; text-align: left;">
+            <h4 style="font-size: 11px; font-weight: bold; color: #ff4500; margin-bottom: 6px; border-bottom: 1px solid #ffe4e1; padding-bottom: 2px;">SPECIAL NIGHT OPERATIONS PARAMETERS</h4>
+            <div style="display: flex; justify-content: space-between; font-size: 10px;">
+              <p><strong>Emergency Vehicle Unit & Driver:</strong> ${p.extra.driver}</p>
+              <p><strong>Safety Control / HSE Officer:</strong> ${p.extra.hse}</p>
+              <p><strong>Duty Electrician:</strong> ${p.extra.electrician}</p>
+            </div>
+          </div>
+        `;
+      }
+
+      const permitFormHeader = {
+        general: "CHETTINAD PRODUCTS AND SERVICES PVT.LTD <br/> GENERAL WORK PERMIT",
+        height: "PERMIT TO WORK AT HEIGHT <br/> CPSPL/02/F08/R0",
+        hot: "HOT WORK PERMIT <br/> CPSPL/02/F07/R0",
+        night: "NIGHT WORK PERMIT <br/> CPSPL/02/F42/R0"
+      }[p.type];
+
+      const html = `
+        <div style="max-width: 800px; margin: 0 auto; background: white; color: black; font-family: sans-serif; padding: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
+              <div style="width: 50px; height: 50px; background: white; border: 1px solid #ccc; padding: 2px; border-radius: 4px;">
+                <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                  <path d="M 32,15 L 12,15 L 12,85 L 32,85 L 32,71 L 24,63 L 24,37 L 32,29 Z" fill="#0f59a4" />
+                  <polygon points="34,50 82,18 82,82" fill="#70c144" />
+                </svg>
+              </div>
+              <div>
+                <h2 style="font-size: 14px; font-weight: 800; margin: 0; color: #111;">Chettinad Products & Services Pvt. Ltd.</h2>
+                <p style="font-size: 10px; margin: 2px 0 0; color: #555;">Chennai Operations Office -- CTO Safety Node</p>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <p style="font-size: 12px; font-weight: bold; margin: 0; color: #f97316;">PERMIT NO: ${p.permitNo}</p>
+              <p style="font-size: 10px; margin: 2px 0 0; color: #555;">Status: <strong>${p.status.toUpperCase()}</strong></p>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="font-size: 13px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin: 0;">${permitFormHeader}</h3>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; text-align: left;">
+            <tr>
+              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9; width: 25%;"><strong>Name of Site:</strong></td>
+              <td style="padding: 6px; border: 1px solid #ccc; width: 25%;">${p.project}</td>
+              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9; width: 25%;"><strong>Location of Work:</strong></td>
+              <td style="padding: 6px; border: 1px solid #ccc; width: 25%;">${p.location}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Contractor Name:</strong></td>
+              <td style="padding: 6px; border: 1px solid #ccc;">${p.contractor}</td>
+              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Workers Engaged:</strong></td>
+              <td style="padding: 6px; border: 1px solid #ccc;">${p.workers} Workers</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Work Validity From:</strong></td>
+              <td style="padding: 6px; border: 1px solid #ccc;">${p.validityStart.replace('T', ' ')}</td>
+              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Work Validity To:</strong></td>
+              <td style="padding: 6px; border: 1px solid #ccc;">${p.validityEnd.replace('T', ' ')}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Work Description:</strong></td>
+              <td colspan="3" style="padding: 6px; border: 1px solid #ccc;">${p.description}</td>
+            </tr>
+          </table>
+
+          <h4 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 15px 0 5px; border-bottom: 2px solid #000; padding-bottom: 3px; text-align: left;">HSE SAFETY POINT COMPLIANCE CHECKLIST</h4>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f1f1f1; border-bottom: 2px solid #ccc;">
+                <th style="padding: 6px; text-align: left; font-size: 11px;">Description / Safety Requirements</th>
+                <th style="padding: 6px; text-align: center; font-size: 11px; width: 15%;">Checked</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${chkHtml}
+            </tbody>
+          </table>
+
+          ${nightExtraHtml}
+
+          <h4 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 20px 0 10px; border-bottom: 2px solid #000; padding-bottom: 3px; text-align: left;">ISSUING AUTHORITY & REPRESENTATIVE SIGN-OFFS</h4>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 15px; margin-top: 15px;">
+            ${sigsHtml}
+            ${sigsHtml === '' ? '<p style="font-size: 11px; color: #666; italic">Signatures pending review approvals.</p>' : ''}
+          </div>
+
+          <div class="no-print" style="margin-top: 30px; padding: 15px; background: #f3f4f6; border-radius: 8px; text-align: center; display: flex; justify-content: center; gap: 10px;">
+            <button onclick="window.print()" style="background: #ea580c; color: white; border: none; font-weight: bold; font-size: 12px; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Print Safe Copy (PDF)</button>
+            <button onclick="hidePrintArea()" style="background: #4b5563; color: white; border: none; font-weight: bold; font-size: 12px; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Close Preview</button>
+          </div>
+        </div>
+      `;
+
+      printContainer.innerHTML = html;
+      printContainer.classList.remove('hidden');
+      printContainer.scrollIntoView({ behavior: 'smooth' });
+      showToast('Master printable permit generated. Click Print Safe Copy to download or print PDF.', 'success');
+    }
+
+    function hidePrintArea() {
+      document.getElementById('print-area').classList.add('hidden');
+    }
+
+    // ADMIN PERSONNEL MANAGER (WITH PASSWORD RESET COMPACT INTERACTION)
+    function renderPersonnelTable() {
+      const tbody = document.getElementById('admin-users-table-body');
+      if(!tbody) return;
+      tbody.innerHTML = '';
+      
+      dbState.users.forEach(u => {
+        const authorityToggle = u.role === 'Staff' 
+          ? `
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-bold ${u.canApprove ? 'text-emerald-400' : 'text-slate-400'}">${u.canApprove ? 'Reviewer' : 'No Authority'}</span>
+              <button onclick="toggleUserApproveAuthority('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
+            </div>
+          `
+          : '<span class="text-[10px] text-slate-500">--</span>';
+
+        const deleteBtn = u.username !== 'admin'
+          ? `<button onclick="deleteUser('${u.id}')" class="text-xs text-red-400 hover:underline">Delete</button>`
+          : '<span class="text-[10px] text-slate-500 font-bold text-slate-400">System Lock</span>';
+
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr class="hover:bg-slate-800/40">
+            <td class="p-3">
+              <p class="font-bold text-slate-200 text-xs text-left">${u.fullname}</p>
+              <p class="text-[10px] text-slate-500 font-mono text-left">@${u.username}</p>
+            </td>
+            <td class="p-3">
+              <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${u.role === 'Admin' ? 'bg-construction-orange/20 text-construction-orange' : u.role === 'Staff' ? 'bg-blue-950 text-blue-400' : 'bg-slate-800 text-slate-400'}">${u.role}</span>
+              <p class="text-[10px] text-slate-400 mt-0.5 text-left">${u.designation}</p>
+            </td>
+            <td class="p-3 font-mono text-xs text-slate-300">${u.phone}</td>
+            <td class="p-3">${authorityToggle}</td>
+            <td class="p-3 text-right">
+              <div class="flex flex-col sm:flex-row gap-2 justify-end">
+                <button onclick="openEditUserModal('${u.id}')" class="text-xs text-construction-orange hover:underline">Edit Info</button>
+                <button onclick="openResetPasswordModal('${u.id}')" class="text-xs text-yellow-500 hover:underline font-medium">Reset PIN</button>
+                ${deleteBtn}
+              </div>
+            </td>
+          </tr>
+        `);
+      });
+    }
+
+    function openCreateUserModal() {
+      document.getElementById('user-new-name').value = '';
+      document.getElementById('user-new-username').value = '';
+      document.getElementById('user-new-designation').value = '';
+      document.getElementById('user-new-phone').value = '';
+      document.getElementById('user-new-pin').value = '';
+      openModal('modal-create-user');
+    }
+
+    function triggerCreateUser() {
+      const name = document.getElementById('user-new-name').value;
+      const username = document.getElementById('user-new-username').value.trim().toLowerCase();
+      const role = document.getElementById('user-new-role').value;
+      const designation = document.getElementById('user-new-designation').value;
+      const phone = document.getElementById('user-new-phone').value;
+      const pin = document.getElementById('user-new-pin').value;
+
+      if (pin.length !== 5 || !/^\d+$/.test(pin)) {
+        showToast('Security PIN must be exactly 5 numeric digits.', 'error');
+        return;
+      }
+
+      if (dbState.users.some(u => u.username === username)) {
+        showToast('Username already registered.', 'error');
+        return;
+      }
+
+      dbState.users.push({
+        id: `usr-${Date.now()}`,
+        username,
+        fullname: name,
+        role,
+        designation,
+        phone,
+        pin,
+        isDefaultPin: false,
+        canApprove: false
+      });
+
+      saveCurrentState();
+      closeModal();
+      renderPersonnelTable();
+      showToast('New user credential profile successfully provisioned.', 'success');
+    }
+
+    // ADMIN USER PASSWORD / PIN RESET CONTROLLERS
+    function openResetPasswordModal(id) {
+      const u = dbState.users.find(user => user.id === id);
+      if (!u) return;
+
+      resettingPasswordUserId = id;
+      document.getElementById('reset-user-fullname').innerText = u.fullname;
+      document.getElementById('reset-user-pin').value = '';
+      document.getElementById('reset-user-pin-confirm').value = '';
+      openModal('modal-reset-password');
+    }
+
+    function triggerAdminResetPassword() {
+      const newPin = document.getElementById('reset-user-pin').value;
+      const confirmPin = document.getElementById('reset-user-pin-confirm').value;
+
+      if (newPin.length !== 5 || !/^\d+$/.test(newPin)) {
+        showToast('PIN must be exactly 5 numeric digits.', 'error');
+        return;
+      }
+
+      if (newPin !== confirmPin) {
+        showToast('Security PIN values do not match.', 'error');
+        return;
+      }
+
+      const idx = dbState.users.findIndex(u => u.id === resettingPasswordUserId);
+      if (idx !== -1) {
+        dbState.users[idx].pin = newPin;
+        dbState.users[idx].isDefaultPin = false; // Mark false so they can log in directly
+        saveCurrentState();
+        closeModal();
+        renderPersonnelTable();
+        showToast(`PIN reset successfully for ${dbState.users[idx].fullname}.`, 'success');
+        pushNotification(`Admin reset login credentials PIN for ${dbState.users[idx].fullname}`);
+      }
+    }
+
+    function toggleUserApproveAuthority(id) {
+      const user = dbState.users.find(u => u.id === id);
+      if (!user) return;
+      user.canApprove = !user.canApprove;
+      saveCurrentState();
+      renderPersonnelTable();
+      showToast(`Review Authority updated for: ${user.fullname}`, 'success');
+    }
+
+    function deleteUser(id) {
+      if (!confirm("Are you sure you want to delete this user profile? All safety operations logs will remain intact.")) return;
+      dbState.users = dbState.users.filter(u => u.id !== id);
+      saveCurrentState();
+      renderPersonnelTable();
+      showToast('Personnel profile deleted.', 'info');
+    }
+
+    function openEditUserModal(id) {
+      editingUserId = id;
+      const u = dbState.users.find(user => user.id === id);
+      if (!u) return;
+
+      document.getElementById('edit-user-fullname').value = u.fullname;
+      document.getElementById('edit-user-designation').value = u.designation;
+      document.getElementById('edit-user-phone').value = u.phone;
+      openModal('modal-edit-profile');
+    }
+
+    function saveUserChanges() {
+      const name = document.getElementById('edit-user-fullname').value;
+      const des = document.getElementById('edit-user-designation').value;
+      const ph = document.getElementById('edit-user-phone').value;
+
+      const idx = dbState.users.findIndex(u => u.id === editingUserId);
+      if (idx !== -1) {
+        dbState.users[idx].fullname = name;
+        dbState.users[idx].designation = des;
+        dbState.users[idx].phone = ph;
+        saveCurrentState();
+        showToast('User profile updated successfully.', 'success');
+        closeModal();
+        renderPersonnelTable();
+      }
+    }
+
+    // ADMIN — TODAY'S MANPOWER SNAPSHOT (contractor-wise)
+    function renderAdminManpower() {
+      const today = getTodayStr();
+      const entry = getManpowerForDate(today);
+      const contractors = dbState.contractors || [];
+
+      const dateEl = document.getElementById('admin-manpower-date');
+      if (dateEl) dateEl.innerText = today;
+
+      const cws = entry ? (entry.contractorWorkers || []) : [];
+      const totalWorkers = entry ? mpWorkers(entry) : 0;
+      const dS = entry ? (parseInt(entry.dayStaff)||0) : 0;
+      const nS = entry ? (parseInt(entry.nightStaff)||0) : 0;
+      const totalStaff = dS + nS;
+      const totalManpower = totalWorkers + totalStaff;
+      const totalManhours = totalManpower * 8;
+
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+      set('admin-total-workers', totalWorkers);
+      set('admin-total-staff', totalStaff);
+      set('admin-total-manpower', totalManpower);
+      set('admin-total-manhours', totalManhours);
+      const detail = document.getElementById('admin-staff-shift-detail');
+      if (detail) detail.innerText = `Day: ${dS} · Night: ${nS}`;
+
+      // Contractor-wise table
+      const tbl = document.getElementById('admin-contractor-workers-table');
+      if (tbl) {
+        if (!entry || contractors.length === 0) {
+          tbl.innerHTML = `<p class="text-[11px] text-slate-500 italic p-3">${contractors.length===0?'No contractors registered.':'No manpower logged for today.'}</p>`;
+        } else {
+          let rows = '';
+          contractors.forEach(c => {
+            const cw = cws.find(x => x.contractorId === c.id) || {};
+            const dW = parseInt(cw.dayWorkers)||0, nW = parseInt(cw.nightWorkers)||0;
+            rows += `<tr class="hover:bg-slate-800/20">
+              <td class="p-3 text-slate-200 text-xs font-medium">${c.name}</td>
+              <td class="p-3 text-center text-amber-400 font-bold text-xs">${dW}</td>
+              <td class="p-3 text-center text-indigo-400 font-bold text-xs">${nW}</td>
+              <td class="p-3 text-center text-construction-orange font-bold text-xs">${dW+nW}</td>
+              <td class="p-3 text-center text-emerald-400 font-bold text-xs">${(dW+nW)*8}</td>
+            </tr>`;
+          });
+          const tD = cws.reduce((s,c)=>s+(parseInt(c.dayWorkers)||0),0);
+          const tN = cws.reduce((s,c)=>s+(parseInt(c.nightWorkers)||0),0);
+          tbl.innerHTML = `<table class="w-full text-left border-collapse text-xs">
+            <thead><tr class="bg-slate-800 text-slate-400 uppercase text-[9px] tracking-wider border-b border-construction-border">
+              <th class="p-3">Contractor</th>
+              <th class="p-3 text-center">Day W</th>
+              <th class="p-3 text-center">Night W</th>
+              <th class="p-3 text-center">Total W</th>
+              <th class="p-3 text-center">Manhours</th>
+            </tr></thead>
+            <tbody class="divide-y divide-construction-border">${rows}</tbody>
+            <tfoot class="border-t border-construction-border">
+              <tr class="bg-slate-800/40 font-bold text-[10px]">
+                <td class="p-3 text-slate-300">Total Workers</td>
+                <td class="p-3 text-center text-amber-400">${tD}</td>
+                <td class="p-3 text-center text-indigo-400">${tN}</td>
+                <td class="p-3 text-center text-construction-orange">${tD+tN}</td>
+                <td class="p-3 text-center text-emerald-400">${(tD+tN)*8}</td>
+              </tr>
+              <tr class="bg-slate-800/20 text-[10px]">
+                <td class="p-3 text-slate-400">Staff (Day ${dS} · Night ${nS})</td>
+                <td colspan="3" class="p-3 text-center text-blue-400 font-bold">${totalStaff}</td>
+                <td class="p-3 text-center text-emerald-400 font-bold">${totalStaff*8}</td>
+              </tr>
+            </tfoot>
+          </table>`;
+        }
+      }
+
+      const emptyMsg = document.getElementById('admin-manpower-empty');
+      if (emptyMsg) emptyMsg.classList.toggle('hidden', !!entry);
+    }
+
+    // CONTRACTOR REGISTRY CRUD (Admin only)
+    let editingContractorId = null;
+
+    function renderContractorRegistry() {
+      const tbody = document.getElementById('admin-contractor-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const contractors = dbState.contractors || [];
+      if (contractors.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic text-xs">No contractors added yet.</td></tr>`;
+        return;
+      }
+      contractors.forEach((c, i) => {
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr class="hover:bg-slate-800/30">
+            <td class="p-3 text-slate-400 text-xs">${i+1}</td>
+            <td class="p-3 font-semibold text-slate-200 text-xs">${c.name}</td>
+            <td class="p-3 text-right">
+              <div class="flex gap-3 justify-end">
+                <button onclick="openContractorModal('${c.id}')" class="text-xs text-construction-orange hover:underline">Edit</button>
+                <button onclick="deleteContractor('${c.id}')" class="text-xs text-red-400 hover:underline">Remove</button>
+              </div>
+            </td>
+          </tr>
+        `);
+      });
+    }
+
+    function openContractorModal(id) {
+      editingContractorId = id || null;
+      const titleEl = document.getElementById('contractor-modal-title');
+      const nameEl = document.getElementById('contractor-field-name');
+      if (id) {
+        const c = (dbState.contractors || []).find(x => x.id === id);
+        if (titleEl) titleEl.innerText = 'Edit Contractor';
+        if (nameEl && c) nameEl.value = c.name;
+      } else {
+        if (titleEl) titleEl.innerText = 'Add Contractor';
+        if (nameEl) nameEl.value = '';
+      }
+      openModal('modal-contractor');
+    }
+
+    function saveContractor() {
+      const name = document.getElementById('contractor-field-name').value.trim();
+      if (!name) { showToast('Please enter a contractor name.', 'error'); return; }
+      if (!dbState.contractors) dbState.contractors = [];
+      if (editingContractorId) {
+        const idx = dbState.contractors.findIndex(c => c.id === editingContractorId);
+        if (idx !== -1) {
+          dbState.contractors[idx].name = name;
+          showToast(`Contractor "${name}" updated.`, 'success');
+        }
+      } else {
+        dbState.contractors.push({ id: `ctr-${Date.now()}`, name });
+        showToast(`Contractor "${name}" added.`, 'success');
+        pushNotification(`Admin added contractor: ${name}.`);
+      }
+      saveCurrentState();
+      closeModal();
+      renderContractorRegistry();
+      renderAdminManpower();
+    }
+
+    function deleteContractor(id) {
+      const c = (dbState.contractors || []).find(x => x.id === id);
+      if (!c) return;
+      if (!confirm(`Remove "${c.name}"? Their historical worker entries will remain in manpower logs.`)) return;
+      dbState.contractors = dbState.contractors.filter(x => x.id !== id);
+      saveCurrentState();
+      renderContractorRegistry();
+      renderAdminManpower();
+      showToast(`Contractor "${c.name}" removed.`, 'info');
+    }
+
+    // INITIALIZATION ROOT TRIGGERS
+    window.onload = async function() {
+      const loader = document.getElementById('loading-overlay');
+      loader.classList.remove('hidden');
+      setLoadingText('Initializing Safety Portal…');
+
+      // Firebase init (loads data, sets up real-time sync, falls back to localStorage)
+      await initFirebase();
+
+      // Reveal login screen
+      loader.classList.add('hidden');
+      lucide.createIcons();
+      document.getElementById('view-login').classList.remove('hidden');
+
+      // Periodic KPI refresh (60 s) — useful in localStorage/offline mode too
+      setInterval(() => {
+        if (currentUser && activeTab === 'dashboard') renderDashboardStats();
+      }, 60000);
+    };
+  </script>
+</body>
+</html>
