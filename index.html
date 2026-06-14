@@ -673,6 +673,27 @@ service cloud.firestore {
               <p class="text-xs text-slate-400">Admin terminal to create/delete site user accounts, reset credentials, and oversee safety approvals.</p>
             </div>
 
+            <!-- Data Backup & Restore -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2">
+                    <i data-lucide="database-backup" class="w-4 h-4 text-emerald-400"></i> Data Backup &amp; Restore
+                  </h3>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Download a full backup file of all users, permits, manpower and reports. Keep it safe — you can restore from it anytime. Tip: take a backup at the end of each day.</p>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                  <button onclick="exportBackup()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center justify-center gap-1.5">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i> Download Backup
+                  </button>
+                  <button onclick="document.getElementById('restore-file-input').click()" class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-slate-200 border border-construction-border font-semibold text-xs py-2 px-4 rounded-lg shadow flex items-center justify-center gap-1.5">
+                    <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore
+                  </button>
+                  <input id="restore-file-input" type="file" accept="application/json,.json" class="hidden" onchange="importBackupFile(this)">
+                </div>
+              </div>
+            </div>
+
             <!-- Manage Users Container -->
             <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
               <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
@@ -1295,6 +1316,10 @@ service cloud.firestore {
     let _fsListenerOff = null; // unsubscribe handle for snapshot listener
     let _saveDebounce  = null; // debounce timer for writes
     let _firebaseMode  = false; // true = using Firestore, false = localStorage fallback
+    // CRITICAL safety flag: stays false until we have confirmed (from the SERVER)
+    // either real data or a genuinely empty database. Firestore writes are blocked
+    // while this is false so a blank/seed state can never overwrite real data.
+    let _serverLoaded  = false;
 
     // ------ helpers ------
     function setLoadingText(msg) {
@@ -1382,22 +1407,28 @@ service cloud.firestore {
     function setupFirestoreListener() {
       if (_fsListenerOff) _fsListenerOff();
       let skipFirst = true;
-      _fsListenerOff = db.collection(FS_COL).doc(FS_DOC).onSnapshot({
-        next(snap) {
-          if (skipFirst) { skipFirst = false; return; }
-          if (snap.exists && !snap.metadata.hasPendingWrites) {
+      _fsListenerOff = db.collection(FS_COL).doc(FS_DOC).onSnapshot({ includeMetadataChanges: false },
+        snap => {
+          // Ignore our own un-acknowledged writes and anything served from cache.
+          if (snap.metadata.hasPendingWrites || snap.metadata.fromCache) return;
+          // A confirmed server snapshot means we are truly synced.
+          if (snap.exists) {
+            _serverLoaded = true;
+            if (skipFirst) { skipFirst = false; saveBackupSnapshot(); return; }
             setFirebaseStatus('syncing');
             dbState = snap.data();
             runMigrations();
+            saveBackupSnapshot();
             refreshCurrentView();
-            setTimeout(() => setFirebaseStatus('online'), 1500);
+            setTimeout(() => setFirebaseStatus('online'), 1200);
           }
+          // If snap doesn't exist we do NOTHING — never auto-seed from the listener.
         },
-        error(err) {
+        err => {
           console.warn('Firestore listener error:', err);
           setFirebaseStatus('offline');
         }
-      });
+      );
     }
 
     // ------ refresh currently active view ------
@@ -1412,28 +1443,109 @@ service cloud.firestore {
       else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); }
     }
 
-    // ------ Firestore load ------
+    // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
     async function loadFromFirestore() {
       const ref = db.collection(FS_COL).doc(FS_DOC);
-      const snap = await ref.get();
+
+      let snap;
+      try {
+        // Force a read from the SERVER. We must never decide "no data exists"
+        // based on an empty offline cache — that is what caused data loss.
+        snap = await ref.get({ source: 'server' });
+      } catch (err) {
+        // Server unreachable. DO NOT seed or write anything. Show whatever the
+        // cache has (read-only) and keep writes blocked so we can't overwrite.
+        console.warn('Server read failed — entering read-only mode:', err.message);
+        try {
+          const cached = await ref.get({ source: 'cache' });
+          if (cached.exists) { dbState = cached.data(); runMigrations(); }
+        } catch (_) { /* no cache; keep current state for display only */ }
+        _serverLoaded = false;
+        setFirebaseStatus('offline');
+        showToast('Could not reach the database. Read-only mode — your saved data is safe on the server. Reconnect to edit.', 'error');
+        return;
+      }
+
       if (snap.exists) {
+        // Real data confirmed by the server.
         dbState = snap.data();
         runMigrations();
+        _serverLoaded = true;
+        saveBackupSnapshot();             // keep a local safety copy
+        // Persist any migration changes (safe — we hold the real data now)
+        await ref.set(dbState).catch(e => console.warn('post-load save failed', e.message));
       } else {
-        // First run — check if there is localStorage data to migrate
+        // The SERVER confirms the document truly does not exist → safe to seed once.
         const local = localStorage.getItem('cpspl_safety_v1');
         if (local) {
-          try {
-            dbState = JSON.parse(local);
-            runMigrations();
-            showToast('Existing data migrated to Firebase ☁', 'success');
-          } catch(e) { /* keep defaults */ }
+          try { dbState = JSON.parse(local); showToast('Existing local data migrated to Firebase ☁', 'success'); } catch (e) {}
         }
-        // Push seed / migrated data to Firestore
         runMigrations();
         await ref.set(dbState);
+        _serverLoaded = true;
+        saveBackupSnapshot();
         localStorage.removeItem('cpspl_safety_v1');
       }
+    }
+
+    // Keep a timestamped local backup of the last known-good server data, so a
+    // device always has a recoverable copy even if the cloud is later disrupted.
+    function saveBackupSnapshot() {
+      try {
+        localStorage.setItem('cpspl_safety_backup', JSON.stringify({ at: Date.now(), data: dbState }));
+      } catch (e) { /* storage full — ignore */ }
+    }
+
+    // Download a full JSON backup of everything.
+    function exportBackup() {
+      try {
+        const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+        const blob = new Blob([JSON.stringify(dbState, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cto-connect-backup-${stamp}.json`;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Backup downloaded.', 'success');
+      } catch (e) {
+        showToast('Could not create backup: ' + e.message, 'error');
+      }
+    }
+
+    // Restore everything from a previously downloaded backup file (Admin only).
+    function importBackupFile(input) {
+      if (!currentUser || currentUser.role !== 'Admin') {
+        showToast('Only an Admin can restore a backup.', 'error');
+        input.value = ''; return;
+      }
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!parsed || !Array.isArray(parsed.users)) {
+            showToast('That file does not look like a valid backup.', 'error');
+            input.value = ''; return;
+          }
+          if (!confirm('Restore this backup? It will REPLACE all current data (users, permits, manpower, reports) everywhere. This cannot be undone.')) {
+            input.value = ''; return;
+          }
+          dbState = parsed;
+          runMigrations();
+          saveCurrentState();
+          refreshCurrentView();
+          renderPersonnelTable();
+          showToast('Backup restored successfully.', 'success');
+          pushNotification('Admin restored data from a backup file.');
+        } catch (e) {
+          showToast('Restore failed: ' + e.message, 'error');
+        } finally {
+          input.value = '';
+        }
+      };
+      reader.readAsText(file);
     }
 
     // ------ Firebase initialisation (called from window.onload) ------
@@ -1466,10 +1578,9 @@ service cloud.firestore {
         db   = firebase.firestore();
         auth = firebase.auth();
 
-        // Enable offline persistence (single-tab; multi-tab shows a warning, not an error)
-        await db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-          if (err.code !== 'failed-precondition' && err.code !== 'unimplemented') throw err;
-        });
+        // NOTE: offline write-persistence is intentionally NOT enabled. For a
+        // single shared document, a stale empty cache can overwrite real data.
+        // Reads still work online; edits require a live connection.
 
         setLoadingText('Authenticating…');
         await auth.signInAnonymously();
@@ -1478,32 +1589,44 @@ service cloud.firestore {
         await loadFromFirestore();
 
         _firebaseMode = true;
-        setFirebaseStatus('online');
+        if (_serverLoaded) {
+          setFirebaseStatus('online');
+        } else {
+          // Connected to Firebase but could not confirm server data → read-only.
+          setFirebaseStatus('offline');
+        }
         setupFirestoreListener();
 
       } catch (err) {
         console.error('Firebase init failed:', err);
         setFirebaseStatus('offline');
-        showToast(`Firebase error: ${err.message}. Running offline.`, 'error');
+        showToast(`Firebase error: ${err.message}. Running offline (read-only).`, 'error');
         loadFromLocalStorage();
       }
     }
 
-    // ------ SAVE — debounced Firestore write (falls back to localStorage) ------
+    // ------ SAVE — debounced Firestore write (write-guarded) ------
     function saveCurrentState() {
       if (_saveDebounce) clearTimeout(_saveDebounce);
       _saveDebounce = setTimeout(async () => {
-        if (_firebaseMode && db) {
+        // Firestore write is allowed ONLY after the server's data was confirmed.
+        // This guarantees a seed/blank state can never overwrite real cloud data.
+        if (_firebaseMode && db && _serverLoaded) {
           setFirebaseStatus('syncing');
           try {
             await db.collection(FS_COL).doc(FS_DOC).set(dbState);
+            saveBackupSnapshot();
             setFirebaseStatus('online');
           } catch (err) {
             console.error('Firestore save error:', err);
-            showToast('Save to Firebase failed. Data saved locally.', 'error');
+            showToast('Save to cloud failed — kept a local copy. Will retry when online.', 'error');
             saveToLocalStorage();
             setFirebaseStatus('offline');
           }
+        } else if (_firebaseMode && db && !_serverLoaded) {
+          // Connected but not yet synced with the server: never push, only keep local.
+          saveToLocalStorage();
+          showToast('Not synced with the cloud yet — change saved locally only.', 'info');
         } else {
           saveToLocalStorage();
         }
