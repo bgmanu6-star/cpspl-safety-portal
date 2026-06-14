@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CTO-ConNect</title>
-<link rel="apple-touch-icon" href="apple-touch-icon.PNG">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="logo.png">
 
   
   <!-- Tailwind CSS -->
@@ -136,14 +137,9 @@ service cloud.firestore {
       <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
         <!-- Logo & branding combined -->
         <div class="flex items-center gap-3">
-          <!-- Hand-crafted precise SVG of the Chettinad Logo from uploaded PNG -->
-          <div class="w-12 h-12 bg-white rounded-md p-1 flex items-center justify-center shadow-lg">
-            <svg viewBox="0 0 100 100" class="w-10 h-10">
-              <!-- Blue Chevron shape representing the left 'C' bracket -->
-              <path d="M 32,15 L 12,15 L 12,85 L 32,85 L 32,71 L 24,63 L 24,37 L 32,29 Z" fill="#0f59a4" />
-              <!-- Green triangle pointing pointing inwards / direction -->
-              <polygon points="34,50 82,18 82,82" fill="#70c144" />
-            </svg>
+          <!-- CTO-ConNect Site Safety Department logo -->
+          <div class="w-12 h-12 bg-white rounded-md p-0.5 flex items-center justify-center shadow-lg overflow-hidden">
+            <img src="logo.png" alt="CTO-ConNect Site Safety" class="w-full h-full object-contain rounded">
           </div>
           <div>
             <div class="flex items-center gap-1.5">
@@ -227,12 +223,9 @@ service cloud.firestore {
                ============================================== -->
           <div id="view-login" class="max-w-md mx-auto w-full bg-construction-cardBg border border-construction-border rounded-xl p-6 sm:p-8 shadow-2xl mt-4 sm:mt-12 no-print">
             <div class="text-center space-y-4 mb-6">
-              <!-- Inline SVG Logo for high speed load & no external dependencies -->
-              <div class="w-20 h-20 bg-white rounded-xl p-2 mx-auto flex items-center justify-center shadow-md">
-                <svg viewBox="0 0 100 100" class="w-16 h-16">
-                  <path d="M 32,15 L 12,15 L 12,85 L 32,85 L 32,71 L 24,63 L 24,37 L 32,29 Z" fill="#0f59a4" />
-                  <polygon points="34,50 82,18 82,82" fill="#70c144" />
-                </svg>
+              <!-- CTO-ConNect Site Safety Department logo -->
+              <div class="w-20 h-20 bg-white rounded-xl p-1 mx-auto flex items-center justify-center shadow-md overflow-hidden">
+                <img src="logo.png" alt="CTO-ConNect Site Safety" class="w-full h-full object-contain rounded-lg">
               </div>
               <div>
                 <h2 class="text-xl font-extrabold tracking-tight">CHETTINAD</h2>
@@ -256,12 +249,12 @@ service cloud.firestore {
                 </div>
               </div>
               <div>
-                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Security PIN / Password</label>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Password</label>
                 <div class="relative">
                   <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none">
                     <i data-lucide="lock" class="w-4 h-4"></i>
                   </span>
-                  <input id="login-pin" type="password" required placeholder="Enter 5-Digit PIN" class="w-full pl-10 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-construction-orange transition-colors">
+                  <input id="login-pin" type="password" required placeholder="Enter your password" class="w-full pl-10 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-construction-orange transition-colors">
                 </div>
               </div>
 
@@ -275,27 +268,27 @@ service cloud.firestore {
             </div>
           </div>
 
-          <!-- FORCE PIN CHANGE SCREEN -->
+          <!-- FORCE PASSWORD CHANGE SCREEN -->
           <div id="view-force-pin" class="max-w-md mx-auto w-full bg-construction-cardBg border-2 border-construction-orange rounded-xl p-6 sm:p-8 shadow-2xl mt-4 sm:mt-12 hidden no-print">
             <div class="text-center mb-6 space-y-2">
               <div class="w-12 h-12 bg-construction-orange/20 text-construction-orange rounded-full flex items-center justify-center mx-auto">
                 <i data-lucide="shield-alert" class="w-6 h-6"></i>
               </div>
-              <h3 class="text-lg font-bold">First-Time Security Configuration</h3>
-              <p class="text-xs text-slate-400 leading-relaxed">For safety enforcement compliance, you must change the default login PIN (<strong class="text-construction-orange">12345</strong>) before continuing to access the dashboard portal.</p>
+              <h3 class="text-lg font-bold">Set Your New Password</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">For your account security you must set a new personal password before continuing. It must be <strong class="text-construction-orange">6 to 11 characters</strong>, using letters and numbers only.</p>
             </div>
             
-            <form onsubmit="event.preventDefault(); updateAdminPin();" class="space-y-4">
+            <form onsubmit="event.preventDefault(); updateForcedPassword();" class="space-y-4">
               <div>
-                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">New 5-Digit Secure PIN</label>
-                <input id="force-pin-new" type="password" pattern="[0-9]{5}" required placeholder="5 Numeric Digits Only" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 tracking-widest text-center text-lg focus:outline-none focus:border-construction-orange">
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">New Password (6–11, letters &amp; numbers)</label>
+                <input id="force-pin-new" type="password" minlength="6" maxlength="11" required placeholder="e.g. Site2026" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-center text-lg focus:outline-none focus:border-construction-orange">
               </div>
               <div>
-                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Confirm New Secure PIN</label>
-                <input id="force-pin-confirm" type="password" pattern="[0-9]{5}" required placeholder="Confirm Security PIN" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 tracking-widest text-center text-lg focus:outline-none focus:border-construction-orange">
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Confirm New Password</label>
+                <input id="force-pin-confirm" type="password" minlength="6" maxlength="11" required placeholder="Re-enter your password" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-center text-lg focus:outline-none focus:border-construction-orange">
               </div>
               <button type="submit" class="w-full py-2.5 px-4 bg-construction-orange hover:bg-orange-600 text-white font-bold text-sm rounded-lg shadow-lg">
-                Update Permanent PIN & Log In
+                Save Password &amp; Log In
               </button>
             </form>
           </div>
@@ -513,6 +506,12 @@ service cloud.firestore {
                 Daily Worker &amp; Staff Manpower
               </h2>
               <p class="text-xs text-slate-400 mb-4">Log today's site manpower date-wise. Workers are entered per contractor (Day &amp; Night). Staff counts are entered once for the whole site. Manhours auto-calculated at 8 hrs per head.</p>
+
+              <!-- Shown to users who are not authorised to add/edit manpower -->
+              <div id="manpower-noauth-notice" class="hidden bg-slate-900 border border-yellow-600/40 rounded-lg p-4 text-xs text-yellow-300 flex items-start gap-2 mb-2">
+                <i data-lucide="lock" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                <span>You can view the manpower log below, but only authorised staff can add or edit entries. Contact your Site Admin to request manpower authority.</span>
+              </div>
 
               <form id="labour-form" onsubmit="event.preventDefault(); submitManpowerEntry();" class="space-y-5">
 
@@ -783,10 +782,7 @@ service cloud.firestore {
     <!-- FOOTER COMPANY MARKER -->
     <footer class="bg-construction-darkBg border-t border-construction-border py-6 mt-auto text-center text-xs text-slate-500 no-print flex flex-col gap-1 items-center justify-center">
       <div class="flex items-center gap-2 mb-2">
-        <svg viewBox="0 0 100 100" class="w-5 h-5 bg-white p-0.5 rounded">
-          <path d="M 32,15 L 12,15 L 12,85 L 32,85 L 32,71 L 24,63 L 24,37 L 32,29 Z" fill="#0f59a4" />
-          <polygon points="34,50 82,18 82,82" fill="#70c144" />
-        </svg>
+        <img src="logo.png" alt="CTO-ConNect" class="w-5 h-5 bg-white p-0.5 rounded object-contain">
         <span class="font-bold text-slate-400">CHETTINAD Products & Services Pvt. Ltd.</span>
       </div>
       <p>Developed &amp; Maintained by CPASPL Safety Department for CTO Project Internal Purpose Only.</p>
@@ -1074,8 +1070,9 @@ service cloud.firestore {
             <input id="user-new-phone" type="tel" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Setup PIN (Must be 5-digits)</label>
-            <input id="user-new-pin" type="password" required pattern="[0-9]{5}" placeholder="e.g. 54321" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Temporary Password (6–11 letters &amp; numbers)</label>
+            <input id="user-new-pin" type="text" required minlength="6" maxlength="11" placeholder="e.g. Site2026" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            <p class="text-[9px] text-slate-500 mt-1">The user will be required to set their own password at first login.</p>
           </div>
 
           <div class="flex justify-end gap-2 pt-4">
@@ -1085,29 +1082,33 @@ service cloud.firestore {
         </form>
       </div>
 
-      <!-- ADMIN PASSWORD/PIN RESET MODAL -->
+      <!-- ADMIN CREDENTIALS RESET MODAL (User ID + Password) -->
       <div id="modal-reset-password" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
         <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
-          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Force Reset User Security PIN</h3>
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Reset User Login Credentials</h3>
           <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
 
         <form onsubmit="event.preventDefault(); triggerAdminResetPassword();" class="space-y-4 text-xs">
           <div>
-            <p class="text-slate-400 mb-2">Configure a new secure login security PIN for <strong id="reset-user-fullname" class="text-construction-orange">User</strong>. Their profile data, work permit logs, and safety reports will remain safe.</p>
+            <p class="text-slate-400 mb-2">Set a new User ID and/or password for <strong id="reset-user-fullname" class="text-construction-orange">User</strong>. Their profile data, work permit logs, and safety reports will remain safe. They will be asked to set their own password at next login.</p>
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">New 5-Digit PIN</label>
-            <input id="reset-user-pin" type="password" required pattern="[0-9]{5}" placeholder="Enter 5 numeric digits" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-center tracking-widest text-lg">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">User ID (login name)</label>
+            <input id="reset-user-username" type="text" required placeholder="e.g. staff3" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Confirm PIN</label>
-            <input id="reset-user-pin-confirm" type="password" required pattern="[0-9]{5}" placeholder="Confirm 5 numeric digits" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-center tracking-widest text-lg">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">New Password (6–11 letters &amp; numbers)</label>
+            <input id="reset-user-pin" type="text" required minlength="6" maxlength="11" placeholder="e.g. Site2026" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Confirm Password</label>
+            <input id="reset-user-pin-confirm" type="text" required minlength="6" maxlength="11" placeholder="Re-enter password" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
 
           <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Apply Pin Update</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Apply Credentials</button>
           </div>
         </form>
       </div>
@@ -1221,10 +1222,10 @@ service cloud.firestore {
     // Mock Database initialization with localized storage
     let dbState = {
       users: [
-        { id: 'usr-0', username: 'admin', fullname: 'CTO Safety Admin', role: 'Admin', designation: 'General Safety Admin', phone: '+91 99999 88888', pin: '12345', isDefaultPin: true },
-        { id: 'usr-1', username: 'staff1', fullname: 'R. K. Raman', role: 'Staff', designation: 'HSE Officer', phone: '+91 98840 12345', pin: '11111', isDefaultPin: false, canApprove: true },
-        { id: 'usr-2', username: 'staff2', fullname: 'M. S. Sundar', role: 'Staff', designation: 'Site Supervisor', phone: '+91 98840 54321', pin: '11111', isDefaultPin: false, canApprove: false },
-        { id: 'usr-3', username: 'contractor1', fullname: 'A. Kumar (SafeBuild)', role: 'Contractor', designation: 'Lead Contractor', phone: '+91 94440 12345', pin: '22222', isDefaultPin: false }
+        { id: 'usr-0', username: 'admin', fullname: 'CTO Safety Admin', role: 'Admin', designation: 'General Safety Admin', phone: '+91 99999 88888', pin: 'CtoAdmin26', isDefaultPin: false, mustChangePassword: true },
+        { id: 'usr-1', username: 'staff1', fullname: 'R. K. Raman', role: 'Staff', designation: 'HSE Officer', phone: '+91 98840 12345', pin: 'Welcome1', isDefaultPin: false, canApprove: true, canManageManpower: true, mustChangePassword: true },
+        { id: 'usr-2', username: 'staff2', fullname: 'M. S. Sundar', role: 'Staff', designation: 'Site Supervisor', phone: '+91 98840 54321', pin: 'Welcome2', isDefaultPin: false, canApprove: false, canManageManpower: false, mustChangePassword: true },
+        { id: 'usr-3', username: 'contractor1', fullname: 'A. Kumar (SafeBuild)', role: 'Contractor', designation: 'Lead Contractor', phone: '+91 94440 12345', pin: 'Welcome3', isDefaultPin: false, mustChangePassword: true }
       ],
       // Contractor list — managed by Admin only (name only; workers are logged date-wise)
       contractors: [
@@ -1320,6 +1321,33 @@ service cloud.firestore {
     // ------ data migrations (run after any load) ------
     function runMigrations() {
       if (!dbState.contractors)  dbState.contractors = [];
+      if (!Array.isArray(dbState.users)) dbState.users = [];
+
+      // ---- One-time password-policy upgrade (v2) ----
+      // Runs once per database. Resets the primary admin to the known temporary
+      // password, forces every user to set a new password on next login, and
+      // ensures Staff have an explicit manpower-authority flag.
+      if (!dbState._pwPolicyV2) {
+        dbState.users.forEach(u => {
+          u.mustChangePassword = true;
+          if (u.role === 'Staff' && typeof u.canManageManpower === 'undefined') {
+            u.canManageManpower = false;
+          }
+        });
+        const admin = dbState.users.find(isPrimaryAdmin);
+        if (admin) {
+          admin.pin = ADMIN_RESET_PASSWORD;
+          admin.isDefaultPin = false;
+          admin.mustChangePassword = true;
+        }
+        dbState._pwPolicyV2 = true;
+      }
+      // Safety net for any user added before the flag existed
+      dbState.users.forEach(u => {
+        if (u.role === 'Staff' && typeof u.canManageManpower === 'undefined') u.canManageManpower = false;
+        if (typeof u.mustChangePassword === 'undefined') u.mustChangePassword = false;
+      });
+
       if (!dbState.manpower) {
         if (Array.isArray(dbState.labour)) {
           dbState.manpower = dbState.labour.map(l => ({
@@ -1402,6 +1430,7 @@ service cloud.firestore {
           } catch(e) { /* keep defaults */ }
         }
         // Push seed / migrated data to Firestore
+        runMigrations();
         await ref.set(dbState);
         localStorage.removeItem('cpspl_safety_v1');
       }
@@ -1422,6 +1451,15 @@ service cloud.firestore {
 
       setLoadingText('Connecting to Firebase…');
       setFirebaseStatus('connecting');
+
+      // If the Firebase SDK didn't load (e.g. an offline preview sandbox or a
+      // blocked network), fall back to local mode quietly instead of erroring.
+      if (typeof firebase === 'undefined') {
+        console.warn('Firebase SDK not available — running in local/offline mode. This is normal in a preview window; it will connect on your live site.');
+        setFirebaseStatus('offline');
+        loadFromLocalStorage();
+        return;
+      }
 
       try {
         firebase.initializeApp(FIREBASE_CONFIG);
@@ -1474,6 +1512,35 @@ service cloud.firestore {
 
     // Legacy alias kept so any code that calls loadSavedState() still works
     function loadSavedState() { /* no-op — replaced by initFirebase() */ }
+
+    // ============================================================
+    // PASSWORD POLICY — 6 to 11 characters, letters and numbers only
+    // ============================================================
+    const PW_MIN = 6, PW_MAX = 11;
+    // The temporary admin password set by the latest update. The admin is
+    // forced to change this on first login (see runMigrations + triggerLogin).
+    const ADMIN_RESET_PASSWORD = 'CtoAdmin26';
+
+    function isValidPassword(pw) {
+      return typeof pw === 'string'
+        && /^[A-Za-z0-9]+$/.test(pw)
+        && pw.length >= PW_MIN
+        && pw.length <= PW_MAX;
+    }
+
+    // The primary admin account is identified by its fixed id so that renaming
+    // its login User ID never removes its system-lock protection.
+    function isPrimaryAdmin(u) {
+      return u && (u.id === 'usr-0' || u.username === 'admin');
+    }
+
+    // Manpower may only be added/edited by Admins or specifically authorised Staff.
+    function canEditManpower() {
+      return !!currentUser && (
+        currentUser.role === 'Admin' ||
+        (currentUser.role === 'Staff' && currentUser.canManageManpower)
+      );
+    }
 
     // STATE CONTROLLERS
     let currentUser = null;
@@ -1703,13 +1770,15 @@ service cloud.firestore {
         return;
       }
 
-      // Check for Admin Default Pin Reset lock
-      if (user.username === 'admin' && user.isDefaultPin && pinInput === '12345') {
-        // Enforce Force Reset Screen
+      // Force a password change on first login (or after an admin reset)
+      if (user.mustChangePassword || user.isDefaultPin) {
         document.getElementById('view-login').classList.add('hidden');
         document.getElementById('view-force-pin').classList.remove('hidden');
         currentUser = user;
-        showToast('Administrative PIN update mandatory.', 'error');
+        document.getElementById('force-pin-new').value = '';
+        document.getElementById('force-pin-confirm').value = '';
+        lucide.createIcons();
+        showToast('Please set a new password before continuing.', 'info');
         return;
       }
 
@@ -1729,55 +1798,58 @@ service cloud.firestore {
       // Compile responsive mobile bottom tab bar options
       buildDynamicNavs();
 
-      // Adapt Interface limits depending on roles
+      // Permit creation is available to Admin, Staff, and Contractor
+      document.getElementById('btn-create-permit').classList.remove('hidden');
+
+      // Admin-only management controls
       if (user.role === 'Admin') {
         document.getElementById('admin-add-contact-btn').classList.remove('hidden');
         document.getElementById('admin-upload-doc-btn').classList.remove('hidden');
-        document.getElementById('btn-create-permit').classList.remove('hidden');
       } else {
         document.getElementById('admin-add-contact-btn').classList.add('hidden');
         document.getElementById('admin-upload-doc-btn').classList.add('hidden');
-        
-        // Hide standard features if role lacks execution authorization
-        if (user.role === 'Contractor') {
-          document.getElementById('btn-create-permit').classList.remove('hidden');
-        } else {
-          document.getElementById('btn-create-permit').classList.add('hidden');
-        }
       }
+
+      // Show/hide the manpower entry form based on authorisation
+      applyManpowerPermissions();
 
       showToast(`Welcome back, ${user.fullname}! Session active.`, 'success');
       switchTab('dashboard');
     }
 
-    function updateAdminPin() {
-      const newPin = document.getElementById('force-pin-new').value;
-      const confirmPin = document.getElementById('force-pin-confirm').value;
+    function updateForcedPassword() {
+      const newPw = document.getElementById('force-pin-new').value;
+      const confirmPw = document.getElementById('force-pin-confirm').value;
 
-      if (newPin.length !== 5 || !/^\d+$/.test(newPin)) {
-        showToast('PIN must be exactly 5 numeric digits.', 'error');
+      if (!isValidPassword(newPw)) {
+        showToast('Password must be 6–11 characters, letters and numbers only.', 'error');
+        return;
+      }
+      if (newPw !== confirmPw) {
+        showToast('Passwords do not match.', 'error');
+        return;
+      }
+      if (!currentUser) {
+        showToast('Session expired. Please log in again.', 'error');
+        return;
+      }
+      // Don't allow keeping the temporary admin password
+      if (isPrimaryAdmin(currentUser) && newPw === ADMIN_RESET_PASSWORD) {
+        showToast('You cannot reuse the temporary password. Choose a new one.', 'error');
         return;
       }
 
-      if (newPin !== confirmPin) {
-        showToast('PIN values do not match.', 'error');
-        return;
-      }
-
-      if (newPin === '12345') {
-        showToast('You cannot reuse the default PIN.', 'error');
-        return;
-      }
-
-      // Update PIN
-      const adminUser = dbState.users.find(u => u.username === 'admin');
-      adminUser.pin = newPin;
-      adminUser.isDefaultPin = false;
+      const u = dbState.users.find(x => x.id === currentUser.id) || currentUser;
+      u.pin = newPw;
+      u.isDefaultPin = false;
+      u.mustChangePassword = false;
       saveCurrentState();
 
-      showToast('Admin Security PIN updated successfully.', 'success');
-      authenticateSession(adminUser);
+      showToast('Password updated successfully.', 'success');
+      authenticateSession(u);
     }
+    // Backwards-compatible alias
+    function updateAdminPin() { updateForcedPassword(); }
 
     function handleLogout() {
       currentUser = null;
@@ -1793,7 +1865,7 @@ service cloud.firestore {
     }
 
     function forgotPasswordDialog() {
-      showToast('Please contact your CTO Site Admin to reset your security PIN.', 'info');
+      showToast('Please contact your CTO Site Admin to reset your password and User ID.', 'info');
     }
 
     // ---- Manpower helpers (contractor-wise workers, date-wise staff) ----
@@ -2084,6 +2156,9 @@ service cloud.firestore {
       if (!container) return;
       container.innerHTML = '';
 
+      // Lock the entry form for unauthorised users
+      applyManpowerPermissions();
+
       // Render contractor input rows into the main form
       const noNotice = document.getElementById('no-contractors-notice');
       const rowsDiv = document.getElementById('contractor-worker-rows');
@@ -2150,7 +2225,7 @@ service cloud.firestore {
           if (!ctrRows) ctrRows = '<tr><td colspan="4" class="px-3 py-2 text-slate-500 italic text-[10px]">All zeros</td></tr>';
         }
 
-        const actionsHtml = isAdmin ? `
+        const actionsHtml = canEditManpower() ? `
           <div class="flex gap-3">
             <button onclick="editLabourRecord('${entry.id}')" class="text-xs text-construction-orange hover:underline">Edit</button>
             <button onclick="deleteLabourRecord('${entry.id}')" class="text-xs text-red-400 hover:underline">Delete</button>
@@ -2189,7 +2264,20 @@ service cloud.firestore {
       lucide.createIcons();
     }
 
+    // Show or hide the manpower entry form depending on the user's authority
+    function applyManpowerPermissions() {
+      const form = document.getElementById('labour-form');
+      const notice = document.getElementById('manpower-noauth-notice');
+      const allowed = canEditManpower();
+      if (form) form.classList.toggle('hidden', !allowed);
+      if (notice) notice.classList.toggle('hidden', allowed);
+    }
+
     function submitManpowerEntry() {
+      if (!canEditManpower()) {
+        showToast('You are not authorised to add or edit manpower.', 'error');
+        return;
+      }
       const date = document.getElementById('labour-date').value;
       if (!date) { showToast('Please select a site date.', 'error'); return; }
 
@@ -2228,6 +2316,10 @@ service cloud.firestore {
     }
 
     function editLabourRecord(id) {
+      if (!canEditManpower()) {
+        showToast('You are not authorised to edit manpower.', 'error');
+        return;
+      }
       const target = (dbState.manpower || []).find(l => l.id === id);
       if (!target) return;
       editingLabourId = id;
@@ -2240,6 +2332,10 @@ service cloud.firestore {
     }
 
     function saveManpowerEntryEdit() {
+      if (!canEditManpower()) {
+        showToast('You are not authorised to edit manpower.', 'error');
+        return;
+      }
       const idx = (dbState.manpower || []).findIndex(l => l.id === editingLabourId);
       if (idx === -1) return;
       const date = document.getElementById('edit-labour-date').value;
@@ -2261,6 +2357,10 @@ service cloud.firestore {
     }
 
     function deleteLabourRecord(id) {
+      if (!canEditManpower()) {
+        showToast('You are not authorised to delete manpower.', 'error');
+        return;
+      }
       if (!confirm("Permanently delete this day's manpower entry? This updates safe manhours immediately.")) return;
       dbState.manpower = (dbState.manpower || []).filter(l => l.id !== id);
       saveCurrentState();
@@ -2991,10 +3091,7 @@ service cloud.firestore {
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
             <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
               <div style="width: 50px; height: 50px; background: white; border: 1px solid #ccc; padding: 2px; border-radius: 4px;">
-                <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
-                  <path d="M 32,15 L 12,15 L 12,85 L 32,85 L 32,71 L 24,63 L 24,37 L 32,29 Z" fill="#0f59a4" />
-                  <polygon points="34,50 82,18 82,82" fill="#70c144" />
-                </svg>
+                <img src="logo.png" alt="CTO-ConNect" style="width: 100%; height: 100%; object-fit: contain;">
               </div>
               <div>
                 <h2 style="font-size: 14px; font-weight: 800; margin: 0; color: #111;">Chettinad Products & Services Pvt. Ltd.</h2>
@@ -3083,14 +3180,20 @@ service cloud.firestore {
       dbState.users.forEach(u => {
         const authorityToggle = u.role === 'Staff' 
           ? `
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] font-bold ${u.canApprove ? 'text-emerald-400' : 'text-slate-400'}">${u.canApprove ? 'Reviewer' : 'No Authority'}</span>
-              <button onclick="toggleUserApproveAuthority('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold ${u.canApprove ? 'text-emerald-400' : 'text-slate-400'}">${u.canApprove ? 'Permit Reviewer' : 'No Review Authority'}</span>
+                <button onclick="toggleUserApproveAuthority('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold ${u.canManageManpower ? 'text-purple-400' : 'text-slate-400'}">${u.canManageManpower ? 'Manpower Authority' : 'No Manpower Authority'}</span>
+                <button onclick="toggleUserManpowerAuthority('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
+              </div>
             </div>
           `
           : '<span class="text-[10px] text-slate-500">--</span>';
 
-        const deleteBtn = u.username !== 'admin'
+        const deleteBtn = !isPrimaryAdmin(u)
           ? `<button onclick="deleteUser('${u.id}')" class="text-xs text-red-400 hover:underline">Delete</button>`
           : '<span class="text-[10px] text-slate-500 font-bold text-slate-400">System Lock</span>';
 
@@ -3109,7 +3212,7 @@ service cloud.firestore {
             <td class="p-3 text-right">
               <div class="flex flex-col sm:flex-row gap-2 justify-end">
                 <button onclick="openEditUserModal('${u.id}')" class="text-xs text-construction-orange hover:underline">Edit Info</button>
-                <button onclick="openResetPasswordModal('${u.id}')" class="text-xs text-yellow-500 hover:underline font-medium">Reset PIN</button>
+                <button onclick="openResetPasswordModal('${u.id}')" class="text-xs text-yellow-500 hover:underline font-medium">Reset Login</button>
                 ${deleteBtn}
               </div>
             </td>
@@ -3135,13 +3238,18 @@ service cloud.firestore {
       const phone = document.getElementById('user-new-phone').value;
       const pin = document.getElementById('user-new-pin').value;
 
-      if (pin.length !== 5 || !/^\d+$/.test(pin)) {
-        showToast('Security PIN must be exactly 5 numeric digits.', 'error');
+      if (!isValidPassword(pin)) {
+        showToast('Password must be 6–11 characters, letters and numbers only.', 'error');
+        return;
+      }
+
+      if (!username) {
+        showToast('Please enter a User ID.', 'error');
         return;
       }
 
       if (dbState.users.some(u => u.username === username)) {
-        showToast('Username already registered.', 'error');
+        showToast('User ID already registered.', 'error');
         return;
       }
 
@@ -3154,7 +3262,9 @@ service cloud.firestore {
         phone,
         pin,
         isDefaultPin: false,
-        canApprove: false
+        mustChangePassword: true,
+        canApprove: false,
+        canManageManpower: false
       });
 
       saveCurrentState();
@@ -3170,35 +3280,46 @@ service cloud.firestore {
 
       resettingPasswordUserId = id;
       document.getElementById('reset-user-fullname').innerText = u.fullname;
+      document.getElementById('reset-user-username').value = u.username;
       document.getElementById('reset-user-pin').value = '';
       document.getElementById('reset-user-pin-confirm').value = '';
       openModal('modal-reset-password');
     }
 
     function triggerAdminResetPassword() {
-      const newPin = document.getElementById('reset-user-pin').value;
-      const confirmPin = document.getElementById('reset-user-pin-confirm').value;
-
-      if (newPin.length !== 5 || !/^\d+$/.test(newPin)) {
-        showToast('PIN must be exactly 5 numeric digits.', 'error');
-        return;
-      }
-
-      if (newPin !== confirmPin) {
-        showToast('Security PIN values do not match.', 'error');
-        return;
-      }
+      const newUsername = document.getElementById('reset-user-username').value.trim().toLowerCase();
+      const newPw = document.getElementById('reset-user-pin').value;
+      const confirmPw = document.getElementById('reset-user-pin-confirm').value;
 
       const idx = dbState.users.findIndex(u => u.id === resettingPasswordUserId);
-      if (idx !== -1) {
-        dbState.users[idx].pin = newPin;
-        dbState.users[idx].isDefaultPin = false; // Mark false so they can log in directly
-        saveCurrentState();
-        closeModal();
-        renderPersonnelTable();
-        showToast(`PIN reset successfully for ${dbState.users[idx].fullname}.`, 'success');
-        pushNotification(`Admin reset login credentials PIN for ${dbState.users[idx].fullname}`);
+      if (idx === -1) return;
+
+      if (!newUsername) {
+        showToast('User ID cannot be empty.', 'error');
+        return;
       }
+      if (dbState.users.some(u => u.username === newUsername && u.id !== resettingPasswordUserId)) {
+        showToast('That User ID is already taken.', 'error');
+        return;
+      }
+      if (!isValidPassword(newPw)) {
+        showToast('Password must be 6–11 characters, letters and numbers only.', 'error');
+        return;
+      }
+      if (newPw !== confirmPw) {
+        showToast('Passwords do not match.', 'error');
+        return;
+      }
+
+      dbState.users[idx].username = newUsername;
+      dbState.users[idx].pin = newPw;
+      dbState.users[idx].isDefaultPin = false;
+      dbState.users[idx].mustChangePassword = true; // user sets their own at next login
+      saveCurrentState();
+      closeModal();
+      renderPersonnelTable();
+      showToast(`Credentials reset for ${dbState.users[idx].fullname}.`, 'success');
+      pushNotification(`Admin reset login credentials for ${dbState.users[idx].fullname}`);
     }
 
     function toggleUserApproveAuthority(id) {
@@ -3207,7 +3328,17 @@ service cloud.firestore {
       user.canApprove = !user.canApprove;
       saveCurrentState();
       renderPersonnelTable();
-      showToast(`Review Authority updated for: ${user.fullname}`, 'success');
+      showToast(`Permit review authority updated for: ${user.fullname}`, 'success');
+    }
+
+    function toggleUserManpowerAuthority(id) {
+      const user = dbState.users.find(u => u.id === id);
+      if (!user) return;
+      user.canManageManpower = !user.canManageManpower;
+      saveCurrentState();
+      renderPersonnelTable();
+      if (currentUser && currentUser.id === id) { currentUser.canManageManpower = user.canManageManpower; applyManpowerPermissions(); }
+      showToast(`Manpower authority updated for: ${user.fullname}`, 'success');
     }
 
     function deleteUser(id) {
