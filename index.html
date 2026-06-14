@@ -297,7 +297,41 @@ service cloud.firestore {
                2. MAIN DASHBOARD VIEW
                ============================================== -->
           <div id="view-dashboard" class="space-y-6 hidden no-print">
-            
+
+            <!-- SITE ANNOUNCEMENTS / NOTICE BOARD -->
+            <div class="bg-gradient-to-br from-construction-cardBg to-slate-900 border border-construction-orange/40 rounded-xl p-4 sm:p-5">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
+                  <i data-lucide="megaphone" class="w-4 h-4"></i> Site Notice Board
+                </h3>
+                <span class="text-[10px] text-slate-500">Posted by Admin &amp; authorised reviewers</span>
+              </div>
+
+              <!-- Compose box (only shown to authorised posters) -->
+              <div id="announce-compose" class="hidden bg-slate-900/70 border border-construction-border rounded-lg p-3 mb-4">
+                <textarea id="announce-text" rows="2" placeholder="Write a message for the site team…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 text-xs resize-y"></textarea>
+                <div id="announce-photo-preview" class="hidden mt-2">
+                  <img id="announce-photo-img" src="" alt="attachment preview" class="max-h-32 rounded-lg border border-construction-border">
+                  <button type="button" onclick="clearAnnouncementPhoto()" class="block text-[10px] text-red-400 hover:underline mt-1">Remove photo</button>
+                </div>
+                <div class="flex items-center justify-between gap-2 mt-2">
+                  <label class="cursor-pointer text-[11px] text-slate-300 bg-slate-800 hover:bg-slate-700 border border-construction-border rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+                    <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Add Photo
+                    <input id="announce-photo-input" type="file" accept="image/*" class="hidden" onchange="previewAnnouncementPhoto(this)">
+                  </label>
+                  <button onclick="postAnnouncement()" class="bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-1.5 px-4 rounded-lg flex items-center gap-1.5">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i> Post
+                  </button>
+                </div>
+              </div>
+
+              <!-- Announcement feed -->
+              <div id="announce-feed" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                <!-- rendered by renderAnnouncements -->
+              </div>
+            </div>
+
+
             <!-- Quick Actions Header Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
@@ -926,6 +960,18 @@ service cloud.firestore {
             </div>
           </div>
 
+          <!-- APPLICANT (CONTRACTOR) DIGITAL SIGNATURE -->
+          <div class="pt-4 border-t border-construction-border">
+            <label class="block text-[10px] font-bold uppercase text-construction-orange mb-1.5 flex justify-between">
+              <span>Applicant Signature (required)</span>
+              <button type="button" onclick="clearApplicantSignature()" class="text-[10px] text-red-400 hover:underline">Clear</button>
+            </label>
+            <div class="border border-construction-border rounded-lg bg-white overflow-hidden h-32 relative">
+              <canvas id="applicant-sig-canvas" class="w-full h-full cursor-crosshair block"></canvas>
+            </div>
+            <p class="text-[9px] text-slate-500 mt-1 italic">By signing, the applicant confirms the details above are correct and agrees to follow all site safety requirements.</p>
+          </div>
+
           <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg">Cancel</button>
             <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Submit Permit for Review</button>
@@ -1347,6 +1393,7 @@ service cloud.firestore {
     function runMigrations() {
       if (!dbState.contractors)  dbState.contractors = [];
       if (!Array.isArray(dbState.users)) dbState.users = [];
+      if (!Array.isArray(dbState.announcements)) dbState.announcements = [];
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -1669,9 +1716,8 @@ service cloud.firestore {
     let currentUser = null;
     let activeTab = 'dashboard';
     let activePermitFilter = 'all';
-    let drawingSignature = false;
-    let sigCanvas = null;
-    let sigCtx = null;
+    let reviewSigPad = null;     // signature pad in the review modal
+    let applicantSigPad = null;  // signature pad in the create-permit modal
     let selectedPermitType = null;
     let currentEditPermit = null;
     let currentReportType = 'hazard';
@@ -2129,6 +2175,152 @@ service cloud.firestore {
 
       renderNotifications();
       renderDashboardSOSShortcuts();
+      renderAnnouncements();
+    }
+
+    // ============================================================
+    // SITE NOTICE BOARD / ANNOUNCEMENTS
+    // ============================================================
+    let _pendingAnnouncementPhoto = null; // compressed dataURL awaiting post
+
+    // Admin or authorised permit reviewers (Staff with canApprove) may post.
+    function canPostAnnouncement() {
+      return !!currentUser && (
+        currentUser.role === 'Admin' ||
+        (currentUser.role === 'Staff' && currentUser.canApprove)
+      );
+    }
+
+    function renderAnnouncements() {
+      const feed = document.getElementById('announce-feed');
+      const compose = document.getElementById('announce-compose');
+      if (!feed) return;
+
+      if (compose) compose.classList.toggle('hidden', !canPostAnnouncement());
+
+      const list = Array.isArray(dbState.announcements) ? dbState.announcements : [];
+      if (!list.length) {
+        feed.innerHTML = `<p class="text-[11px] text-slate-500 italic text-center py-4">No announcements yet.</p>`;
+        return;
+      }
+
+      feed.innerHTML = list.map(a => {
+        const canDelete = currentUser && (currentUser.role === 'Admin' || a.authorId === currentUser.id);
+        const photo = a.photo ? `<img src="${a.photo}" alt="attachment" class="mt-2 max-h-56 rounded-lg border border-construction-border">` : '';
+        const text = a.text ? `<p class="text-xs text-slate-200 whitespace-pre-wrap mt-1">${escapeHtml(a.text)}</p>` : '';
+        const del = canDelete ? `<button onclick="deleteAnnouncement('${a.id}')" class="text-[10px] text-red-400 hover:underline shrink-0">Delete</button>` : '';
+        return `
+          <div class="bg-slate-900/60 border border-construction-border rounded-lg p-3">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="text-[11px] font-bold text-construction-orange">${escapeHtml(a.author || 'Site Team')} <span class="text-slate-500 font-normal">· ${escapeHtml(a.role || '')}</span></p>
+                <p class="text-[9px] text-slate-500">${escapeHtml(a.timestamp || '')}</p>
+              </div>
+              ${del}
+            </div>
+            ${text}
+            ${photo}
+          </div>`;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    // Resize/compress an image file to keep the shared database small.
+    function compressImage(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > height && width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; }
+            else if (height >= width && height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; }
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function previewAnnouncementPhoto(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      try {
+        _pendingAnnouncementPhoto = await compressImage(file, 800, 0.5);
+        document.getElementById('announce-photo-img').src = _pendingAnnouncementPhoto;
+        document.getElementById('announce-photo-preview').classList.remove('hidden');
+      } catch (e) {
+        showToast('Could not read that image.', 'error');
+      }
+      input.value = '';
+    }
+
+    function clearAnnouncementPhoto() {
+      _pendingAnnouncementPhoto = null;
+      document.getElementById('announce-photo-preview').classList.add('hidden');
+      document.getElementById('announce-photo-img').src = '';
+    }
+
+    function postAnnouncement() {
+      if (!canPostAnnouncement()) { showToast('You are not authorised to post announcements.', 'error'); return; }
+      const text = document.getElementById('announce-text').value.trim();
+      if (!text && !_pendingAnnouncementPhoto) {
+        showToast('Add a message or a photo to post.', 'error');
+        return;
+      }
+      if (!Array.isArray(dbState.announcements)) dbState.announcements = [];
+      const candidate = {
+        id: `ann-${Date.now()}`,
+        authorId: currentUser.id,
+        author: currentUser.fullname,
+        role: currentUser.role,
+        text,
+        photo: _pendingAnnouncementPhoto || null,
+        timestamp: new Date().toLocaleString()
+      };
+
+      // Protect the shared database from exceeding Firebase's ~1MB document limit.
+      try {
+        const projectedSize = JSON.stringify(dbState).length + JSON.stringify(candidate).length;
+        if (projectedSize > 900000) {
+          showToast('Storage is nearly full. Please delete some older announcements (especially ones with photos) before posting.', 'error');
+          return;
+        }
+      } catch (e) { /* ignore sizing errors */ }
+
+      dbState.announcements.unshift(candidate);
+      // Keep the most recent 15 to stay within the shared-document size limit
+      if (dbState.announcements.length > 15) dbState.announcements = dbState.announcements.slice(0, 15);
+
+      document.getElementById('announce-text').value = '';
+      clearAnnouncementPhoto();
+      saveCurrentState();
+      renderAnnouncements();
+      showToast('Announcement posted to the site notice board.', 'success');
+      pushNotification(`New notice board message from ${currentUser.fullname}`);
+    }
+
+    function deleteAnnouncement(id) {
+      const a = (dbState.announcements || []).find(x => x.id === id);
+      if (!a) return;
+      if (!(currentUser.role === 'Admin' || a.authorId === currentUser.id)) {
+        showToast('You can only delete your own announcements.', 'error');
+        return;
+      }
+      if (!confirm('Delete this announcement?')) return;
+      dbState.announcements = dbState.announcements.filter(x => x.id !== id);
+      saveCurrentState();
+      renderAnnouncements();
+      showToast('Announcement deleted.', 'success');
     }
 
     function renderNotifications() {
@@ -2825,6 +3017,7 @@ service cloud.firestore {
       }
 
       openModal('modal-permit-form');
+      setTimeout(setupApplicantSignaturePad, 200);
     }
 
     function renderFormChecklist(type) {
@@ -2852,6 +3045,12 @@ service cloud.firestore {
     }
 
     function triggerSubmitPermitForm() {
+      // Applicant must sign before the permit can be submitted
+      if (!applicantSigPad || applicantSigPad.isEmpty()) {
+        showToast('Please add the applicant signature before submitting.', 'error');
+        return;
+      }
+
       const permitNo = document.getElementById('permit-form-subtitle').innerText;
       const project = document.getElementById('permit-field-project').value;
       const contractor = document.getElementById('permit-field-contractor').value;
@@ -2860,6 +3059,13 @@ service cloud.firestore {
       const description = document.getElementById('permit-field-description').value;
       const validityStart = document.getElementById('permit-field-start').value;
       const validityEnd = document.getElementById('permit-field-end').value;
+
+      const applicantSignature = {
+        name: currentUser.fullname,
+        designation: currentUser.designation || currentUser.role,
+        timestamp: new Date().toLocaleString(),
+        signatureImage: applicantSigPad.toDataURL()
+      };
 
       // Capture checklist states
       const checklistResponses = [];
@@ -2901,7 +3107,7 @@ service cloud.firestore {
         extra,
         status: 'Submitted',
         comments: [],
-        signatures: {},
+        signatures: { Applicant: applicantSignature },
         updatedAt: new Date().toLocaleString()
       };
 
@@ -3031,73 +3237,51 @@ service cloud.firestore {
       }
 
       openModal('modal-permit-form');
+      setTimeout(setupApplicantSignaturePad, 200);
     }
 
     // SIGNATURE PAD IMPLEMENTATIONS (CANVAS LOGIC)
-    function setupSignaturePad() {
-      sigCanvas = document.getElementById('signature-canvas');
-      sigCtx = sigCanvas.getContext('2d');
-      
-      const rect = sigCanvas.getBoundingClientRect();
-      sigCanvas.width = rect.width;
-      sigCanvas.height = rect.height;
+    // Reusable signature pad factory — each pad keeps its own state so multiple
+    // pads (applicant + reviewer) can exist without interfering.
+    function createSignaturePad(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
 
-      sigCtx.strokeStyle = "#0f172a"; 
-      sigCtx.lineWidth = 2;
-      sigCtx.lineCap = 'round';
+      let drawing = false, dirty = false;
+      const at = e => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+      const start = e => { drawing = true; const p = at(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+      const move  = e => { if (!drawing) return; const p = at(e); ctx.lineTo(p.x, p.y); ctx.stroke(); dirty = true; };
+      const end   = () => { drawing = false; };
 
-      sigCanvas.addEventListener('mousedown', startDrawing);
-      sigCanvas.addEventListener('mousemove', draw);
-      sigCanvas.addEventListener('mouseup', stopDrawing);
-      sigCanvas.addEventListener('mouseleave', stopDrawing);
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      canvas.addEventListener('mouseup', end);
+      canvas.addEventListener('mouseleave', end);
+      canvas.addEventListener('touchstart', e => { const t = e.touches[0]; start({ clientX: t.clientX, clientY: t.clientY }); }, { passive: true });
+      canvas.addEventListener('touchmove',  e => { const t = e.touches[0]; move({ clientX: t.clientX, clientY: t.clientY }); }, { passive: true });
+      canvas.addEventListener('touchend', end, { passive: true });
 
-      sigCanvas.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousedown', {
-          clientX: touch.clientX,
-          clientY: touch.clientY
-        });
-        sigCanvas.dispatchEvent(mouseEvent);
-      }, { passive: true });
-
-      sigCanvas.addEventListener('touchmove', (e) => {
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousemove', {
-          clientX: touch.clientX,
-          clientY: touch.clientY
-        });
-        sigCanvas.dispatchEvent(mouseEvent);
-      }, { passive: true });
-
-      sigCanvas.addEventListener('touchend', () => {
-        const mouseEvent = new MouseEvent('mouseup', {});
-        sigCanvas.dispatchEvent(mouseEvent);
-      }, { passive: true });
+      return {
+        clear()      { ctx.clearRect(0, 0, canvas.width, canvas.height); dirty = false; },
+        isEmpty()    { return !dirty; },
+        toDataURL()  { return canvas.toDataURL('image/png'); }
+      };
     }
 
-    function startDrawing(e) {
-      drawingSignature = true;
-      const rect = sigCanvas.getBoundingClientRect();
-      sigCtx.beginPath();
-      sigCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-    }
+    // Review-modal pad helpers
+    function setupSignaturePad() { reviewSigPad = createSignaturePad('signature-canvas'); }
+    function clearSignatureCanvas() { if (reviewSigPad) reviewSigPad.clear(); }
 
-    function draw(e) {
-      if (!drawingSignature) return;
-      const rect = sigCanvas.getBoundingClientRect();
-      sigCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-      sigCtx.stroke();
-    }
-
-    function stopDrawing() {
-      drawingSignature = false;
-    }
-
-    function clearSignatureCanvas() {
-      if (sigCtx && sigCanvas) {
-        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-      }
-    }
+    // Applicant (create-permit) pad helpers
+    function setupApplicantSignaturePad() { applicantSigPad = createSignaturePad('applicant-sig-canvas'); }
+    function clearApplicantSignature() { if (applicantSigPad) applicantSigPad.clear(); }
 
     function openReviewModal(permitId) {
       currentEditPermit = dbState.permits.find(p => p.id === permitId);
@@ -3129,7 +3313,11 @@ service cloud.firestore {
     function triggerReviewAction() {
       const decision = document.getElementById('review-decision').value;
       const comment = document.getElementById('review-comment').value;
-      const sigData = sigCanvas.toDataURL('image/png');
+      if (!reviewSigPad || reviewSigPad.isEmpty()) {
+        showToast('Please sign before submitting your review.', 'error');
+        return;
+      }
+      const sigData = reviewSigPad.toDataURL();
 
       const updatedIdx = dbState.permits.findIndex(p => p.id === currentEditPermit.id);
       const permit = dbState.permits[updatedIdx];
@@ -3177,9 +3365,10 @@ service cloud.firestore {
       let sigsHtml = '';
       Object.keys(p.signatures).forEach(role => {
         const s = p.signatures[role];
+        const roleLabel = role === 'Applicant' ? 'Applicant / Contractor (Requestor)' : `Verified / Signed By: ${role}`;
         sigsHtml += `
           <div style="border: 1px solid #ccc; padding: 8px; border-radius: 4px; text-align: center; width: 45%;">
-            <p style="font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">Verified / Signed By: ${role}</p>
+            <p style="font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">${roleLabel}</p>
             <img src="${s.signatureImage}" style="height: 40px; margin: 0 auto; display: block;" />
             <p style="font-size: 11px; margin-top: 4px; font-weight: bold;">${s.name}</p>
             <p style="font-size: 10px; color: #555;">${s.designation}</p>
@@ -3187,6 +3376,34 @@ service cloud.firestore {
           </div>
         `;
       });
+
+      // Reviewer remarks / site comments for the printed record
+      let commentsHtml = '';
+      if (Array.isArray(p.comments) && p.comments.length) {
+        let rows = '';
+        p.comments.forEach(c => {
+          rows += `
+            <tr style="border-bottom: 1px solid #eee;">
+              <td style="padding: 6px; font-size: 10px; vertical-align: top; width: 30%;">
+                <strong>${c.author || ''}</strong><br>
+                <span style="color:#666;">${c.role || ''}</span><br>
+                <span style="color:#999; font-size:9px;">${c.timestamp || ''}</span>
+              </td>
+              <td style="padding: 6px; font-size: 11px; vertical-align: top; color:#222;">${(c.text || '').replace(/</g,'&lt;')}</td>
+            </tr>`;
+        });
+        commentsHtml = `
+          <h4 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 20px 0 6px; border-bottom: 2px solid #000; padding-bottom: 3px; text-align: left;">Reviewer Remarks &amp; Site Directions</h4>
+          <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+            <thead>
+              <tr style="background:#f1f1f1;">
+                <th style="padding:6px; text-align:left; font-size:10px; width:30%;">Reviewer</th>
+                <th style="padding:6px; text-align:left; font-size:10px;">Comment / Direction</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      }
 
       let nightExtraHtml = '';
       if (p.type === 'night' && p.extra) {
@@ -3270,6 +3487,8 @@ service cloud.firestore {
           </table>
 
           ${nightExtraHtml}
+
+          ${commentsHtml}
 
           <h4 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 20px 0 10px; border-bottom: 2px solid #000; padding-bottom: 3px; text-align: left;">ISSUING AUTHORITY & REPRESENTATIVE SIGN-OFFS</h4>
           <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 15px; margin-top: 15px;">
