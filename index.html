@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.3</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.4</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -188,7 +188,7 @@ service cloud.firestore {
     </header>
 
     <!-- MOBILE NAVIGATION BOTTOM TAB BAR (DYNAMICAL TO SUPPORT ADMIN VIEWS) -->
-    <nav id="mobile-nav" class="bg-construction-cardBg border-t border-construction-border fixed bottom-0 left-0 right-0 z-40 flex justify-around py-1.5 sm:hidden no-print shadow-xl">
+    <nav id="mobile-nav" style="display:none" class="bg-construction-cardBg border-t border-construction-border fixed bottom-0 left-0 right-0 z-40 flex justify-around py-1.5 sm:hidden no-print shadow-xl">
       <!-- Generated Dynamically based on current user role -->
     </nav>
 
@@ -199,7 +199,7 @@ service cloud.firestore {
       <div class="flex flex-col lg:flex-row gap-6 items-start flex-grow w-full">
         
         <!-- SIDE NAVIGATION BAR (FOR TABLET & DESKTOP SCREEN RESOLUTIONS) -->
-        <aside class="w-full lg:w-64 bg-construction-cardBg border border-construction-border rounded-xl p-4 hidden sm:block shrink-0 shadow-lg space-y-4 no-print">
+        <aside id="app-sidebar" style="display:none" class="w-full lg:w-64 bg-construction-cardBg border border-construction-border rounded-xl p-4 hidden sm:block shrink-0 shadow-lg space-y-4 no-print">
           <div class="px-2 py-1 bg-slate-800/50 rounded-lg border border-construction-border flex items-center gap-2">
             <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span class="text-xs text-slate-300 font-semibold uppercase">Chennai Node Active</span>
@@ -429,32 +429,66 @@ service cloud.firestore {
                 </h3>
                 <span id="safety-activity-month-label" class="text-[10px] text-slate-500 font-mono"></span>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 text-center">
-                <div class="bg-slate-900 border border-construction-border rounded-lg p-3">
-                  <p class="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-tight">Toolbox Talks</p>
-                  <p class="mt-1"><span id="sm-today-toolbox" class="text-2xl font-extrabold text-blue-400">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today · Month <span id="sm-month-toolbox" class="text-slate-300 font-bold">0</span></p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- TODAY COLUMN -->
+                <div class="bg-slate-900 border border-construction-border rounded-lg p-4">
+                  <p class="text-[11px] font-bold uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-1.5">
+                    <i data-lucide="sun" class="w-3.5 h-3.5"></i> Today
+                  </p>
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <span class="text-xs text-slate-400">Toolbox Talks</span>
+                      <span id="sm-today-toolbox" class="text-lg font-extrabold text-slate-100">0</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <span class="text-xs text-slate-400">TBT Attendance</span>
+                      <span id="sm-today-attendance" class="text-lg font-extrabold text-slate-100">0</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <span class="text-xs text-slate-400">Inductions</span>
+                      <span id="sm-today-induction" class="text-lg font-extrabold text-slate-100">0</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <span class="text-xs text-slate-400">First Aid</span>
+                      <span id="sm-today-firstaid" class="text-lg font-extrabold text-slate-100">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-slate-400">Penalties / Warnings</span>
+                      <span id="sm-today-penalty" class="text-lg font-extrabold text-red-400">0</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="bg-slate-900 border border-construction-border rounded-lg p-3">
-                  <p class="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-tight">TBT Attendance</p>
-                  <p class="mt-1"><span id="sm-today-attendance" class="text-2xl font-extrabold text-purple-400">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today · Month <span id="sm-month-attendance" class="text-slate-300 font-bold">0</span></p>
+
+                <!-- THIS MONTH COLUMN -->
+                <div class="bg-slate-900 border border-construction-border rounded-lg p-4">
+                  <p class="text-[11px] font-bold uppercase tracking-widest text-construction-green mb-3 flex items-center gap-1.5">
+                    <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i> This Month
+                  </p>
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <span class="text-xs text-slate-400">Toolbox Talks</span>
+                      <span id="sm-month-toolbox" class="text-lg font-extrabold text-slate-100">0</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <span class="text-xs text-slate-400">TBT Attendance</span>
+                      <span id="sm-month-attendance" class="text-lg font-extrabold text-slate-100">0</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <span class="text-xs text-slate-400">Inductions</span>
+                      <span id="sm-month-induction" class="text-lg font-extrabold text-slate-100">0</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <span class="text-xs text-slate-400">First Aid</span>
+                      <span id="sm-month-firstaid" class="text-lg font-extrabold text-slate-100">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-slate-400">Penalties / Warnings</span>
+                      <span id="sm-month-penalty" class="text-lg font-extrabold text-red-400">0</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="bg-slate-900 border border-construction-border rounded-lg p-3">
-                  <p class="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-tight">Inductions</p>
-                  <p class="mt-1"><span id="sm-today-induction" class="text-2xl font-extrabold text-construction-green">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today · Month <span id="sm-month-induction" class="text-slate-300 font-bold">0</span></p>
-                </div>
-                <div class="bg-slate-900 border border-construction-border rounded-lg p-3">
-                  <p class="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-tight">First Aid</p>
-                  <p class="mt-1"><span id="sm-today-firstaid" class="text-2xl font-extrabold text-emerald-400">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today · Month <span id="sm-month-firstaid" class="text-slate-300 font-bold">0</span></p>
-                </div>
-                <div class="bg-slate-900 border border-construction-border rounded-lg p-3">
-                  <p class="text-[9px] uppercase font-bold text-slate-400 tracking-wider leading-tight">Penalties / Warnings</p>
-                  <p class="mt-1"><span id="sm-today-penalty" class="text-2xl font-extrabold text-red-400">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today · Month <span id="sm-month-penalty" class="text-slate-300 font-bold">0</span></p>
-                </div>
+
               </div>
             </div>
 
@@ -2169,6 +2203,8 @@ service cloud.firestore {
       document.getElementById('view-login').classList.add('hidden');
       document.getElementById('user-header-card').classList.remove('hidden');
       document.getElementById('notif-bell-wrap').classList.remove('hidden');
+      const _aside = document.getElementById('app-sidebar'); if (_aside) _aside.style.display = '';
+      const _mnav = document.getElementById('mobile-nav'); if (_mnav) _mnav.style.display = '';
       
       // Bind User Cards In Top Header
       document.getElementById('user-display-name').innerText = user.fullname;
@@ -2237,9 +2273,10 @@ service cloud.firestore {
       ['view-dashboard','view-permits','view-labour','view-reports','view-emergency','view-documents','view-admin','view-force-pin']
         .forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); });
 
-      // Clear navigation menus (rebuilt on next login)
+      // Clear navigation menus (rebuilt on next login) and hide their shells
       const dn = document.getElementById('desktop-sidebar-nav'); if (dn) dn.innerHTML = '';
-      const mn = document.getElementById('mobile-nav'); if (mn) mn.innerHTML = '';
+      const mn = document.getElementById('mobile-nav'); if (mn) { mn.innerHTML = ''; mn.style.display = 'none'; }
+      const aside = document.getElementById('app-sidebar'); if (aside) aside.style.display = 'none';
 
       // Hide header session controls + close any open dropdown/modal
       document.getElementById('user-header-card').classList.add('hidden');
