@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.6</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.7</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2704,8 +2704,21 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // SITE NOTICE BOARD / ANNOUNCEMENTS
+    // TELEGRAM ALERT (fires on key events — new obs, incident, permit decisions)
     // ============================================================
+    const TG_TOKEN   = '8649409123:AAER13q22szboPcYdUeG7GT74C7t3br0LSY';
+    const TG_CHAT_ID = '521619417';
+
+    function sendTelegram(message) {
+      try {
+        const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage`;
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: TG_CHAT_ID, text: message, parse_mode: 'HTML' })
+        }).catch(() => {}); // silent fail — never block the app
+      } catch (e) {}
+    }
     let _pendingAnnouncementPhoto = null; // compressed dataURL awaiting post
 
     // Admin or authorised permit reviewers (Staff with canApprove) may post.
@@ -3431,6 +3444,13 @@ service cloud.firestore {
           dbState.incidents.unshift({ id: `incident-${Date.now()}`, date, location, description, status: 'Open', reporter: currentUser.fullname, reporterRole: currentUser.role, reporterId: currentUser.id });
           showToast('Incident recorded & queued for audit.', 'error');
           pushNotification(`Incident logged at ${location}`);
+          sendTelegram(
+`🚨 <b>SITE INCIDENT REPORTED</b>
+📍 Location: ${location}
+👤 Reported by: ${currentUser.fullname} (${currentUser.role})
+🕐 Date/Time: ${date.replace('T',' ')}
+📝 ${description}`
+          );
         }
         saveCurrentState(); closeModal(); renderObservations();
         return;
@@ -3466,6 +3486,13 @@ service cloud.firestore {
         dbState.hazards.unshift(rec);
         showToast('Observation saved.', 'success');
         pushNotification(`Observation reported at ${location} by ${currentUser.fullname}`);
+        sendTelegram(
+`🔶 <b>New Safety Observation</b>
+📍 Location: ${location}
+👤 Reported by: ${currentUser.fullname} (${currentUser.role})
+🕐 Date/Time: ${date.replace('T',' ')}
+📝 ${description}${rec.correctiveAction ? '\n✅ Corrective: ' + rec.correctiveAction : ''}${rec.responsiblePerson ? '\n👷 Responsible: ' + rec.responsiblePerson : ''}`
+        );
       }
 
       try { if (JSON.stringify(dbState).length > 950000) showToast('Heads up: stored photos are getting large. Consider deleting old ones.', 'info'); } catch (e) {}
@@ -4082,6 +4109,16 @@ service cloud.firestore {
       closeModal();
       showToast(`Safety Permit updated to: ${decision}`, 'success');
       pushNotification(`Permit ${permit.permitNo} reviewed: status ${decision} by ${currentUser.fullname}`);
+
+      const decisionEmoji = decision === 'Approved' ? '✅' : decision === 'Rejected' ? '❌' : decision === 'Returned To Contractor' ? '↩️' : '🔄';
+      sendTelegram(
+`${decisionEmoji} <b>Permit ${decision.toUpperCase()}</b>
+📋 Permit No: ${permit.permitNo} (${permit.type})
+👷 Contractor: ${permit.contractor}
+📍 Location: ${permit.location}
+👤 Reviewed by: ${currentUser.fullname} (${currentUser.role})
+🕐 Valid: ${permit.validityStart.replace('T',' ')} → ${permit.validityEnd.replace('T',' ')}${comment ? '\n💬 ' + comment : ''}`
+      );
       renderPermitsTable();
     }
 
@@ -4150,6 +4187,15 @@ service cloud.firestore {
       renderDashboardStats();
       showToast(`Permit ${p.permitNo} ${newStatus.toLowerCase()} successfully.`, 'success');
       pushNotification(`Permit ${p.permitNo} ${newStatus.toLowerCase()} by ${currentUser.fullname}.`);
+      const closeEmoji = newStatus === 'Closed' ? '🔒' : '🚫';
+      sendTelegram(
+`${closeEmoji} <b>Permit ${newStatus.toUpperCase()}</b>
+📋 Permit No: ${p.permitNo} (${p.type})
+👷 Contractor: ${p.contractor}
+📍 Location: ${p.location}
+👤 By: ${currentUser.fullname} (${currentUser.role})
+💬 ${comment}`
+      );
     }
 
     // Check for expired Approved permits and push a reminder notification
