@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.3</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.4</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -848,27 +848,56 @@ service cloud.firestore {
               <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
                 <i data-lucide="send" class="w-4 h-4 text-blue-400"></i> Telegram Notifications
               </h3>
-              <p class="text-[11px] text-slate-400 mb-4">Enter your Telegram bot token and chat ID here. These are stored privately in Firebase — never in the source code.</p>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
+              <p class="text-[11px] text-slate-400 mb-4">Token and chat IDs are stored privately in Firebase — never in source code. Add a group chat ID to broadcast all alerts to your safety team.</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-3">
                   <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Bot Token</label>
                   <input id="tg-field-token" type="text" placeholder="1234567890:AAFxxxxx..." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
                 </div>
                 <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Chat ID (your personal or group)</label>
-                  <input id="tg-field-chatid" type="text" placeholder="521619417 or -987654321" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Your Personal Chat ID</label>
+                  <input id="tg-field-chatid" type="text" placeholder="1127702612" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Group Chat ID <span class="text-slate-500">(optional)</span></label>
+                  <input id="tg-field-groupid" type="text" placeholder="-987654321" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+                <div class="flex flex-col justify-end gap-2">
+                  <button onclick="testTelegram('personal')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+                    <i data-lucide="user" class="w-3 h-3"></i> Test Personal
+                  </button>
+                  <button onclick="testTelegram('group')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+                    <i data-lucide="users" class="w-3 h-3"></i> Test Group
+                  </button>
                 </div>
               </div>
               <div class="flex items-center justify-between mt-4">
                 <p id="tg-saved-label" class="text-[10px] text-slate-500 italic"></p>
-                <div class="flex gap-2">
-                  <button onclick="testTelegram()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5">
-                    <i data-lucide="send" class="w-3.5 h-3.5"></i> Test
-                  </button>
-                  <button onclick="saveTelegramConfig()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5">
-                    <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
-                  </button>
+                <button onclick="saveTelegramConfig()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5">
+                  <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+                </button>
+              </div>
+            </div>
+
+            <!-- ImgBB Photo Hosting -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="image" class="w-4 h-4 text-emerald-400"></i> Photo Hosting (ImgBB)
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-1">Free photo hosting — keeps Firebase document small and sends photos to Telegram.</p>
+              <p class="text-[11px] text-slate-500 mb-4">Get a free API key at <span class="text-emerald-400 font-mono">imgbb.com</span> → Sign up → Settings → API.</p>
+              <div class="flex gap-3 items-end">
+                <div class="flex-1">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">ImgBB API Key</label>
+                  <input id="imgbb-field-key" type="text" placeholder="Paste your ImgBB API key here" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
                 </div>
+                <button onclick="saveImgbbConfig()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5 shrink-0">
+                  <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+                </button>
+              </div>
+              <div class="flex items-center justify-between mt-3">
+                <p id="imgbb-saved-label" class="text-[10px] text-slate-500 italic"></p>
+                <div id="imgbb-status" class="text-[10px] font-bold"></div>
               </div>
             </div>
             <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
@@ -1774,6 +1803,7 @@ service cloud.firestore {
       if (!Array.isArray(dbState.safetyMetrics)) dbState.safetyMetrics = [];
       if (!dbState.projectBaseline) dbState.projectBaseline = { manhours: 0, toolbox: 0, attendance: 0, induction: 0, firstAid: 0, penalties: 0 };
       if (!dbState.telegramConfig)  dbState.telegramConfig  = {};
+      if (!dbState.imgbbConfig)     dbState.imgbbConfig     = {};
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -1867,7 +1897,7 @@ service cloud.firestore {
       else if (activeTab === 'reports')   renderObservations();
       else if (activeTab === 'emergency') renderEmergencyGrid();
       else if (activeTab === 'documents') renderDocumentLibrary();
-      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); }
+      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderImgbbAdmin(); }
     }
 
     // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
@@ -2235,6 +2265,7 @@ service cloud.firestore {
         renderSafetyMetricsAdmin();
         renderBaselineAdmin();
         renderTelegramAdmin();
+        renderImgbbAdmin();
       }
 
       lucide.createIcons();
@@ -2749,67 +2780,109 @@ service cloud.firestore {
 
     function saveTelegramConfig() {
       if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can save Telegram settings.', 'error'); return; }
-      const token  = document.getElementById('tg-field-token').value.trim();
-      const chatId = document.getElementById('tg-field-chatid').value.trim();
-      if (!token || !chatId) { showToast('Enter both token and chat ID.', 'error'); return; }
-      dbState.telegramConfig = { token, chatId, savedBy: currentUser.fullname, savedAt: new Date().toLocaleString() };
+      const token   = document.getElementById('tg-field-token').value.trim();
+      const chatId  = document.getElementById('tg-field-chatid').value.trim();
+      const groupId = document.getElementById('tg-field-groupid').value.trim();
+      if (!token || !chatId) { showToast('Enter at least the bot token and your personal chat ID.', 'error'); return; }
+      dbState.telegramConfig = { token, chatId, groupChatId: groupId, savedBy: currentUser.fullname, savedAt: new Date().toLocaleString() };
       saveCurrentState();
       renderTelegramAdmin();
       showToast('Telegram settings saved to Firebase.', 'success');
     }
 
-    function testTelegram() {
-      const token  = document.getElementById('tg-field-token').value.trim();
-      const chatId = document.getElementById('tg-field-chatid').value.trim();
-      if (!token || !chatId) { showToast('Enter token and chat ID first.', 'error'); return; }
+    function testTelegram(target) {
+      const token   = document.getElementById('tg-field-token').value.trim();
+      const chatId  = document.getElementById('tg-field-chatid').value.trim();
+      const groupId = document.getElementById('tg-field-groupid').value.trim();
+      if (!token || !chatId) { showToast('Enter token and personal chat ID first.', 'error'); return; }
+      const sendTo = (target === 'group') ? groupId : chatId;
+      if (!sendTo) { showToast('No group chat ID entered.', 'error'); return; }
       showToast('Sending test message…', 'info');
-      const url = `https://api.telegram.org/bot${token}/sendMessage`;
-      fetch(url, {
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text: '✅ CTO Safety App\nTelegram notifications are working!', parse_mode: 'HTML' })
-      })
-      .then(r => r.json())
-      .then(d => {
-        if (d.ok) {
-          showToast('✅ Test message sent! Check Telegram.', 'success');
-        } else {
-          showToast('Telegram error: ' + (d.description || JSON.stringify(d)), 'error');
-          console.error('Telegram response:', d);
-        }
-      })
-      .catch(e => {
-        showToast('Network error: ' + e.message, 'error');
-        console.error('Telegram fetch error:', e);
-      });
+        body: JSON.stringify({ chat_id: sendTo, text: `✅ <b>CTO Safety App</b>\nTelegram ${target} notifications are working!`, parse_mode: 'HTML' })
+      }).then(r => r.json()).then(d => {
+        if (d.ok) showToast(`✅ Test sent to ${target}! Check Telegram.`, 'success');
+        else showToast('Telegram error: ' + (d.description || JSON.stringify(d)), 'error');
+      }).catch(e => showToast('Network error: ' + e.message, 'error'));
     }
 
     function renderTelegramAdmin() {
       const cfg = dbState.telegramConfig || {};
-      const tokenEl  = document.getElementById('tg-field-token');
-      const chatEl   = document.getElementById('tg-field-chatid');
-      const savedLbl = document.getElementById('tg-saved-label');
-      if (tokenEl && cfg.token)  tokenEl.value  = cfg.token;
-      if (chatEl  && cfg.chatId) chatEl.value   = cfg.chatId;
-      if (savedLbl) savedLbl.innerText = cfg.savedAt ? `Last saved by ${cfg.savedBy} · ${cfg.savedAt}` : 'Not configured yet.';
+      const setV = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+      setV('tg-field-token',   cfg.token);
+      setV('tg-field-chatid',  cfg.chatId);
+      setV('tg-field-groupid', cfg.groupChatId);
+      const lbl = document.getElementById('tg-saved-label');
+      if (lbl) lbl.innerText = cfg.savedAt ? `Last saved by ${cfg.savedBy} · ${cfg.savedAt}` : 'Not configured yet.';
     }
 
     // ============================================================
-    // TELEGRAM ALERT — token stored in Firebase settings, not in source code
+    // IMGBB PHOTO HOSTING
     // ============================================================
-    function sendTelegram(message) {
+    function saveImgbbConfig() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can save ImgBB settings.', 'error'); return; }
+      const apiKey = document.getElementById('imgbb-field-key').value.trim();
+      if (!apiKey) { showToast('Enter your ImgBB API key.', 'error'); return; }
+      dbState.imgbbConfig = { apiKey, savedBy: currentUser.fullname, savedAt: new Date().toLocaleString() };
+      saveCurrentState();
+      renderImgbbAdmin();
+      showToast('ImgBB API key saved to Firebase.', 'success');
+    }
+
+    function renderImgbbAdmin() {
+      const cfg = dbState.imgbbConfig || {};
+      const keyEl = document.getElementById('imgbb-field-key');
+      if (keyEl && cfg.apiKey) keyEl.value = cfg.apiKey;
+      const lbl = document.getElementById('imgbb-saved-label');
+      if (lbl) lbl.innerText = cfg.savedAt ? `Last saved by ${cfg.savedBy} · ${cfg.savedAt}` : 'Not configured yet.';
+      const status = document.getElementById('imgbb-status');
+      if (status) {
+        status.innerText = cfg.apiKey ? '✅ Active — photos upload to cloud' : '⚠ Not set — photos stored as base64';
+        status.className = `text-[10px] font-bold ${cfg.apiKey ? 'text-emerald-400' : 'text-yellow-400'}`;
+      }
+    }
+
+    async function uploadToImgBB(dataUrl) {
+      const apiKey = (dbState.imgbbConfig || {}).apiKey;
+      if (!apiKey) return dataUrl; // fallback to base64 if not configured
+      try {
+        const base64 = dataUrl.indexOf(',') !== -1 ? dataUrl.split(',')[1] : dataUrl;
+        const formData = new FormData();
+        formData.append('image', base64);
+        const res  = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) return data.data.url;
+        console.warn('ImgBB error:', data); return dataUrl;
+      } catch (e) { console.warn('ImgBB upload failed, using base64:', e); return dataUrl; }
+    }
+
+    // ============================================================
+    // TELEGRAM ALERT — sends to personal + optional group, with photos
+    // ============================================================
+    function sendTelegram(message, photos = []) {
       try {
         const cfg = dbState.telegramConfig || {};
         if (!cfg.token || !cfg.chatId) { console.warn('Telegram not configured'); return; }
-        const url = `https://api.telegram.org/bot${cfg.token}/sendMessage`;
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: cfg.chatId, text: message, parse_mode: 'HTML' })
-        })
-        .then(r => r.json())
-        .then(d => { if (!d.ok) { showToast('Telegram: ' + (d.description || 'unknown error'), 'error'); console.error('TG error:', d); } })
-        .catch(e => { console.error('TG fetch error:', e); });
+        const targets = [cfg.chatId, cfg.groupChatId].filter(Boolean);
+        targets.forEach(chatId => {
+          fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+          }).then(r => r.json()).then(d => {
+            if (!d.ok) { showToast('Telegram: ' + (d.description || 'error'), 'error'); console.error('TG:', d); }
+          }).catch(e => console.error('TG fetch:', e));
+          // Send photo URLs (skip base64 — Telegram can't receive them)
+          (photos || []).filter(url => url && !url.startsWith('data:')).forEach(url => {
+            fetch(`https://api.telegram.org/bot${cfg.token}/sendPhoto`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: chatId, photo: url })
+            }).catch(() => {});
+          });
+        });
       } catch (e) { console.error('TG exception:', e); }
     }
     let _pendingAnnouncementPhoto = null; // compressed dataURL awaiting post
@@ -2886,9 +2959,12 @@ service cloud.firestore {
       const file = input.files && input.files[0];
       if (!file) return;
       try {
-        _pendingAnnouncementPhoto = await compressImage(file, 800, 0.5);
+        showToast('Uploading photo…', 'info');
+        const compressed = await compressImage(file, 800, 0.5);
+        _pendingAnnouncementPhoto = await uploadToImgBB(compressed);
         document.getElementById('announce-photo-img').src = _pendingAnnouncementPhoto;
         document.getElementById('announce-photo-preview').classList.remove('hidden');
+        if (!_pendingAnnouncementPhoto.startsWith('data:')) showToast('Photo uploaded to cloud.', 'success');
       } catch (e) {
         showToast('Could not read that image.', 'error');
       }
@@ -3389,18 +3465,26 @@ ${editCtrLines}
       const f = input.files && input.files[0];
       if (!f) return;
       try {
-        _obsPhotos[slot] = await compressImage(f, 800, 0.5);
+        showToast('Uploading photo…', 'info');
+        const compressed = await compressImage(f, 800, 0.5);
+        const url = await uploadToImgBB(compressed);
+        _obsPhotos[slot] = url;
         const p = document.getElementById('report-prev-' + (slot + 1));
-        p.src = _obsPhotos[slot]; p.classList.remove('hidden');
+        p.src = url; p.classList.remove('hidden');
+        if (!url.startsWith('data:')) showToast('Photo uploaded to cloud.', 'success');
       } catch (e) { showToast('Could not read that image.', 'error'); }
     }
     async function previewClosePhoto(input, slot) {
       const f = input.files && input.files[0];
       if (!f) return;
       try {
-        _closePhotos[slot] = await compressImage(f, 800, 0.5);
+        showToast('Uploading photo…', 'info');
+        const compressed = await compressImage(f, 800, 0.5);
+        const url = await uploadToImgBB(compressed);
+        _closePhotos[slot] = url;
         const p = document.getElementById('close-prev-' + (slot + 1));
-        p.src = _closePhotos[slot]; p.classList.remove('hidden');
+        p.src = url; p.classList.remove('hidden');
+        if (!url.startsWith('data:')) showToast('Photo uploaded to cloud.', 'success');
       } catch (e) { showToast('Could not read that image.', 'error'); }
     }
 
@@ -3625,7 +3709,8 @@ ${editCtrLines}
 📍 Location: ${location}
 👤 Reported by: ${currentUser.fullname} (${currentUser.role})
 🕐 Date/Time: ${date.replace('T',' ')}
-📝 ${description}${rec.correctiveAction ? '\n✅ Corrective: ' + rec.correctiveAction : ''}${rec.responsiblePerson ? '\n👷 Responsible: ' + rec.responsiblePerson : ''}`
+📝 ${description}${rec.correctiveAction ? '\n✅ Corrective: ' + rec.correctiveAction : ''}${rec.responsiblePerson ? '\n👷 Responsible: ' + rec.responsiblePerson : ''}`,
+          rec.photos || []
         );
       }
 
