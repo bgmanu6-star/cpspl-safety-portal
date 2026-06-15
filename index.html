@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.9</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2747,12 +2747,26 @@ service cloud.firestore {
       const token  = document.getElementById('tg-field-token').value.trim();
       const chatId = document.getElementById('tg-field-chatid').value.trim();
       if (!token || !chatId) { showToast('Enter token and chat ID first.', 'error'); return; }
-      // Temporarily use the form values for the test
-      const prev = dbState.telegramConfig;
-      dbState.telegramConfig = { token, chatId };
-      sendTelegram('✅ <b>CTO Safety App</b>\nTelegram notifications are working correctly!');
-      dbState.telegramConfig = prev;
-      showToast('Test message sent — check your Telegram.', 'success');
+      showToast('Sending test message…', 'info');
+      const url = `https://api.telegram.org/bot${token}/sendMessage`;
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: '✅ CTO Safety App\nTelegram notifications are working!', parse_mode: 'HTML' })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          showToast('✅ Test message sent! Check Telegram.', 'success');
+        } else {
+          showToast('Telegram error: ' + (d.description || JSON.stringify(d)), 'error');
+          console.error('Telegram response:', d);
+        }
+      })
+      .catch(e => {
+        showToast('Network error: ' + e.message, 'error');
+        console.error('Telegram fetch error:', e);
+      });
     }
 
     function renderTelegramAdmin() {
