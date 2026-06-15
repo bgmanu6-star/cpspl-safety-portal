@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.8</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -156,13 +156,13 @@ service cloud.firestore {
         <!-- User controls / active session info -->
         <div class="flex items-center gap-2">
           <!-- Notifications Bell -->
-          <div id="notif-bell-wrap" class="relative hidden">
+          <div class="relative hidden sm:block">
             <button onclick="toggleNotifications()" class="p-2 text-slate-300 hover:text-construction-orange hover:bg-slate-800 rounded-lg transition-colors relative">
               <i data-lucide="bell" class="w-5 h-5"></i>
               <span id="nav-notif-count" class="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
             </button>
             <!-- Dropdown list -->
-            <div id="notif-dropdown" class="absolute right-0 mt-2 w-72 max-w-[90vw] bg-construction-cardBg border border-construction-border rounded-lg shadow-2xl p-4 hidden z-50">
+            <div id="notif-dropdown" class="absolute right-0 mt-2 w-80 bg-construction-cardBg border border-construction-border rounded-lg shadow-2xl p-4 hidden z-50">
               <div class="flex items-center justify-between border-b border-construction-border pb-2 mb-2">
                 <span class="text-xs font-bold text-slate-300">Recent Updates</span>
                 <button onclick="clearNotifications()" class="text-[10px] text-construction-orange hover:underline">Mark all read</button>
@@ -188,7 +188,7 @@ service cloud.firestore {
     </header>
 
     <!-- MOBILE NAVIGATION BOTTOM TAB BAR (DYNAMICAL TO SUPPORT ADMIN VIEWS) -->
-    <nav id="mobile-nav" style="display:none" class="bg-construction-cardBg border-t border-construction-border fixed bottom-0 left-0 right-0 z-40 flex justify-around py-1.5 sm:hidden no-print shadow-xl">
+    <nav id="mobile-nav" class="bg-construction-cardBg border-t border-construction-border fixed bottom-0 left-0 right-0 z-40 flex justify-around py-1.5 sm:hidden no-print shadow-xl">
       <!-- Generated Dynamically based on current user role -->
     </nav>
 
@@ -199,7 +199,7 @@ service cloud.firestore {
       <div class="flex flex-col lg:flex-row gap-6 items-start flex-grow w-full">
         
         <!-- SIDE NAVIGATION BAR (FOR TABLET & DESKTOP SCREEN RESOLUTIONS) -->
-        <aside id="app-sidebar" style="display:none" class="w-full lg:w-64 bg-construction-cardBg border border-construction-border rounded-xl p-4 hidden sm:block shrink-0 shadow-lg space-y-4 no-print">
+        <aside class="w-full lg:w-64 bg-construction-cardBg border border-construction-border rounded-xl p-4 hidden sm:block shrink-0 shadow-lg space-y-4 no-print">
           <div class="px-2 py-1 bg-slate-800/50 rounded-lg border border-construction-border flex items-center gap-2">
             <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span class="text-xs text-slate-300 font-semibold uppercase">Chennai Node Active</span>
@@ -371,28 +371,18 @@ service cloud.firestore {
                 </div>
               </div>
             </div>
-            <!-- Monthly Safe Manhours + Project Total -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
-                    <i data-lucide="calendar-check" class="w-5 h-5"></i>
-                  </div>
-                  <div>
-                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Safe Manhours — This Month</p>
-                    <p id="kpi-safehours" class="text-2xl font-extrabold text-emerald-400 mt-0.5">0 <span class="text-xs font-normal text-emerald-500">hrs</span></p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3 sm:border-l sm:border-construction-border sm:pl-4">
-                  <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-400 shrink-0">
-                    <i data-lucide="award" class="w-5 h-5"></i>
-                  </div>
-                  <div>
-                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Safe Manhours — Project Total</p>
-                    <p id="kpi-safehours-total" class="text-2xl font-extrabold text-yellow-400 mt-0.5">0 <span class="text-xs font-normal text-yellow-500">hrs</span></p>
-                    <p class="text-[9px] text-slate-500 font-mono">(Staff+Workers)×8 + Baseline</p>
-                  </div>
-                </div>
+            <!-- Monthly Safe Manhours Bar -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-4">
+              <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                <i data-lucide="award" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-grow">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Accumulated Safe Manhours</p>
+                <p id="kpi-safehours" class="text-2xl font-extrabold text-emerald-400 mt-1">0 <span class="text-xs font-normal text-emerald-500">Hours this month</span></p>
+              </div>
+              <div class="text-right hidden sm:block">
+                <p class="text-[10px] text-slate-500 uppercase tracking-wider">Formula</p>
+                <p class="text-xs text-slate-400 font-mono">(Staff + Workers) × 8 hrs/day</p>
               </div>
             </div>
 
@@ -421,106 +411,12 @@ service cloud.firestore {
                 <p id="kpi-permits-approved" class="text-3xl font-extrabold text-construction-green mt-1">0</p>
               </div>
               <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
-                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Observations</p>
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Unresolved Hazards</p>
                 <p id="kpi-hazards" class="text-3xl font-extrabold text-yellow-500 mt-1">0</p>
               </div>
               <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
                 <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Incidents</p>
                 <p id="kpi-incidents" class="text-3xl font-extrabold text-red-500 mt-1">0</p>
-              </div>
-            </div>
-
-            <!-- SAFETY ACTIVITY TRACKER (visible to everyone; entered by Admin) -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xs font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
-                  <i data-lucide="clipboard-check" class="w-4 h-4"></i>
-                  Safety Activity
-                </h3>
-                <span id="safety-activity-month-label" class="text-[10px] text-slate-500 font-mono"></span>
-              </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-
-                <!-- Toolbox Talks -->
-                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
-                      <i data-lucide="presentation" class="w-3.5 h-3.5"></i>
-                    </div>
-                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Toolbox Talks</p>
-                  </div>
-                  <p class="text-3xl font-extrabold text-blue-400 leading-none"><span id="sm-today-toolbox">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-toolbox" class="text-sm font-extrabold text-slate-200">0</span>
-                  </div>
-                </div>
-
-                <!-- TBT Attendance -->
-                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
-                      <i data-lucide="users-round" class="w-3.5 h-3.5"></i>
-                    </div>
-                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">TBT Attendance</p>
-                  </div>
-                  <p class="text-3xl font-extrabold text-purple-400 leading-none"><span id="sm-today-attendance">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-attendance" class="text-sm font-extrabold text-slate-200">0</span>
-                  </div>
-                </div>
-
-                <!-- Inductions -->
-                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-7 h-7 rounded-lg bg-construction-green/10 flex items-center justify-center text-construction-green shrink-0">
-                      <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
-                    </div>
-                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Inductions</p>
-                  </div>
-                  <p class="text-3xl font-extrabold text-construction-green leading-none"><span id="sm-today-induction">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-induction" class="text-sm font-extrabold text-slate-200">0</span>
-                  </div>
-                </div>
-
-                <!-- First Aid -->
-                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
-                      <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i>
-                    </div>
-                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">First Aid</p>
-                  </div>
-                  <p class="text-3xl font-extrabold text-emerald-400 leading-none"><span id="sm-today-firstaid">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-firstaid" class="text-sm font-extrabold text-slate-200">0</span>
-                  </div>
-                </div>
-
-                <!-- Penalties / Warnings -->
-                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 shrink-0">
-                      <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i>
-                    </div>
-                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Penalties / Warnings</p>
-                  </div>
-                  <p class="text-3xl font-extrabold text-red-400 leading-none"><span id="sm-today-penalty">0</span></p>
-                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-penalty" class="text-sm font-extrabold text-red-300">0</span>
-                  </div>
-                </div>
-
               </div>
             </div>
 
@@ -538,7 +434,7 @@ service cloud.firestore {
                 </button>
                 <button onclick="switchTab('reports')" class="bg-gradient-to-b from-slate-800 to-slate-900 border border-construction-border p-4 rounded-xl text-center hover:border-construction-orange transition-all flex flex-col items-center justify-center gap-2">
                   <i data-lucide="alert-octagon" class="w-6 h-6 text-yellow-500"></i>
-                  <span class="text-xs font-bold">Add Observation</span>
+                  <span class="text-xs font-bold">Log Hazard</span>
                 </button>
                 <button onclick="switchTab('emergency')" class="bg-gradient-to-b from-slate-800 to-slate-900 border border-construction-border p-4 rounded-xl text-center hover:border-construction-orange transition-all flex flex-col items-center justify-center gap-2">
                   <i data-lucide="phone-call" class="w-6 h-6 text-red-500"></i>
@@ -597,15 +493,6 @@ service cloud.firestore {
               </button>
             </div>
 
-            <!-- Expired permit warning banner (shown when applicable) -->
-            <div id="permit-expiry-banner" class="hidden bg-orange-950/60 border border-orange-700/50 rounded-xl p-3 flex items-center gap-3">
-              <i data-lucide="alarm-clock" class="w-5 h-5 text-orange-400 shrink-0"></i>
-              <div>
-                <p class="text-xs font-bold text-orange-300">Permits require closure</p>
-                <p id="permit-expiry-banner-text" class="text-[11px] text-orange-400/80 mt-0.5"></p>
-              </div>
-            </div>
-
             <!-- Filters Bar -->
             <div class="bg-construction-cardBg border border-construction-border p-3 rounded-xl flex flex-wrap gap-2 items-center justify-between">
               <span class="text-xs font-semibold text-slate-400 uppercase">Filters:</span>
@@ -615,8 +502,6 @@ service cloud.firestore {
                 <button onclick="filterPermits('Pending Staff Review')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Staff Review">Pending Staff</button>
                 <button onclick="filterPermits('Pending Admin Approval')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Admin Approval">Pending Admin</button>
                 <button onclick="filterPermits('Approved')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Approved">Approved</button>
-                <button onclick="filterPermits('Closed')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Closed">Closed</button>
-                <button onclick="filterPermits('Cancelled')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Cancelled">Cancelled</button>
               </div>
             </div>
 
@@ -723,13 +608,13 @@ service cloud.firestore {
               <div>
                 <h2 class="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
                   <i data-lucide="alert-octagon" class="w-5 h-5 text-yellow-500"></i>
-                  Site Observation &amp; Incident Tracker
+                  Site Hazard & Incident Tracker
                 </h2>
-                <p class="text-xs text-slate-400">Record safety observations on detection or document accidents to maintain project compliance audits.</p>
+                <p class="text-xs text-slate-400">Log hazards immediately on detection or document accidents to maintain project compliance audits.</p>
               </div>
               <div class="flex gap-2 w-full sm:w-auto">
-                <button onclick="openReportModal('observation')" class="flex-grow sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
-                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Observation
+                <button onclick="openReportModal('hazard')" class="flex-grow sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Log Hazard
                 </button>
                 <button onclick="openReportModal('incident')" class="flex-grow sm:flex-none bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
                   <i data-lucide="alert-triangle" class="w-4 h-4"></i> Log Incident
@@ -744,7 +629,7 @@ service cloud.firestore {
               <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
                 <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-wider flex items-center gap-2 mb-3">
                   <i data-lucide="alert-octagon" class="w-4 h-4"></i>
-                  Site Observations
+                  Identified Site Hazards
                 </h3>
                 <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="hazards-list-panel">
                   <!-- Rendered dynamically -->
@@ -840,108 +725,6 @@ service cloud.firestore {
                   </button>
                   <input id="restore-file-input" type="file" accept="application/json,.json" class="hidden" onchange="importBackupFile(this)">
                 </div>
-              </div>
-            </div>
-
-            <!-- Daily Safety Activity entry (Admin) -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
-              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
-                <i data-lucide="clipboard-check" class="w-4 h-4 text-construction-orange"></i> Daily Safety Activity
-              </h3>
-              <p class="text-[11px] text-slate-400 mb-4">Record the day's safety figures. You can pick any past date to back-date an entry. Totals for today and this month appear on everyone's dashboard.</p>
-
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
-                <div class="col-span-2 sm:col-span-1">
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Date</label>
-                  <input id="sm-field-date" type="date" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Toolbox Talks</label>
-                  <input id="sm-field-toolbox" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">TBT Attendance</label>
-                  <input id="sm-field-attendance" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Inductions</label>
-                  <input id="sm-field-induction" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">First Aid</label>
-                  <input id="sm-field-firstaid" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Penalties / Warnings</label>
-                  <input id="sm-field-penalty" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-              </div>
-              <div class="flex justify-end mt-4">
-                <button onclick="addSafetyMetric()" class="bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
-                  <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Save Entry
-                </button>
-              </div>
-
-              <div class="mt-5">
-                <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-2">Recent Entries</p>
-                <div class="overflow-x-auto rounded-lg border border-construction-border">
-                  <table class="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr class="bg-slate-800 text-slate-400 uppercase tracking-wider text-[10px] border-b border-construction-border">
-                        <th class="p-2">Date</th>
-                        <th class="p-2 text-center">TBT</th>
-                        <th class="p-2 text-center">Attend.</th>
-                        <th class="p-2 text-center">Induct.</th>
-                        <th class="p-2 text-center">First Aid</th>
-                        <th class="p-2 text-center">Penalty</th>
-                        <th class="p-2 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody id="safety-metrics-table-body" class="divide-y divide-construction-border">
-                      <!-- rendered by renderSafetyMetricsAdmin -->
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <!-- Historical Baseline (Pre-App Data) -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
-              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
-                <i data-lucide="history" class="w-4 h-4 text-yellow-400"></i> Historical Baseline — Pre-App Data
-              </h3>
-              <p class="text-[11px] text-slate-400 mb-4">Enter total figures from before you started using this app. These are added to all-time totals (safe manhours card, project total). This is a single record — saving overwrites the previous baseline.</p>
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
-                <div class="col-span-2 sm:col-span-3 lg:col-span-2">
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Total Manhours Before This App</label>
-                  <input id="bl-field-manhours" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Toolbox Talks</label>
-                  <input id="bl-field-toolbox" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">TBT Attendance</label>
-                  <input id="bl-field-attendance" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Inductions</label>
-                  <input id="bl-field-induction" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">First Aid</label>
-                  <input id="bl-field-firstaid" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-              </div>
-              <div class="mt-3">
-                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Penalties / Warnings</label>
-                <input id="bl-field-penalty" type="number" min="0" value="0" class="w-48 px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-              </div>
-              <div class="flex items-center justify-between mt-4">
-                <p id="bl-saved-label" class="text-[10px] text-slate-500 italic"></p>
-                <button onclick="saveBaseline()" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
-                  <i data-lucide="save" class="w-3.5 h-3.5"></i> Save Baseline
-                </button>
               </div>
             </div>
 
@@ -1235,152 +1018,35 @@ service cloud.firestore {
         </form>
       </div>
 
-      <!-- PERMIT CLOSE / CANCEL MODAL -->
-      <div id="modal-permit-close" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
-          <h3 id="permit-close-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Close Permit</h3>
-          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <form onsubmit="event.preventDefault(); submitPermitClosure();" class="space-y-4 text-xs">
-          <div id="permit-close-action-wrap">
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Action</label>
-            <select id="permit-close-action" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
-              <!-- Populated dynamically -->
-            </select>
-          </div>
-          <div id="permit-close-info" class="bg-slate-900 border border-construction-border rounded-lg p-3 space-y-1 text-[11px] text-slate-400">
-            <!-- Permit summary populated dynamically -->
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Comments <span class="text-red-400">*</span></label>
-            <textarea id="permit-close-comment" required rows="3" placeholder="Reason for closing or cancelling this permit…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
-          </div>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button id="permit-close-submit-btn" type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg">Confirm</button>
-          </div>
-        </form>
-      </div>
-
       <!-- REPORT HAZARD/INCIDENT MODAL (NOW DUAL PURPOSE - CREATE & EDIT) -->
-      <div id="modal-report" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+      <div id="modal-report" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
         <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
-          <h3 id="report-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Add Observation</h3>
+          <h3 id="report-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Log Observation</h3>
           <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
 
         <form id="report-modal-form" onsubmit="event.preventDefault(); submitSafetyObservation();" class="space-y-4 text-xs">
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation Date &amp; Time</label>
-            <input id="report-field-date" type="datetime-local" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Occurrence Date</label>
+            <input id="report-field-date" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Location Details</label>
             <input id="report-field-loc" type="text" required placeholder="e.g. Block B, Crane Yard No 4" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation / Description</label>
-            <textarea id="report-field-desc" required rows="3" placeholder="Describe the unsafe act, condition or accident…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation Details / Incident Description</label>
+            <textarea id="report-field-desc" required rows="3" placeholder="Provide description of hazard, machinery risk or accident..." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
           </div>
-
-          <div id="obs-photos-wrap">
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Photos (up to 2)</label>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <input id="report-photo-1" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-[10px]" onchange="previewObsPhoto(this,0)">
-                <img id="report-prev-1" src="" class="hidden mt-1 max-h-20 rounded border border-construction-border">
-              </div>
-              <div>
-                <input id="report-photo-2" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-[10px]" onchange="previewObsPhoto(this,1)">
-                <img id="report-prev-2" src="" class="hidden mt-1 max-h-20 rounded border border-construction-border">
-              </div>
-            </div>
-          </div>
-
-          <div id="obs-capa-wrap" class="space-y-3 border-t border-construction-border pt-3">
-            <p class="text-[10px] font-bold uppercase text-construction-orange">Action Plan</p>
-            <div>
-              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Corrective Action</label>
-              <textarea id="report-corrective" rows="2" placeholder="Immediate action taken / to be taken" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Preventive Action</label>
-              <textarea id="report-preventive" rows="2" placeholder="How to prevent recurrence" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Responsible Person</label>
-              <input id="report-responsible" type="text" placeholder="Name of person responsible" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
-            </div>
+          <div id="photo-ref-field-wrapper">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Photo Reference</label>
+            <input id="report-field-photo" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-xs">
+            <p class="text-[9px] text-slate-500 mt-1">Select an image representing the hazard or safety incident.</p>
           </div>
 
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- ADD / UPDATE ACTION PLAN (CAPA) MODAL -->
-      <div id="modal-capa" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
-          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Add / Update Action Plan</h3>
-          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <form onsubmit="event.preventDefault(); submitCapa();" class="space-y-4 text-xs">
-          <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Corrective Action</label>
-            <textarea id="capa-corrective" rows="2" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Preventive Action</label>
-            <textarea id="capa-preventive" rows="2" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Responsible Person</label>
-            <input id="capa-responsible" type="text" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
-          </div>
-          <div class="flex justify-end gap-2 pt-4">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save Action</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- CLOSE OBSERVATION MODAL -->
-      <div id="modal-close-observation" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
-          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Close Observation</h3>
-          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <form onsubmit="event.preventDefault(); submitCloseObservation();" class="space-y-4 text-xs">
-          <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Completion Status</label>
-            <select id="close-obs-status" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
-              <option value="Completed">Completed — close observation</option>
-              <option value="In Progress">In Progress — keep open</option>
-              <option value="Pending">Pending — keep open</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Closure Remarks</label>
-            <textarea id="close-obs-note" rows="2" placeholder="What was done to resolve this" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Completion Photos (up to 2)</label>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <input id="close-photo-1" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-[10px]" onchange="previewClosePhoto(this,0)">
-                <img id="close-prev-1" src="" class="hidden mt-1 max-h-20 rounded border border-construction-border">
-              </div>
-              <div>
-                <input id="close-photo-2" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-[10px]" onchange="previewClosePhoto(this,1)">
-                <img id="close-prev-2" src="" class="hidden mt-1 max-h-20 rounded border border-construction-border">
-              </div>
-            </div>
-          </div>
-          <div class="flex justify-end gap-2 pt-4">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg">Save</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Submit Observation</button>
           </div>
         </form>
       </div>
@@ -1656,7 +1322,6 @@ service cloud.firestore {
         { id: 'haz-1', date: '2026-06-10', location: 'Silo Yard Area C', description: 'Scaffolding boards found damaged without inspection tags', status: 'Open', reporter: 'R. K. Raman' }
       ],
       incidents: [],
-      safetyMetrics: [],
       contacts: [
         { id: 'con-1', name: 'R. K. Raman', designation: 'HSE Safety Manager', phone: '+91 98840 12345' },
         { id: 'con-2', name: 'A. Pillai', designation: 'Project Director', phone: '+91 98840 66778' },
@@ -1729,8 +1394,6 @@ service cloud.firestore {
       if (!dbState.contractors)  dbState.contractors = [];
       if (!Array.isArray(dbState.users)) dbState.users = [];
       if (!Array.isArray(dbState.announcements)) dbState.announcements = [];
-      if (!Array.isArray(dbState.safetyMetrics)) dbState.safetyMetrics = [];
-      if (!dbState.projectBaseline) dbState.projectBaseline = { manhours: 0, toolbox: 0, attendance: 0, induction: 0, firstAid: 0, penalties: 0 };
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -1824,7 +1487,7 @@ service cloud.firestore {
       else if (activeTab === 'reports')   renderObservations();
       else if (activeTab === 'emergency') renderEmergencyGrid();
       else if (activeTab === 'documents') renderDocumentLibrary();
-      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); }
+      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); }
     }
 
     // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
@@ -2057,28 +1720,12 @@ service cloud.firestore {
     let applicantSigPad = null;  // signature pad in the create-permit modal
     let selectedPermitType = null;
     let currentEditPermit = null;
-    let currentReportType = 'observation';
+    let currentReportType = 'hazard';
     let editingContactId = null;
     let editingUserId = null;
     let editingLabourId = null;
     let editingObservationId = null;
     let resettingPasswordUserId = null;
-    let _obsPhotos = [null, null];     // pending entry photos for an observation
-    let _closePhotos = [null, null];   // pending closure photos
-    let capaTargetId = null;           // observation receiving an action plan
-    let closingObsId = null;           // observation being closed
-
-    // Permission helpers for the observation workflow
-    function canAddCapa() {
-      return !!currentUser && (currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove));
-    }
-    function canCloseObservation() {
-      return !!currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Staff');
-    }
-    // Staff & Admin fill the action plan at entry time; contractors do not.
-    function fillsCapaAtCreate() {
-      return !!currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Staff');
-    }
 
     // Toast Notification generator
     function showToast(message, type = 'info') {
@@ -2120,8 +1767,8 @@ service cloud.firestore {
     function closeModal() {
       document.getElementById('modal-backdrop').classList.add('hidden');
       const modals = [
-        'modal-create-permit', 'modal-permit-form', 'modal-permit-review', 'modal-permit-close',
-        'modal-report', 'modal-capa', 'modal-close-observation', 'modal-create-user', 'modal-contact',
+        'modal-create-permit', 'modal-permit-form', 'modal-permit-review', 
+        'modal-report', 'modal-create-user', 'modal-contact', 
         'modal-edit-profile', 'modal-upload-doc', 'modal-edit-labour', 'modal-reset-password',
         'modal-contractor', 'modal-staff-strength'
       ];
@@ -2189,8 +1836,6 @@ service cloud.firestore {
         renderPersonnelTable();
         renderContractorRegistry();
         renderAdminManpower();
-        renderSafetyMetricsAdmin();
-        renderBaselineAdmin();
       }
 
       lucide.createIcons();
@@ -2217,7 +1862,7 @@ service cloud.firestore {
         </button>
         <button onclick="switchTab('reports')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="reports">
           <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-          <span>Observations &amp; Incidents</span>
+          <span>Hazards & Incidents</span>
         </button>
         <button onclick="switchTab('emergency')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="emergency">
           <i data-lucide="phone-call" class="w-4 h-4"></i>
@@ -2255,7 +1900,7 @@ service cloud.firestore {
         </button>
         <button onclick="switchTab('reports')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="reports">
           <i data-lucide="alert-triangle" class="w-5 h-5 mb-0.5"></i>
-          <span class="text-[9px] font-medium">Observe</span>
+          <span class="text-[9px] font-medium">Hazards</span>
         </button>
       `;
 
@@ -2314,9 +1959,6 @@ service cloud.firestore {
       currentUser = user;
       document.getElementById('view-login').classList.add('hidden');
       document.getElementById('user-header-card').classList.remove('hidden');
-      document.getElementById('notif-bell-wrap').classList.remove('hidden');
-      const _aside = document.getElementById('app-sidebar'); if (_aside) _aside.style.display = '';
-      const _mnav = document.getElementById('mobile-nav'); if (_mnav) _mnav.style.display = '';
       
       // Bind User Cards In Top Header
       document.getElementById('user-display-name').innerText = user.fullname;
@@ -2342,11 +1984,6 @@ service cloud.firestore {
 
       showToast(`Welcome back, ${user.fullname}! Session active.`, 'success');
       switchTab('dashboard');
-      // Remind about expired permits after a short delay
-      setTimeout(() => {
-        const n = checkPermitExpiry();
-        if (n > 0) showToast(`⚠ ${n} permit${n>1?'s are':' is'} past end time — please close ${n>1?'them':'it'}.`, 'info');
-      }, 1500);
     }
 
     function updateForcedPassword() {
@@ -2385,24 +2022,11 @@ service cloud.firestore {
 
     function handleLogout() {
       currentUser = null;
-
-      // Hide every app view so no tab stays visible after logout
-      ['view-dashboard','view-permits','view-labour','view-reports','view-emergency','view-documents','view-admin','view-force-pin']
-        .forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); });
-
-      // Clear navigation menus (rebuilt on next login) and hide their shells
-      const dn = document.getElementById('desktop-sidebar-nav'); if (dn) dn.innerHTML = '';
-      const mn = document.getElementById('mobile-nav'); if (mn) { mn.innerHTML = ''; mn.style.display = 'none'; }
-      const aside = document.getElementById('app-sidebar'); if (aside) aside.style.display = 'none';
-
-      // Hide header session controls + close any open dropdown/modal
       document.getElementById('user-header-card').classList.add('hidden');
-      document.getElementById('notif-bell-wrap').classList.add('hidden');
-      const nd = document.getElementById('notif-dropdown'); if (nd) nd.classList.add('hidden');
-      closeModal();
-
-      // Show login
+      document.getElementById('view-dashboard').classList.add('hidden');
       document.getElementById('view-login').classList.remove('hidden');
+      
+      // Clear forms
       document.getElementById('login-username').value = '';
       document.getElementById('login-pin').value = '';
 
@@ -2487,17 +2111,11 @@ service cloud.firestore {
         .filter(e => e.date && e.date.slice(0, 7) === ym)
         .reduce((s, e) => s + mpManhours(e), 0);
 
-      const allManhours = (dbState.manpower || []).reduce((s, e) => s + mpManhours(e), 0);
-      const baselineManhours = (dbState.projectBaseline || {}).manhours || 0;
-      const projectTotalManhours = allManhours + baselineManhours;
-
       document.getElementById('kpi-staff').innerHTML = `${staffCount} <span class="text-[10px] font-normal text-slate-400">Personnel</span>`;
       document.getElementById('kpi-labour').innerHTML = `${workerCount} <span class="text-[10px] font-normal text-slate-400">Workers</span>`;
       document.getElementById('kpi-total-manpower').innerHTML = `${totalManpower} <span class="text-[10px] font-normal text-slate-400">On Site</span>`;
       document.getElementById('kpi-manhours').innerHTML = `${todayManhours} <span class="text-[10px] font-normal text-slate-400">Hrs</span>`;
-      document.getElementById('kpi-safehours').innerHTML = `${monthlyManhours.toLocaleString()} <span class="text-xs font-normal text-emerald-500">hrs</span>`;
-      const totalEl = document.getElementById('kpi-safehours-total');
-      if (totalEl) totalEl.innerHTML = `${projectTotalManhours.toLocaleString()} <span class="text-xs font-normal text-yellow-500">hrs</span>`;
+      document.getElementById('kpi-safehours').innerHTML = `${monthlyManhours.toLocaleString()} <span class="text-xs font-normal text-emerald-500">Hours this month</span>`;
 
       // Render contractor-wise breakdown for today on dashboard
       const dateEl = document.getElementById('dashboard-ctr-date');
@@ -2558,167 +2176,11 @@ service cloud.firestore {
       renderNotifications();
       renderDashboardSOSShortcuts();
       renderAnnouncements();
-      renderSafetyDashboard();
     }
 
     // ============================================================
-    // DAILY SAFETY ACTIVITY METRICS (entered by Admin, shown to all)
+    // SITE NOTICE BOARD / ANNOUNCEMENTS
     // ============================================================
-    function todayKey() {
-      const d = new Date();
-      return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    }
-
-    function addSafetyMetric() {
-      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can add safety activity.', 'error'); return; }
-      const date = document.getElementById('sm-field-date').value || todayKey();
-      const num = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
-      const rec = {
-        id: `sm-${Date.now()}`,
-        date,
-        toolboxTalks: num('sm-field-toolbox'),
-        attendance: num('sm-field-attendance'),
-        inductions: num('sm-field-induction'),
-        firstAid: num('sm-field-firstaid'),
-        penalties: num('sm-field-penalty'),
-        recordedBy: currentUser.fullname,
-        recordedAt: new Date().toLocaleString()
-      };
-      if (!rec.toolboxTalks && !rec.attendance && !rec.inductions && !rec.firstAid && !rec.penalties) {
-        showToast('Enter at least one figure before saving.', 'error'); return;
-      }
-      dbState.safetyMetrics = dbState.safetyMetrics || [];
-      dbState.safetyMetrics.unshift(rec);
-      saveCurrentState();
-      ['sm-field-toolbox', 'sm-field-attendance', 'sm-field-induction', 'sm-field-firstaid', 'sm-field-penalty'].forEach(i => document.getElementById(i).value = 0);
-      renderSafetyMetricsAdmin();
-      renderSafetyDashboard();
-      showToast('Safety activity saved for ' + date + '.', 'success');
-    }
-
-    function deleteSafetyMetric(id) {
-      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can delete.', 'error'); return; }
-      if (!confirm('Delete this safety activity entry?')) return;
-      dbState.safetyMetrics = (dbState.safetyMetrics || []).filter(m => m.id !== id);
-      saveCurrentState();
-      renderSafetyMetricsAdmin();
-      renderSafetyDashboard();
-      showToast('Entry deleted.', 'info');
-    }
-
-    function renderSafetyMetricsAdmin() {
-      const tbody = document.getElementById('safety-metrics-table-body');
-      if (!tbody) return;
-      const df = document.getElementById('sm-field-date');
-      if (df && !df.value) df.value = todayKey();
-      const list = (dbState.safetyMetrics || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 30);
-      if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="p-3 text-center text-slate-500 italic">No safety activity recorded yet.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = list.map(m => `
-        <tr class="text-slate-300 hover:bg-slate-800/20">
-          <td class="p-2 font-mono text-[11px]">${escapeHtml(m.date || '')}</td>
-          <td class="p-2 text-center">${m.toolboxTalks || 0}</td>
-          <td class="p-2 text-center">${m.attendance || 0}</td>
-          <td class="p-2 text-center">${m.inductions || 0}</td>
-          <td class="p-2 text-center">${m.firstAid || 0}</td>
-          <td class="p-2 text-center">${m.penalties || 0}</td>
-          <td class="p-2 text-right space-x-2">
-            <button onclick="editSafetyMetric('${m.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
-            <button onclick="deleteSafetyMetric('${m.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
-          </td>
-        </tr>`).join('');
-    }
-
-    function editSafetyMetric(id) {
-      const m = (dbState.safetyMetrics || []).find(x => x.id === id);
-      if (!m) return;
-      document.getElementById('sm-field-date').value = m.date || todayKey();
-      document.getElementById('sm-field-toolbox').value = m.toolboxTalks || 0;
-      document.getElementById('sm-field-attendance').value = m.attendance || 0;
-      document.getElementById('sm-field-induction').value = m.inductions || 0;
-      document.getElementById('sm-field-firstaid').value = m.firstAid || 0;
-      document.getElementById('sm-field-penalty').value = m.penalties || 0;
-      // Remove old record so Save Entry replaces it cleanly
-      dbState.safetyMetrics = dbState.safetyMetrics.filter(x => x.id !== id);
-      saveCurrentState();
-      renderSafetyMetricsAdmin();
-      showToast('Entry loaded for editing — update values and click Save Entry.', 'info');
-    }
-
-    function saveBaseline() {
-      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can set the baseline.', 'error'); return; }
-      const num = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
-      dbState.projectBaseline = {
-        manhours: num('bl-field-manhours'),
-        toolbox: num('bl-field-toolbox'),
-        attendance: num('bl-field-attendance'),
-        induction: num('bl-field-induction'),
-        firstAid: num('bl-field-firstaid'),
-        penalties: num('bl-field-penalty'),
-        savedBy: currentUser.fullname,
-        savedAt: new Date().toLocaleString()
-      };
-      saveCurrentState();
-      renderBaselineAdmin();
-      renderSafetyDashboard();
-      renderDashboardStats();
-      showToast('Historical baseline saved.', 'success');
-    }
-
-    function renderBaselineAdmin() {
-      const b = dbState.projectBaseline || {};
-      const setV = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || 0; };
-      setV('bl-field-manhours', b.manhours);
-      setV('bl-field-toolbox', b.toolbox);
-      setV('bl-field-attendance', b.attendance);
-      setV('bl-field-induction', b.induction);
-      setV('bl-field-firstaid', b.firstAid);
-      setV('bl-field-penalty', b.penalties);
-      const lbl = document.getElementById('bl-saved-label');
-      if (lbl) lbl.innerText = b.savedAt ? `Last saved by ${b.savedBy || 'Admin'} · ${b.savedAt}` : 'Not set yet.';
-    }
-
-    function renderSafetyDashboard() {
-      const metrics = dbState.safetyMetrics || [];
-      const bl = dbState.projectBaseline || {};
-      const today = todayKey();
-      const month = today.slice(0, 7);
-      const sum = (filterFn) => metrics.reduce((acc, m) => {
-        if (!filterFn(m)) return acc;
-        acc.toolbox += m.toolboxTalks || 0; acc.attendance += m.attendance || 0;
-        acc.induction += m.inductions || 0; acc.firstaid += m.firstAid || 0; acc.penalty += m.penalties || 0;
-        return acc;
-      }, { toolbox: 0, attendance: 0, induction: 0, firstaid: 0, penalty: 0 });
-      const t = sum(m => (m.date || '') === today);
-      const mo = sum(m => (m.date || '').slice(0, 7) === month);
-      const setT = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
-      setT('sm-today-toolbox', t.toolbox);     setT('sm-month-toolbox', mo.toolbox);
-      setT('sm-today-attendance', t.attendance); setT('sm-month-attendance', mo.attendance);
-      setT('sm-today-induction', t.induction);  setT('sm-month-induction', mo.induction);
-      setT('sm-today-firstaid', t.firstaid);    setT('sm-month-firstaid', mo.firstaid);
-      setT('sm-today-penalty', t.penalty);      setT('sm-month-penalty', mo.penalty);
-      const lbl = document.getElementById('safety-activity-month-label');
-      if (lbl) lbl.innerText = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-    }
-
-    // ============================================================
-    // TELEGRAM ALERT (fires on key events — new obs, incident, permit decisions)
-    // ============================================================
-    const TG_TOKEN   = '8649409123:AAFFBZ45CVCdC3HnTjygi_T3PneZSFKbnzc';
-    const TG_CHAT_ID = '521619417';
-
-    function sendTelegram(message) {
-      try {
-        const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage`;
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: TG_CHAT_ID, text: message, parse_mode: 'HTML' })
-        }).catch(() => {}); // silent fail — never block the app
-      } catch (e) {}
-    }
     let _pendingAnnouncementPhoto = null; // compressed dataURL awaiting post
 
     // Admin or authorised permit reviewers (Staff with canApprove) may post.
@@ -3039,9 +2501,9 @@ service cloud.firestore {
           }
           lucide.createIcons();
         });
+        // Pre-fill for today if entry exists
+        dateInput.dispatchEvent(new Event('change'));
       }
-      // Always re-fill the form from saved data (fixes day-zeroing when night is added separately)
-      if (dateInput) dateInput.dispatchEvent(new Event('change'));
 
       // History cards — one per date, sorted desc
       const entries = [...(dbState.manpower || [])].sort((a,b) => b.date.localeCompare(a.date));
@@ -3161,7 +2623,9 @@ service cloud.firestore {
         pushNotification(`${currentUser?.fullname||'Staff'} logged manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
       }
       saveCurrentState();
-      // renderLabourHistory will call dispatchEvent which re-fills form from saved data
+      document.getElementById('labour-day-staff').value = '';
+      document.getElementById('labour-night-staff').value = '';
+      buildContractorRows('contractor-worker-rows', 'labour-', null);
       renderLabourHistory();
       renderDashboardStats();
     }
@@ -3220,213 +2684,115 @@ service cloud.firestore {
       showToast('Manpower entry deleted.', 'info');
     }
 
-    // ============================================================
-    // SITE OBSERVATIONS (action plan + closure) and INCIDENTS
-    // ============================================================
-    function nowLocalInput() {
-      const d = new Date();
-      return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    }
-    function toInputDate(d) {
-      if (!d) return nowLocalInput();
-      const dt = new Date(d);
-      if (isNaN(dt)) return nowLocalInput();
-      return new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    }
-    function formatObsDate(d) {
-      if (!d) return '';
-      const dt = new Date(d);
-      return isNaN(dt) ? String(d) : dt.toLocaleString();
-    }
-
-    // Full-screen photo viewer
-    function viewPhoto(src) {
-      const lb = document.createElement('div');
-      lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';
-      lb.onclick = () => lb.remove();
-      const img = document.createElement('img');
-      img.src = src;
-      img.style.cssText = 'max-width:100%;max-height:100%;border-radius:8px';
-      lb.appendChild(img);
-      document.body.appendChild(lb);
-    }
-
-    async function previewObsPhoto(input, slot) {
-      const f = input.files && input.files[0];
-      if (!f) return;
-      try {
-        _obsPhotos[slot] = await compressImage(f, 800, 0.5);
-        const p = document.getElementById('report-prev-' + (slot + 1));
-        p.src = _obsPhotos[slot]; p.classList.remove('hidden');
-      } catch (e) { showToast('Could not read that image.', 'error'); }
-    }
-    async function previewClosePhoto(input, slot) {
-      const f = input.files && input.files[0];
-      if (!f) return;
-      try {
-        _closePhotos[slot] = await compressImage(f, 800, 0.5);
-        const p = document.getElementById('close-prev-' + (slot + 1));
-        p.src = _closePhotos[slot]; p.classList.remove('hidden');
-      } catch (e) { showToast('Could not read that image.', 'error'); }
-    }
-
+    // HAZARDS & INCIDENTS (WITH EDIT & DELETE FOR ADMIN)
     function renderObservations() {
-      const obsList = document.getElementById('hazards-list-panel');
+      const hazardsList = document.getElementById('hazards-list-panel');
       const incidentsList = document.getElementById('incidents-list-panel');
-      if (!obsList || !incidentsList) return;
+      if (!hazardsList || !incidentsList) return;
+      
+      hazardsList.innerHTML = '';
+      incidentsList.innerHTML = '';
+
       const isAdmin = currentUser && currentUser.role === 'Admin';
 
-      // ---------- Observations ----------
-      const observations = dbState.hazards || [];
-      if (!observations.length) {
-        obsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No observations recorded.</p>';
+      if (dbState.hazards.length === 0) {
+        hazardsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No safety hazards reported.</p>';
       } else {
-        obsList.innerHTML = observations.map(h => {
-          const open = h.status !== 'Closed';
-          const statusBadge = open
-            ? '<span class="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Open</span>'
-            : '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Closed</span>';
+        dbState.hazards.forEach(h => {
+          const statusBadge = h.status === 'Open' 
+            ? `<span class="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Open</span>`
+            : `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Closed</span>`;
 
-          const photos = (h.photos || []).filter(Boolean).map(src =>
-            `<img src="${src}" onclick="viewPhoto('${src}')" class="h-16 w-16 object-cover rounded border border-construction-border cursor-pointer">`).join('');
-          const photoRow = photos ? `<div class="flex gap-2 flex-wrap">${photos}</div>` : '';
+          const adminActions = isAdmin ? `
+            <div class="flex gap-2 items-center">
+              <button onclick="editObservation('hazard', '${h.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
+              <button onclick="deleteObservation('hazard', '${h.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
+              ${h.status === 'Open' ? `<button onclick="closeObservation('hazard', '${h.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Mark Safe</button>` : ''}
+            </div>
+          ` : (h.status === 'Open' && currentUser.role === 'Staff' ? `
+            <button onclick="closeObservation('hazard', '${h.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Mark Safe</button>
+          ` : '');
 
-          let capaBlock;
-          if (h.correctiveAction || h.preventiveAction || h.responsiblePerson) {
-            capaBlock = `
-              <div class="bg-slate-950/40 border border-slate-800 rounded p-2 space-y-1 text-[10px]">
-                ${h.correctiveAction ? `<p><span class="text-construction-orange font-bold">Corrective:</span> <span class="text-slate-300">${escapeHtml(h.correctiveAction)}</span></p>` : ''}
-                ${h.preventiveAction ? `<p><span class="text-construction-orange font-bold">Preventive:</span> <span class="text-slate-300">${escapeHtml(h.preventiveAction)}</span></p>` : ''}
-                ${h.responsiblePerson ? `<p><span class="text-construction-orange font-bold">Responsible:</span> <span class="text-slate-300">${escapeHtml(h.responsiblePerson)}</span></p>` : ''}
-                ${h.capaBy ? `<p class="text-slate-500">Action by ${escapeHtml(h.capaBy)}${h.capaAt ? ' · ' + escapeHtml(h.capaAt) : ''}</p>` : ''}
-              </div>`;
-          } else {
-            capaBlock = `<p class="text-[10px] text-slate-500 italic">No action plan yet.</p>`;
-          }
-
-          let closeBlock = '';
-          if (!open && h.closure) {
-            const cphotos = (h.closure.photos || []).filter(Boolean).map(src =>
-              `<img src="${src}" onclick="viewPhoto('${src}')" class="h-16 w-16 object-cover rounded border border-emerald-800 cursor-pointer">`).join('');
-            closeBlock = `
-              <div class="bg-emerald-950/20 border border-emerald-900/40 rounded p-2 space-y-1 text-[10px]">
-                <p class="text-emerald-400 font-bold uppercase">Closed — ${escapeHtml(h.closure.status || 'Completed')}</p>
-                ${h.closure.note ? `<p class="text-slate-300">${escapeHtml(h.closure.note)}</p>` : ''}
-                ${cphotos ? `<div class="flex gap-2 flex-wrap">${cphotos}</div>` : ''}
-                <p class="text-slate-500">By ${escapeHtml(h.closure.closedBy || '')}${h.closure.closedAt ? ' · ' + escapeHtml(h.closure.closedAt) : ''}</p>
-              </div>`;
-          }
-
-          const btns = [];
-          if (canAddCapa()) btns.push(`<button onclick="openCapaModal('${h.id}')" class="text-[10px] text-construction-orange hover:underline">Action Plan</button>`);
-          if (open && canCloseObservation()) btns.push(`<button onclick="openCloseObservationModal('${h.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Close</button>`);
-          if (isAdmin || (currentUser && h.reporterId === currentUser.id)) btns.push(`<button onclick="editObservation('${h.id}')" class="text-[10px] text-slate-300 hover:underline">Edit</button>`);
-          if (isAdmin) btns.push(`<button onclick="deleteObservation('${h.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>`);
-
-          return `
+          hazardsList.insertAdjacentHTML('beforeend', `
             <div class="bg-slate-900 border border-construction-border p-3.5 rounded-lg space-y-2 text-left">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(formatObsDate(h.date))}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${h.date}</span>
                 ${statusBadge}
               </div>
-              <p class="text-xs font-semibold text-slate-300">${escapeHtml(h.location || '')}</p>
-              <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(h.description || '')}</p>
-              ${photoRow}
-              ${capaBlock}
-              ${closeBlock}
-              <div class="flex items-center justify-between pt-2 border-t border-slate-800/50 gap-2">
-                <span class="text-[9px] text-slate-500">By: ${escapeHtml(h.reporter || 'Field Team')}${h.reporterRole ? ' (' + escapeHtml(h.reporterRole) + ')' : ''}</span>
-                <div class="flex gap-2 items-center flex-wrap justify-end">${btns.join('')}</div>
+              <p class="text-xs font-semibold text-slate-300">${h.location}</p>
+              <p class="text-xs text-slate-400 leading-relaxed">${h.description}</p>
+              <div class="flex items-center justify-between pt-2 border-t border-slate-800/50">
+                <span class="text-[9px] text-slate-500">By: ${h.reporter || 'Field Team'}</span>
+                ${adminActions}
               </div>
-            </div>`;
-        }).join('');
+            </div>
+          `);
+        });
       }
 
-      // ---------- Incidents (simple log) ----------
-      const incidents = dbState.incidents || [];
-      if (!incidents.length) {
+      if (dbState.incidents.length === 0) {
         incidentsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">All clear. No site incidents reported.</p>';
       } else {
-        incidentsList.innerHTML = incidents.map(i => {
-          const open = i.status !== 'Closed';
-          const statusBadge = open
-            ? '<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Unresolved</span>'
-            : '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Resolved</span>';
-          const btns = [];
-          if (open && canCloseObservation()) btns.push(`<button onclick="resolveIncident('${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>`);
-          if (isAdmin) { btns.push(`<button onclick="editIncident('${i.id}')" class="text-[10px] text-slate-300 hover:underline">Edit</button>`); btns.push(`<button onclick="deleteIncident('${i.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>`); }
-          return `
+        dbState.incidents.forEach(i => {
+          const statusBadge = i.status === 'Open'
+            ? `<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Unresolved</span>`
+            : `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Resolved</span>`;
+
+          const adminActions = isAdmin ? `
+            <div class="flex gap-2 items-center">
+              <button onclick="editObservation('incident', '${i.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
+              <button onclick="deleteObservation('incident', '${i.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
+              ${i.status === 'Open' ? `<button onclick="closeObservation('incident', '${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>` : ''}
+            </div>
+          ` : (i.status === 'Open' && currentUser.role === 'Staff' ? `
+            <button onclick="closeObservation('incident', '${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>
+          ` : '');
+
+          incidentsList.insertAdjacentHTML('beforeend', `
             <div class="bg-slate-900 border border-construction-border p-3.5 rounded-lg space-y-2 text-left">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(formatObsDate(i.date))}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${i.date}</span>
                 ${statusBadge}
               </div>
-              <p class="text-xs font-semibold text-slate-300">${escapeHtml(i.location || '')}</p>
-              <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(i.description || '')}</p>
+              <p class="text-xs font-semibold text-slate-300">${i.location}</p>
+              <p class="text-xs text-slate-400 leading-relaxed">${i.description}</p>
               <div class="flex items-center justify-between pt-2 border-t border-slate-800/50">
-                <span class="text-[9px] text-slate-500">By: ${escapeHtml(i.reporter || 'Field Team')}</span>
-                <div class="flex gap-2 items-center">${btns.join('')}</div>
+                <span class="text-[9px] text-slate-500">By: ${i.reporter || 'Field Team'}</span>
+                ${adminActions}
               </div>
-            </div>`;
-        }).join('');
+            </div>
+          `);
+        });
       }
-
-      lucide.createIcons();
     }
 
     function openReportModal(type) {
-      type = (type === 'incident') ? 'incident' : 'observation';
       currentReportType = type;
       editingObservationId = null;
-      _obsPhotos = [null, null];
-
-      document.getElementById('report-field-date').value = nowLocalInput();
+      document.getElementById('report-modal-title').innerText = type === 'hazard' ? 'Report Identified Site Hazard' : 'Record Site Incident / Accident';
+      document.getElementById('report-field-date').value = new Date().toISOString().split('T')[0];
       document.getElementById('report-field-loc').value = '';
       document.getElementById('report-field-desc').value = '';
-      document.getElementById('report-photo-1').value = '';
-      document.getElementById('report-photo-2').value = '';
-      ['report-prev-1', 'report-prev-2'].forEach(i => { const el = document.getElementById(i); el.src = ''; el.classList.add('hidden'); });
-      document.getElementById('report-corrective').value = '';
-      document.getElementById('report-preventive').value = '';
-      document.getElementById('report-responsible').value = '';
-
-      const photosWrap = document.getElementById('obs-photos-wrap');
-      const capaWrap = document.getElementById('obs-capa-wrap');
-      if (type === 'incident') {
-        document.getElementById('report-modal-title').innerText = 'Record Site Incident';
-        photosWrap.classList.add('hidden');
-        capaWrap.classList.add('hidden');
-      } else {
-        document.getElementById('report-modal-title').innerText = 'Add Observation';
-        photosWrap.classList.remove('hidden');
-        capaWrap.classList.toggle('hidden', !fillsCapaAtCreate());
-      }
+      document.getElementById('report-field-photo').value = '';
+      document.getElementById('photo-ref-field-wrapper').classList.remove('hidden');
       openModal('modal-report');
     }
 
-    function editObservation(id) {
-      currentReportType = 'observation';
+    function editObservation(type, id) {
+      currentReportType = type;
       editingObservationId = id;
-      const h = (dbState.hazards || []).find(x => x.id === id);
-      if (!h) return;
-      _obsPhotos = [(h.photos && h.photos[0]) || null, (h.photos && h.photos[1]) || null];
 
-      document.getElementById('report-modal-title').innerText = 'Edit Observation';
-      document.getElementById('report-field-date').value = toInputDate(h.date);
-      document.getElementById('report-field-loc').value = h.location || '';
-      document.getElementById('report-field-desc').value = h.description || '';
-      [0, 1].forEach(s => {
-        const el = document.getElementById('report-prev-' + (s + 1));
-        if (_obsPhotos[s]) { el.src = _obsPhotos[s]; el.classList.remove('hidden'); }
-        else { el.src = ''; el.classList.add('hidden'); }
-      });
-      document.getElementById('report-photo-1').value = '';
-      document.getElementById('report-photo-2').value = '';
-      document.getElementById('report-corrective').value = h.correctiveAction || '';
-      document.getElementById('report-preventive').value = h.preventiveAction || '';
-      document.getElementById('report-responsible').value = h.responsiblePerson || '';
-      document.getElementById('obs-photos-wrap').classList.remove('hidden');
-      document.getElementById('obs-capa-wrap').classList.toggle('hidden', !(fillsCapaAtCreate() || canAddCapa()));
+      const list = type === 'hazard' ? dbState.hazards : dbState.incidents;
+      const target = list.find(item => item.id === id);
+      if (!target) return;
+
+      document.getElementById('report-modal-title').innerText = type === 'hazard' ? 'Modify Hazard Report' : 'Modify Incident Log';
+      document.getElementById('report-field-date').value = target.date;
+      document.getElementById('report-field-loc').value = target.location;
+      document.getElementById('report-field-desc').value = target.description;
+      
+      // Hide photo attachment during quick edits
+      document.getElementById('photo-ref-field-wrapper').classList.add('hidden');
       openModal('modal-report');
     }
 
@@ -3435,152 +2801,65 @@ service cloud.firestore {
       const location = document.getElementById('report-field-loc').value;
       const description = document.getElementById('report-field-desc').value;
 
-      // ---- Incident path ----
-      if (currentReportType === 'incident') {
-        if (editingObservationId) {
-          const idx = dbState.incidents.findIndex(i => i.id === editingObservationId);
-          if (idx !== -1) { dbState.incidents[idx] = { ...dbState.incidents[idx], date, location, description }; showToast('Incident updated.', 'success'); }
-        } else {
-          dbState.incidents.unshift({ id: `incident-${Date.now()}`, date, location, description, status: 'Open', reporter: currentUser.fullname, reporterRole: currentUser.role, reporterId: currentUser.id });
-          showToast('Incident recorded & queued for audit.', 'error');
-          pushNotification(`Incident logged at ${location}`);
-          sendTelegram(
-`🚨 <b>SITE INCIDENT REPORTED</b>
-📍 Location: ${location}
-👤 Reported by: ${currentUser.fullname} (${currentUser.role})
-🕐 Date/Time: ${date.replace('T',' ')}
-📝 ${description}`
-          );
-        }
-        saveCurrentState(); closeModal(); renderObservations();
-        return;
-      }
-
-      // ---- Observation path ----
-      const capaVisible = !document.getElementById('obs-capa-wrap').classList.contains('hidden');
-      const corrective = capaVisible ? document.getElementById('report-corrective').value.trim() : '';
-      const preventive = capaVisible ? document.getElementById('report-preventive').value.trim() : '';
-      const responsible = capaVisible ? document.getElementById('report-responsible').value.trim() : '';
-      const photos = _obsPhotos.filter(Boolean);
-
       if (editingObservationId) {
-        const idx = dbState.hazards.findIndex(h => h.id === editingObservationId);
+        // Edit flow
+        const list = currentReportType === 'hazard' ? dbState.hazards : dbState.incidents;
+        const idx = list.findIndex(item => item.id === editingObservationId);
         if (idx !== -1) {
-          const h = dbState.hazards[idx];
-          h.date = date; h.location = location; h.description = description; h.photos = photos;
-          if (capaVisible) {
-            h.correctiveAction = corrective; h.preventiveAction = preventive; h.responsiblePerson = responsible;
-            if (corrective || preventive || responsible) { h.capaBy = h.capaBy || currentUser.fullname; h.capaAt = new Date().toLocaleString(); }
-          }
-          showToast('Observation updated.', 'success');
+          list[idx] = { ...list[idx], date, location, description };
+          showToast('Record changes updated successfully.', 'success');
+          pushNotification(`Admin modified ${currentReportType} at ${location}`);
         }
       } else {
-        const rec = {
-          id: `obs-${Date.now()}`, date, location, description, status: 'Open',
-          reporter: currentUser.fullname, reporterRole: currentUser.role, reporterId: currentUser.id, photos
+        // Create flow
+        const record = {
+          id: `${currentReportType}-${Date.now()}`,
+          date,
+          location,
+          description,
+          status: 'Open',
+          reporter: currentUser.fullname
         };
-        if (capaVisible && (corrective || preventive || responsible)) {
-          rec.correctiveAction = corrective; rec.preventiveAction = preventive; rec.responsiblePerson = responsible;
-          rec.capaBy = currentUser.fullname; rec.capaAt = new Date().toLocaleString();
+
+        if (currentReportType === 'hazard') {
+          dbState.hazards.unshift(record);
+          showToast('Safety hazard report saved.', 'success');
+          pushNotification(`Hazard reported: ${location} - ${description.substring(0, 30)}...`);
+        } else {
+          dbState.incidents.unshift(record);
+          showToast('Incident recorded & queued for audit.', 'error');
+          pushNotification(`Incident logged: ${location} - ${description.substring(0, 30)}...`);
         }
-        dbState.hazards.unshift(rec);
-        showToast('Observation saved.', 'success');
-        pushNotification(`Observation reported at ${location} by ${currentUser.fullname}`);
-        sendTelegram(
-`🔶 <b>New Safety Observation</b>
-📍 Location: ${location}
-👤 Reported by: ${currentUser.fullname} (${currentUser.role})
-🕐 Date/Time: ${date.replace('T',' ')}
-📝 ${description}${rec.correctiveAction ? '\n✅ Corrective: ' + rec.correctiveAction : ''}${rec.responsiblePerson ? '\n👷 Responsible: ' + rec.responsiblePerson : ''}`
-        );
       }
 
-      try { if (JSON.stringify(dbState).length > 950000) showToast('Heads up: stored photos are getting large. Consider deleting old ones.', 'info'); } catch (e) {}
-      saveCurrentState(); closeModal(); renderObservations();
+      saveCurrentState();
+      closeModal();
+      renderObservations();
     }
 
-    // Action plan (CAPA) — reviewers & admin
-    function openCapaModal(id) {
-      if (!canAddCapa()) { showToast('You are not authorised to add an action plan.', 'error'); return; }
-      const h = (dbState.hazards || []).find(x => x.id === id);
-      if (!h) return;
-      capaTargetId = id;
-      document.getElementById('capa-corrective').value = h.correctiveAction || '';
-      document.getElementById('capa-preventive').value = h.preventiveAction || '';
-      document.getElementById('capa-responsible').value = h.responsiblePerson || '';
-      openModal('modal-capa');
-    }
-    function submitCapa() {
-      const h = (dbState.hazards || []).find(x => x.id === capaTargetId);
-      if (!h) return;
-      h.correctiveAction = document.getElementById('capa-corrective').value.trim();
-      h.preventiveAction = document.getElementById('capa-preventive').value.trim();
-      h.responsiblePerson = document.getElementById('capa-responsible').value.trim();
-      h.capaBy = currentUser.fullname; h.capaAt = new Date().toLocaleString();
-      saveCurrentState(); closeModal(); renderObservations();
-      showToast('Action plan saved.', 'success');
-      pushNotification(`Action plan updated for observation at ${h.location} by ${currentUser.fullname}`);
+    function deleteObservation(type, id) {
+      if (!confirm(`Are you sure you want to permanently delete this ${type} report?`)) return;
+      if (type === 'hazard') {
+        dbState.hazards = dbState.hazards.filter(h => h.id !== id);
+      } else {
+        dbState.incidents = dbState.incidents.filter(i => i.id !== id);
+      }
+      saveCurrentState();
+      renderObservations();
+      showToast('Observation deleted successfully.', 'info');
     }
 
-    // Close observation — staff & admin
-    function openCloseObservationModal(id) {
-      if (!canCloseObservation()) { showToast('You are not authorised to close observations.', 'error'); return; }
-      closingObsId = id;
-      _closePhotos = [null, null];
-      document.getElementById('close-obs-status').value = 'Completed';
-      document.getElementById('close-obs-note').value = '';
-      document.getElementById('close-photo-1').value = '';
-      document.getElementById('close-photo-2').value = '';
-      ['close-prev-1', 'close-prev-2'].forEach(i => { const el = document.getElementById(i); el.src = ''; el.classList.add('hidden'); });
-      openModal('modal-close-observation');
-    }
-    function submitCloseObservation() {
-      const h = (dbState.hazards || []).find(x => x.id === closingObsId);
-      if (!h) return;
-      const status = document.getElementById('close-obs-status').value;
-      const note = document.getElementById('close-obs-note').value.trim();
-      h.closure = { status, note, photos: _closePhotos.filter(Boolean), closedBy: currentUser.fullname, closedAt: new Date().toLocaleString() };
-      h.status = (status === 'Completed') ? 'Closed' : 'Open';
-      try { if (JSON.stringify(dbState).length > 950000) { showToast('Storage nearly full — delete some old observation photos first.', 'error'); return; } } catch (e) {}
-      saveCurrentState(); closeModal(); renderObservations();
-      showToast(status === 'Completed' ? 'Observation closed.' : 'Closure progress saved.', 'success');
-      pushNotification(`Observation at ${h.location} marked ${status} by ${currentUser.fullname}`);
-    }
-
-    function deleteObservation(id) {
-      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can delete observations.', 'error'); return; }
-      if (!confirm('Permanently delete this observation?')) return;
-      dbState.hazards = dbState.hazards.filter(h => h.id !== id);
-      saveCurrentState(); renderObservations();
-      showToast('Observation deleted.', 'info');
-    }
-
-    // Incident helpers
-    function editIncident(id) {
-      currentReportType = 'incident';
-      editingObservationId = id;
-      const t = (dbState.incidents || []).find(i => i.id === id);
-      if (!t) return;
-      document.getElementById('report-modal-title').innerText = 'Modify Incident';
-      document.getElementById('report-field-date').value = toInputDate(t.date);
-      document.getElementById('report-field-loc').value = t.location || '';
-      document.getElementById('report-field-desc').value = t.description || '';
-      document.getElementById('obs-photos-wrap').classList.add('hidden');
-      document.getElementById('obs-capa-wrap').classList.add('hidden');
-      openModal('modal-report');
-    }
-    function deleteIncident(id) {
-      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can delete.', 'error'); return; }
-      if (!confirm('Permanently delete this incident?')) return;
-      dbState.incidents = dbState.incidents.filter(i => i.id !== id);
-      saveCurrentState(); renderObservations();
-      showToast('Incident deleted.', 'info');
-    }
-    function resolveIncident(id) {
-      const i = (dbState.incidents || []).find(x => x.id === id);
-      if (i) i.status = 'Closed';
-      saveCurrentState(); renderObservations();
-      showToast('Incident marked resolved.', 'success');
+    function closeObservation(type, id) {
+      if (type === 'hazard') {
+        const item = dbState.hazards.find(h => h.id === id);
+        if (item) item.status = 'Closed';
+      } else {
+        const item = dbState.incidents.find(i => i.id === id);
+        if (item) item.status = 'Closed';
+      }
+      saveCurrentState();
+      renderObservations();
+      showToast('Status successfully updated to Closed / Resolved.', 'success');
     }
 
     // DOCUMENT LIBRARY LOGICS
@@ -3854,22 +3133,6 @@ service cloud.firestore {
       if(!tbody) return;
       tbody.innerHTML = '';
 
-      // Expiry banner — computed after the shared `now` below, so use a forward-compatible ref
-      const _bannerNow = new Date();
-      const expiredOpen = (dbState.permits || []).filter(p =>
-        p.status === 'Approved' && p.validityEnd && new Date(p.validityEnd) < _bannerNow
-      );
-      const banner = document.getElementById('permit-expiry-banner');
-      const bannerText = document.getElementById('permit-expiry-banner-text');
-      if (banner) {
-        if (expiredOpen.length > 0) {
-          banner.classList.remove('hidden');
-          if (bannerText) bannerText.innerText = `${expiredOpen.length} approved permit${expiredOpen.length > 1 ? 's have' : ' has'} passed its validity end time. Please close ${expiredOpen.length > 1 ? 'them' : 'it'} using the Close button.`;
-        } else {
-          banner.classList.add('hidden');
-        }
-      }
-
       let list = [...dbState.permits];
       if (activePermitFilter !== 'all') {
         list = list.filter(p => p.status === activePermitFilter);
@@ -3882,55 +3145,27 @@ service cloud.firestore {
         document.getElementById('empty-permits-message').classList.add('hidden');
       }
 
-      const now = new Date();
-      const isReviewer = currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove);
-      const isContractor = currentUser.role === 'Contractor';
-
       list.forEach(p => {
         let statusClass = "bg-slate-800 text-slate-300";
-        if      (p.status === 'Approved')               statusClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
-        else if (p.status === 'Rejected')               statusClass = "bg-red-950 text-red-400 border border-red-800/50";
-        else if (p.status === 'Submitted')              statusClass = "bg-blue-950 text-blue-400 border border-blue-800/50";
+        if (p.status === 'Approved') statusClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
+        else if (p.status === 'Rejected') statusClass = "bg-red-950 text-red-400 border border-red-800/50";
+        else if (p.status === 'Submitted') statusClass = "bg-blue-950 text-blue-400 border border-blue-800/50";
         else if (p.status === 'Returned To Contractor') statusClass = "bg-yellow-950 text-yellow-400 border border-yellow-800/50";
-        else if (p.status === 'Closed')                 statusClass = "bg-slate-700 text-slate-400 border border-slate-600/50";
-        else if (p.status === 'Cancelled')              statusClass = "bg-red-950/60 text-red-300 border border-red-900/50";
 
-        // Expiry logic for Approved permits
-        const isApproved = p.status === 'Approved';
-        const endTime = p.validityEnd ? new Date(p.validityEnd) : null;
-        const isExpired  = isApproved && endTime && endTime < now;
-        const expiringSoon = isApproved && endTime && !isExpired && (endTime - now) < 2 * 60 * 60 * 1000; // <2 hrs
+        let actions = `
+          <button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>
+        `;
 
-        let expiryBadge = '';
-        if (isExpired)    expiryBadge = '<span class="ml-1 px-1.5 py-0.5 bg-orange-900 text-orange-300 text-[9px] font-bold rounded uppercase animate-pulse">Expired — Close Required</span>';
-        else if (expiringSoon) expiryBadge = '<span class="ml-1 px-1.5 py-0.5 bg-yellow-900 text-yellow-300 text-[9px] font-bold rounded uppercase">Expiring Soon</span>';
-
-        let actions = `<button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>`;
-
-        // Review button (not on closed/cancelled)
-        if (!['Closed','Cancelled'].includes(p.status)) {
-          if (isReviewer) {
-            actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
-          } else if (isContractor && p.status === 'Returned To Contractor') {
-            actions += ` <button onclick="editReturnedPermit('${p.id}')" class="text-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 py-1 px-2.5 rounded border border-yellow-500/20">Edit</button>`;
-          }
-        }
-
-        // Close button — reviewer or contractor, only on Approved (especially if expired)
-        if (p.status === 'Approved' && (isReviewer || isContractor)) {
-          const closeCls = isExpired
-            ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
-            : 'bg-slate-700 hover:bg-slate-600 text-slate-200';
-          actions += ` <button onclick="openPermitCloseModal('${p.id}','close')" class="text-xs py-1 px-2.5 rounded border border-slate-600 ${closeCls}">Close</button>`;
-        }
-
-        // Cancel button — reviewer/admin only, any non-terminal status
-        if (!['Closed','Cancelled','Rejected'].includes(p.status) && isReviewer) {
-          actions += ` <button onclick="openPermitCloseModal('${p.id}','cancel')" class="text-xs bg-red-900/40 hover:bg-red-700 text-red-300 hover:text-white py-1 px-2.5 rounded border border-red-800/40">Cancel</button>`;
+        if (currentUser.role === 'Admin') {
+          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
+        } else if (currentUser.role === 'Staff' && currentUser.canApprove) {
+          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
+        } else if (currentUser.role === 'Contractor' && p.status === 'Returned To Contractor') {
+          actions += ` <button onclick="editReturnedPermit('${p.id}')" class="text-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 py-1 px-2.5 rounded border border-yellow-500/20">Edit</button>`;
         }
 
         tbody.insertAdjacentHTML('beforeend', `
-          <tr class="hover:bg-slate-800/40${isExpired ? ' border-l-2 border-orange-500' : ''}">
+          <tr class="hover:bg-slate-800/40">
             <td class="p-3">
               <p class="font-bold text-slate-200 text-xs">${p.permitNo}</p>
               <p class="text-[10px] text-construction-orange font-mono uppercase mt-0.5">${p.type} Permit</p>
@@ -3941,13 +3176,12 @@ service cloud.firestore {
             </td>
             <td class="p-3">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${statusClass}">${p.status}</span>
-              ${expiryBadge}
             </td>
             <td class="p-3">
-              <p class="text-[11px] text-slate-400">Start: ${p.validityStart.replace('T',' ')}</p>
-              <p class="text-[11px] ${isExpired ? 'text-orange-400 font-bold' : 'text-slate-500'}">End: ${p.validityEnd.replace('T',' ')}</p>
+              <p class="text-[11px] text-slate-400">Valid: ${p.validityStart.replace('T',' ')}</p>
+              <p class="text-[11px] text-slate-500">Till: ${p.validityEnd.replace('T',' ')}</p>
             </td>
-            <td class="p-3 text-right space-x-1 space-y-1">
+            <td class="p-3 text-right space-x-1">
               ${actions}
             </td>
           </tr>
@@ -4030,11 +3264,9 @@ service cloud.firestore {
       canvas.addEventListener('mousemove', move);
       canvas.addEventListener('mouseup', end);
       canvas.addEventListener('mouseleave', end);
-      canvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; start({ clientX: t.clientX, clientY: t.clientY }); }, { passive: false });
-      canvas.addEventListener('touchmove',  e => { e.preventDefault(); const t = e.touches[0]; move({ clientX: t.clientX, clientY: t.clientY }); }, { passive: false });
-      canvas.addEventListener('touchend', e => { e.preventDefault(); end(); }, { passive: false });
-      // Block the page from scrolling while signing on touch screens
-      canvas.style.touchAction = 'none';
+      canvas.addEventListener('touchstart', e => { const t = e.touches[0]; start({ clientX: t.clientX, clientY: t.clientY }); }, { passive: true });
+      canvas.addEventListener('touchmove',  e => { const t = e.touches[0]; move({ clientX: t.clientX, clientY: t.clientY }); }, { passive: true });
+      canvas.addEventListener('touchend', end, { passive: true });
 
       return {
         clear()      { ctx.clearRect(0, 0, canvas.width, canvas.height); dirty = false; },
@@ -4109,106 +3341,10 @@ service cloud.firestore {
       closeModal();
       showToast(`Safety Permit updated to: ${decision}`, 'success');
       pushNotification(`Permit ${permit.permitNo} reviewed: status ${decision} by ${currentUser.fullname}`);
-
-      const decisionEmoji = decision === 'Approved' ? '✅' : decision === 'Rejected' ? '❌' : decision === 'Returned To Contractor' ? '↩️' : '🔄';
-      sendTelegram(
-`${decisionEmoji} <b>Permit ${decision.toUpperCase()}</b>
-📋 Permit No: ${permit.permitNo} (${permit.type})
-👷 Contractor: ${permit.contractor}
-📍 Location: ${permit.location}
-👤 Reviewed by: ${currentUser.fullname} (${currentUser.role})
-🕐 Valid: ${permit.validityStart.replace('T',' ')} → ${permit.validityEnd.replace('T',' ')}${comment ? '\n💬 ' + comment : ''}`
-      );
       renderPermitsTable();
     }
 
-    // ---- Permit Close / Cancel ----
-    let permitClosingId = null;
-    let permitCloseMode = 'close'; // 'close' | 'cancel'
-
-    function openPermitCloseModal(id, mode) {
-      const p = dbState.permits.find(x => x.id === id);
-      if (!p) return;
-      permitClosingId = id;
-      permitCloseMode = mode;
-
-      const isCancelling = mode === 'cancel';
-      document.getElementById('permit-close-modal-title').innerText = isCancelling ? 'Cancel Permit' : 'Close Permit';
-      document.getElementById('permit-close-submit-btn').innerText = isCancelling ? 'Confirm Cancellation' : 'Confirm Closure';
-      document.getElementById('permit-close-submit-btn').className = `px-5 py-2 font-bold rounded-lg text-white ${isCancelling ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-600 hover:bg-slate-700'}`;
-
-      // Action selector — only show if admin/reviewer cancelling; contractors can only close
-      const actionWrap = document.getElementById('permit-close-action-wrap');
-      const actionSel  = document.getElementById('permit-close-action');
-      if (isCancelling) {
-        actionWrap.classList.remove('hidden');
-        actionSel.innerHTML = '<option value="Cancelled">Cancel this permit</option>';
-      } else {
-        actionWrap.classList.add('hidden');
-        actionSel.innerHTML = '<option value="Closed">Close this permit</option>';
-      }
-
-      // Permit summary
-      const endTime = p.validityEnd ? new Date(p.validityEnd) : null;
-      const expired = endTime && endTime < new Date();
-      document.getElementById('permit-close-info').innerHTML = `
-        <p class="font-bold text-slate-200">${p.permitNo} — ${p.type} Permit</p>
-        <p>Contractor: <span class="text-slate-300">${escapeHtml(p.contractor)}</span></p>
-        <p>Location: <span class="text-slate-300">${escapeHtml(p.location)}</span></p>
-        <p>Valid Until: <span class="${expired ? 'text-orange-400 font-bold' : 'text-slate-300'}">${p.validityEnd ? p.validityEnd.replace('T',' ') : '—'}${expired ? '  ⚠ Expired' : ''}</span></p>
-        <p>Current Status: <span class="text-emerald-400 font-bold">${p.status}</span></p>`;
-
-      document.getElementById('permit-close-comment').value = '';
-      openModal('modal-permit-close');
-    }
-
-    function submitPermitClosure() {
-      const comment = document.getElementById('permit-close-comment').value.trim();
-      if (!comment) { showToast('Please enter a comment before confirming.', 'error'); return; }
-
-      const p = dbState.permits.find(x => x.id === permitClosingId);
-      if (!p) return;
-
-      const newStatus = permitCloseMode === 'cancel' ? 'Cancelled' : 'Closed';
-      p.status = newStatus;
-      p.comments = p.comments || [];
-      p.comments.push({
-        author: currentUser.fullname,
-        role: currentUser.role,
-        text: `[${newStatus.toUpperCase()}] ${comment}`,
-        timestamp: new Date().toLocaleString()
-      });
-      if (newStatus === 'Closed')    { p.closedBy = currentUser.fullname; p.closedAt = new Date().toLocaleString(); }
-      if (newStatus === 'Cancelled') { p.cancelledBy = currentUser.fullname; p.cancelledAt = new Date().toLocaleString(); }
-
-      saveCurrentState();
-      closeModal();
-      renderPermitsTable();
-      renderDashboardStats();
-      showToast(`Permit ${p.permitNo} ${newStatus.toLowerCase()} successfully.`, 'success');
-      pushNotification(`Permit ${p.permitNo} ${newStatus.toLowerCase()} by ${currentUser.fullname}.`);
-      const closeEmoji = newStatus === 'Closed' ? '🔒' : '🚫';
-      sendTelegram(
-`${closeEmoji} <b>Permit ${newStatus.toUpperCase()}</b>
-📋 Permit No: ${p.permitNo} (${p.type})
-👷 Contractor: ${p.contractor}
-📍 Location: ${p.location}
-👤 By: ${currentUser.fullname} (${currentUser.role})
-💬 ${comment}`
-      );
-    }
-
-    // Check for expired Approved permits and push a reminder notification
-    function checkPermitExpiry() {
-      const now = new Date();
-      const expired = (dbState.permits || []).filter(p =>
-        p.status === 'Approved' && p.validityEnd && new Date(p.validityEnd) < now
-      );
-      expired.forEach(p => {
-        pushNotification(`⚠ Permit ${p.permitNo} (${p.type}) expired on ${p.validityEnd.replace('T',' ')} — please close it.`);
-      });
-      return expired.length;
-    }
+    // PRINT PREVIEW GENERATOR TO MIMIC PHYSICAL FORMS
     function previewPermit(id) {
       const p = dbState.permits.find(p => p.id === id);
       if (!p) return;
@@ -4293,9 +3429,9 @@ service cloud.firestore {
       const html = `
         <div style="max-width: 800px; margin: 0 auto; background: white; color: black; font-family: sans-serif; padding: 20px;">
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
-            <div style="display: flex; align-items: center; gap: 12px; text-align: left;">
-              <div style="height: 48px; display: flex; align-items: center;">
-                <img src="chettinad-logo.png" alt="Chettinad Products & Services Pvt. Ltd." style="height: 48px; width: auto; object-fit: contain;">
+            <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
+              <div style="width: 50px; height: 50px; background: white; border: 1px solid #ccc; padding: 2px; border-radius: 4px;">
+                <img src="logo.png" alt="CTO-ConNect" style="width: 100%; height: 100%; object-fit: contain;">
               </div>
               <div>
                 <h2 style="font-size: 14px; font-weight: 800; margin: 0; color: #111;">Chettinad Products & Services Pvt. Ltd.</h2>
@@ -4305,8 +3441,6 @@ service cloud.firestore {
             <div style="text-align: right;">
               <p style="font-size: 12px; font-weight: bold; margin: 0; color: #f97316;">PERMIT NO: ${p.permitNo}</p>
               <p style="font-size: 10px; margin: 2px 0 0; color: #555;">Status: <strong>${p.status.toUpperCase()}</strong></p>
-              ${p.status === 'Closed' && p.closedBy ? `<p style="font-size: 9px; color:#888; margin:2px 0 0;">Closed by ${p.closedBy} · ${p.closedAt||''}</p>` : ''}
-              ${p.status === 'Cancelled' && p.cancelledBy ? `<p style="font-size: 9px; color:#c00; margin:2px 0 0;">Cancelled by ${p.cancelledBy} · ${p.cancelledAt||''}</p>` : ''}
             </div>
           </div>
 
