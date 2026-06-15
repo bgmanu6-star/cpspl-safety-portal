@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.4</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.5</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2669,6 +2669,16 @@ service cloud.firestore {
       renderSafetyMetricsAdmin();
       renderSafetyDashboard();
       showToast('Safety activity saved for ' + date + '.', 'success');
+      sendTelegram(
+`📊 <b>Safety Activity Logged</b>
+📅 Date: ${date}
+👤 By: ${currentUser.fullname} (Admin)
+🗣 Toolbox Talks: ${rec.toolboxTalks}
+👥 TBT Attendance: ${rec.attendance}
+🎓 Inductions: ${rec.inductions}
+🩺 First Aid: ${rec.firstAid}
+⚠️ Penalties/Warnings: ${rec.penalties}`
+      );
     }
 
     function deleteSafetyMetric(id) {
@@ -3014,6 +3024,12 @@ service cloud.firestore {
       renderAnnouncements();
       showToast('Announcement posted to the site notice board.', 'success');
       pushNotification(`New notice board message from ${currentUser.fullname}`);
+      sendTelegram(
+`📢 <b>Site Notice Board</b>
+👤 Posted by: ${currentUser.fullname} (${currentUser.role})
+🕐 ${new Date().toLocaleString()}${candidate.text ? '\n📝 ' + escapeHtml(candidate.text) : ''}`,
+        candidate.photo && !candidate.photo.startsWith('data:') ? [candidate.photo] : []
+      );
     }
 
     function deleteAnnouncement(id) {
@@ -3028,6 +3044,7 @@ service cloud.firestore {
       saveCurrentState();
       renderAnnouncements();
       showToast('Announcement deleted.', 'success');
+      sendTelegram(`🗑 <b>Notice Board Post Deleted</b>\n👤 Deleted by: ${currentUser.fullname} (${currentUser.role})\n📝 Post was: "${escapeHtml((a.text || '').substring(0, 60))}${(a.text||'').length > 60 ? '…' : ''}"`);
     }
 
     function renderNotifications() {
@@ -3739,6 +3756,14 @@ ${editCtrLines}
       saveCurrentState(); closeModal(); renderObservations();
       showToast('Action plan saved.', 'success');
       pushNotification(`Action plan updated for observation at ${h.location} by ${currentUser.fullname}`);
+      sendTelegram(
+`📋 <b>Action Plan Updated</b>
+📍 Location: ${escapeHtml(h.location || '')}
+👤 By: ${currentUser.fullname} (${currentUser.role})
+✅ Corrective: ${h.correctiveAction || '—'}
+🛡 Preventive: ${h.preventiveAction || '—'}
+👷 Responsible: ${h.responsiblePerson || '—'}`
+      );
     }
 
     // Close observation — staff & admin
@@ -3753,25 +3778,38 @@ ${editCtrLines}
       ['close-prev-1', 'close-prev-2'].forEach(i => { const el = document.getElementById(i); el.src = ''; el.classList.add('hidden'); });
       openModal('modal-close-observation');
     }
+
     function submitCloseObservation() {
       const h = (dbState.hazards || []).find(x => x.id === closingObsId);
       if (!h) return;
       const status = document.getElementById('close-obs-status').value;
-      const note = document.getElementById('close-obs-note').value.trim();
-      h.closure = { status, note, photos: _closePhotos.filter(Boolean), closedBy: currentUser.fullname, closedAt: new Date().toLocaleString() };
+      const note   = document.getElementById('close-obs-note').value.trim();
+      const photos = _closePhotos.filter(Boolean);
+      h.closure = { status, note, photos, closedBy: currentUser.fullname, closedAt: new Date().toLocaleString() };
       h.status = (status === 'Completed') ? 'Closed' : 'Open';
       try { if (JSON.stringify(dbState).length > 950000) { showToast('Storage nearly full — delete some old observation photos first.', 'error'); return; } } catch (e) {}
       saveCurrentState(); closeModal(); renderObservations();
       showToast(status === 'Completed' ? 'Observation closed.' : 'Closure progress saved.', 'success');
       pushNotification(`Observation at ${h.location} marked ${status} by ${currentUser.fullname}`);
+      const emoji = status === 'Completed' ? '✅' : '🔄';
+      sendTelegram(
+`${emoji} <b>Observation ${status}</b>
+📍 Location: ${escapeHtml(h.location || '')}
+📝 Original: ${escapeHtml((h.description || '').substring(0, 80))}${(h.description||'').length > 80 ? '…' : ''}
+👤 Closed by: ${currentUser.fullname} (${currentUser.role})
+🕐 At: ${new Date().toLocaleString()}${note ? '\n💬 ' + escapeHtml(note) : ''}`,
+        photos
+      );
     }
 
     function deleteObservation(id) {
       if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can delete observations.', 'error'); return; }
       if (!confirm('Permanently delete this observation?')) return;
+      const delObs = (dbState.hazards || []).find(h => h.id === id);
       dbState.hazards = dbState.hazards.filter(h => h.id !== id);
       saveCurrentState(); renderObservations();
       showToast('Observation deleted.', 'info');
+      if (delObs) sendTelegram(`🗑 <b>Observation Deleted</b>\n📍 Location: ${escapeHtml(delObs.location || '')}\n📝 ${escapeHtml((delObs.description || '').substring(0, 80))}\n👤 Deleted by: ${currentUser.fullname} (Admin)`);
     }
 
     // Incident helpers
@@ -3791,15 +3829,18 @@ ${editCtrLines}
     function deleteIncident(id) {
       if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can delete.', 'error'); return; }
       if (!confirm('Permanently delete this incident?')) return;
+      const delInc = (dbState.incidents || []).find(i => i.id === id);
       dbState.incidents = dbState.incidents.filter(i => i.id !== id);
       saveCurrentState(); renderObservations();
       showToast('Incident deleted.', 'info');
+      if (delInc) sendTelegram(`🗑 <b>Incident Deleted</b>\n📍 Location: ${escapeHtml(delInc.location || '')}\n👤 Deleted by: ${currentUser.fullname} (Admin)`);
     }
     function resolveIncident(id) {
       const i = (dbState.incidents || []).find(x => x.id === id);
       if (i) i.status = 'Closed';
       saveCurrentState(); renderObservations();
       showToast('Incident marked resolved.', 'success');
+      if (i) sendTelegram(`✅ <b>Incident Resolved</b>\n📍 Location: ${escapeHtml(i.location || '')}\n📝 ${escapeHtml((i.description || '').substring(0, 80))}\n👤 Resolved by: ${currentUser.fullname} (${currentUser.role})`);
     }
 
     // DOCUMENT LIBRARY LOGICS
@@ -3847,6 +3888,7 @@ ${editCtrLines}
       closeModal();
       renderDocumentLibrary();
       showToast('Document securely uploaded to compliance vault.', 'success');
+      sendTelegram(`📄 <b>Document Uploaded</b>\n📁 Title: ${escapeHtml(title)}\n🗂 Category: ${escapeHtml(cat)}\n📎 File: ${escapeHtml(file.name)}\n👤 Uploaded by: ${currentUser.fullname} (${currentUser.role})`);
     }
 
     function downloadMockPdf(title) {
@@ -4066,6 +4108,16 @@ ${editCtrLines}
       closeModal();
       pushNotification(`New ${selectedPermitType} Permit submitted: ${permitNo} by ${contractor}`);
       renderPermitsTable();
+      const isEdit = !!currentEditPermit;
+      sendTelegram(
+`📝 <b>Permit ${isEdit ? 'Resubmitted' : 'Submitted'}</b>
+📋 Permit No: ${permitNo}
+🏗 Type: ${selectedPermitType.toUpperCase()}
+👷 Contractor: ${escapeHtml(contractor)}
+📍 Location: ${escapeHtml(location)}
+👤 Submitted by: ${currentUser.fullname} (${currentUser.role})
+🕐 Valid: ${validityStart.replace('T',' ')} → ${validityEnd.replace('T',' ')}`
+      );
     }
 
     function renderPermitsTable() {
@@ -4769,6 +4821,7 @@ ${editCtrLines}
       closeModal();
       renderPersonnelTable();
       showToast('New user credential profile successfully provisioned.', 'success');
+      sendTelegram(`👤 <b>New User Created</b>\n🆔 Username: ${username}\n👤 Name: ${escapeHtml(name)}\n🎭 Role: ${role}\n🏷 Designation: ${escapeHtml(designation)}\n👤 Created by: ${currentUser.fullname} (Admin)`);
     }
 
     // ADMIN USER PASSWORD / PIN RESET CONTROLLERS
