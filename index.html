@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2785,14 +2785,17 @@ service cloud.firestore {
     function sendTelegram(message) {
       try {
         const cfg = dbState.telegramConfig || {};
-        if (!cfg.token || !cfg.chatId) return; // not configured yet
+        if (!cfg.token || !cfg.chatId) { console.warn('Telegram not configured'); return; }
         const url = `https://api.telegram.org/bot${cfg.token}/sendMessage`;
         fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ chat_id: cfg.chatId, text: message, parse_mode: 'HTML' })
-        }).catch(() => {});
-      } catch (e) {}
+        })
+        .then(r => r.json())
+        .then(d => { if (!d.ok) { showToast('Telegram: ' + (d.description || 'unknown error'), 'error'); console.error('TG error:', d); } })
+        .catch(e => { console.error('TG fetch error:', e); });
+      } catch (e) { console.error('TG exception:', e); }
     }
     let _pendingAnnouncementPhoto = null; // compressed dataURL awaiting post
 
