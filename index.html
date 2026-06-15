@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.5</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.6</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -597,6 +597,15 @@ service cloud.firestore {
               </button>
             </div>
 
+            <!-- Expired permit warning banner (shown when applicable) -->
+            <div id="permit-expiry-banner" class="hidden bg-orange-950/60 border border-orange-700/50 rounded-xl p-3 flex items-center gap-3">
+              <i data-lucide="alarm-clock" class="w-5 h-5 text-orange-400 shrink-0"></i>
+              <div>
+                <p class="text-xs font-bold text-orange-300">Permits require closure</p>
+                <p id="permit-expiry-banner-text" class="text-[11px] text-orange-400/80 mt-0.5"></p>
+              </div>
+            </div>
+
             <!-- Filters Bar -->
             <div class="bg-construction-cardBg border border-construction-border p-3 rounded-xl flex flex-wrap gap-2 items-center justify-between">
               <span class="text-xs font-semibold text-slate-400 uppercase">Filters:</span>
@@ -606,6 +615,8 @@ service cloud.firestore {
                 <button onclick="filterPermits('Pending Staff Review')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Staff Review">Pending Staff</button>
                 <button onclick="filterPermits('Pending Admin Approval')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Admin Approval">Pending Admin</button>
                 <button onclick="filterPermits('Approved')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Approved">Approved</button>
+                <button onclick="filterPermits('Closed')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Closed">Closed</button>
+                <button onclick="filterPermits('Cancelled')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Cancelled">Cancelled</button>
               </div>
             </div>
 
@@ -1220,6 +1231,33 @@ service cloud.firestore {
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
             <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Apply Signature & Submit</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PERMIT CLOSE / CANCEL MODAL -->
+      <div id="modal-permit-close" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 id="permit-close-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Close Permit</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form onsubmit="event.preventDefault(); submitPermitClosure();" class="space-y-4 text-xs">
+          <div id="permit-close-action-wrap">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Action</label>
+            <select id="permit-close-action" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div id="permit-close-info" class="bg-slate-900 border border-construction-border rounded-lg p-3 space-y-1 text-[11px] text-slate-400">
+            <!-- Permit summary populated dynamically -->
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Comments <span class="text-red-400">*</span></label>
+            <textarea id="permit-close-comment" required rows="3" placeholder="Reason for closing or cancelling this permit…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button id="permit-close-submit-btn" type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg">Confirm</button>
           </div>
         </form>
       </div>
@@ -2082,8 +2120,8 @@ service cloud.firestore {
     function closeModal() {
       document.getElementById('modal-backdrop').classList.add('hidden');
       const modals = [
-        'modal-create-permit', 'modal-permit-form', 'modal-permit-review', 
-        'modal-report', 'modal-capa', 'modal-close-observation', 'modal-create-user', 'modal-contact', 
+        'modal-create-permit', 'modal-permit-form', 'modal-permit-review', 'modal-permit-close',
+        'modal-report', 'modal-capa', 'modal-close-observation', 'modal-create-user', 'modal-contact',
         'modal-edit-profile', 'modal-upload-doc', 'modal-edit-labour', 'modal-reset-password',
         'modal-contractor', 'modal-staff-strength'
       ];
@@ -2304,6 +2342,11 @@ service cloud.firestore {
 
       showToast(`Welcome back, ${user.fullname}! Session active.`, 'success');
       switchTab('dashboard');
+      // Remind about expired permits after a short delay
+      setTimeout(() => {
+        const n = checkPermitExpiry();
+        if (n > 0) showToast(`⚠ ${n} permit${n>1?'s are':' is'} past end time — please close ${n>1?'them':'it'}.`, 'info');
+      }, 1500);
     }
 
     function updateForcedPassword() {
@@ -3784,6 +3827,22 @@ service cloud.firestore {
       if(!tbody) return;
       tbody.innerHTML = '';
 
+      // Expiry banner — computed after the shared `now` below, so use a forward-compatible ref
+      const _bannerNow = new Date();
+      const expiredOpen = (dbState.permits || []).filter(p =>
+        p.status === 'Approved' && p.validityEnd && new Date(p.validityEnd) < _bannerNow
+      );
+      const banner = document.getElementById('permit-expiry-banner');
+      const bannerText = document.getElementById('permit-expiry-banner-text');
+      if (banner) {
+        if (expiredOpen.length > 0) {
+          banner.classList.remove('hidden');
+          if (bannerText) bannerText.innerText = `${expiredOpen.length} approved permit${expiredOpen.length > 1 ? 's have' : ' has'} passed its validity end time. Please close ${expiredOpen.length > 1 ? 'them' : 'it'} using the Close button.`;
+        } else {
+          banner.classList.add('hidden');
+        }
+      }
+
       let list = [...dbState.permits];
       if (activePermitFilter !== 'all') {
         list = list.filter(p => p.status === activePermitFilter);
@@ -3796,27 +3855,55 @@ service cloud.firestore {
         document.getElementById('empty-permits-message').classList.add('hidden');
       }
 
+      const now = new Date();
+      const isReviewer = currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove);
+      const isContractor = currentUser.role === 'Contractor';
+
       list.forEach(p => {
         let statusClass = "bg-slate-800 text-slate-300";
-        if (p.status === 'Approved') statusClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
-        else if (p.status === 'Rejected') statusClass = "bg-red-950 text-red-400 border border-red-800/50";
-        else if (p.status === 'Submitted') statusClass = "bg-blue-950 text-blue-400 border border-blue-800/50";
+        if      (p.status === 'Approved')               statusClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
+        else if (p.status === 'Rejected')               statusClass = "bg-red-950 text-red-400 border border-red-800/50";
+        else if (p.status === 'Submitted')              statusClass = "bg-blue-950 text-blue-400 border border-blue-800/50";
         else if (p.status === 'Returned To Contractor') statusClass = "bg-yellow-950 text-yellow-400 border border-yellow-800/50";
+        else if (p.status === 'Closed')                 statusClass = "bg-slate-700 text-slate-400 border border-slate-600/50";
+        else if (p.status === 'Cancelled')              statusClass = "bg-red-950/60 text-red-300 border border-red-900/50";
 
-        let actions = `
-          <button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>
-        `;
+        // Expiry logic for Approved permits
+        const isApproved = p.status === 'Approved';
+        const endTime = p.validityEnd ? new Date(p.validityEnd) : null;
+        const isExpired  = isApproved && endTime && endTime < now;
+        const expiringSoon = isApproved && endTime && !isExpired && (endTime - now) < 2 * 60 * 60 * 1000; // <2 hrs
 
-        if (currentUser.role === 'Admin') {
-          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
-        } else if (currentUser.role === 'Staff' && currentUser.canApprove) {
-          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
-        } else if (currentUser.role === 'Contractor' && p.status === 'Returned To Contractor') {
-          actions += ` <button onclick="editReturnedPermit('${p.id}')" class="text-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 py-1 px-2.5 rounded border border-yellow-500/20">Edit</button>`;
+        let expiryBadge = '';
+        if (isExpired)    expiryBadge = '<span class="ml-1 px-1.5 py-0.5 bg-orange-900 text-orange-300 text-[9px] font-bold rounded uppercase animate-pulse">Expired — Close Required</span>';
+        else if (expiringSoon) expiryBadge = '<span class="ml-1 px-1.5 py-0.5 bg-yellow-900 text-yellow-300 text-[9px] font-bold rounded uppercase">Expiring Soon</span>';
+
+        let actions = `<button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>`;
+
+        // Review button (not on closed/cancelled)
+        if (!['Closed','Cancelled'].includes(p.status)) {
+          if (isReviewer) {
+            actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
+          } else if (isContractor && p.status === 'Returned To Contractor') {
+            actions += ` <button onclick="editReturnedPermit('${p.id}')" class="text-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 py-1 px-2.5 rounded border border-yellow-500/20">Edit</button>`;
+          }
+        }
+
+        // Close button — reviewer or contractor, only on Approved (especially if expired)
+        if (p.status === 'Approved' && (isReviewer || isContractor)) {
+          const closeCls = isExpired
+            ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
+            : 'bg-slate-700 hover:bg-slate-600 text-slate-200';
+          actions += ` <button onclick="openPermitCloseModal('${p.id}','close')" class="text-xs py-1 px-2.5 rounded border border-slate-600 ${closeCls}">Close</button>`;
+        }
+
+        // Cancel button — reviewer/admin only, any non-terminal status
+        if (!['Closed','Cancelled','Rejected'].includes(p.status) && isReviewer) {
+          actions += ` <button onclick="openPermitCloseModal('${p.id}','cancel')" class="text-xs bg-red-900/40 hover:bg-red-700 text-red-300 hover:text-white py-1 px-2.5 rounded border border-red-800/40">Cancel</button>`;
         }
 
         tbody.insertAdjacentHTML('beforeend', `
-          <tr class="hover:bg-slate-800/40">
+          <tr class="hover:bg-slate-800/40${isExpired ? ' border-l-2 border-orange-500' : ''}">
             <td class="p-3">
               <p class="font-bold text-slate-200 text-xs">${p.permitNo}</p>
               <p class="text-[10px] text-construction-orange font-mono uppercase mt-0.5">${p.type} Permit</p>
@@ -3827,12 +3914,13 @@ service cloud.firestore {
             </td>
             <td class="p-3">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${statusClass}">${p.status}</span>
+              ${expiryBadge}
             </td>
             <td class="p-3">
-              <p class="text-[11px] text-slate-400">Valid: ${p.validityStart.replace('T',' ')}</p>
-              <p class="text-[11px] text-slate-500">Till: ${p.validityEnd.replace('T',' ')}</p>
+              <p class="text-[11px] text-slate-400">Start: ${p.validityStart.replace('T',' ')}</p>
+              <p class="text-[11px] ${isExpired ? 'text-orange-400 font-bold' : 'text-slate-500'}">End: ${p.validityEnd.replace('T',' ')}</p>
             </td>
-            <td class="p-3 text-right space-x-1">
+            <td class="p-3 text-right space-x-1 space-y-1">
               ${actions}
             </td>
           </tr>
@@ -3997,7 +4085,84 @@ service cloud.firestore {
       renderPermitsTable();
     }
 
-    // PRINT PREVIEW GENERATOR TO MIMIC PHYSICAL FORMS
+    // ---- Permit Close / Cancel ----
+    let permitClosingId = null;
+    let permitCloseMode = 'close'; // 'close' | 'cancel'
+
+    function openPermitCloseModal(id, mode) {
+      const p = dbState.permits.find(x => x.id === id);
+      if (!p) return;
+      permitClosingId = id;
+      permitCloseMode = mode;
+
+      const isCancelling = mode === 'cancel';
+      document.getElementById('permit-close-modal-title').innerText = isCancelling ? 'Cancel Permit' : 'Close Permit';
+      document.getElementById('permit-close-submit-btn').innerText = isCancelling ? 'Confirm Cancellation' : 'Confirm Closure';
+      document.getElementById('permit-close-submit-btn').className = `px-5 py-2 font-bold rounded-lg text-white ${isCancelling ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-600 hover:bg-slate-700'}`;
+
+      // Action selector — only show if admin/reviewer cancelling; contractors can only close
+      const actionWrap = document.getElementById('permit-close-action-wrap');
+      const actionSel  = document.getElementById('permit-close-action');
+      if (isCancelling) {
+        actionWrap.classList.remove('hidden');
+        actionSel.innerHTML = '<option value="Cancelled">Cancel this permit</option>';
+      } else {
+        actionWrap.classList.add('hidden');
+        actionSel.innerHTML = '<option value="Closed">Close this permit</option>';
+      }
+
+      // Permit summary
+      const endTime = p.validityEnd ? new Date(p.validityEnd) : null;
+      const expired = endTime && endTime < new Date();
+      document.getElementById('permit-close-info').innerHTML = `
+        <p class="font-bold text-slate-200">${p.permitNo} — ${p.type} Permit</p>
+        <p>Contractor: <span class="text-slate-300">${escapeHtml(p.contractor)}</span></p>
+        <p>Location: <span class="text-slate-300">${escapeHtml(p.location)}</span></p>
+        <p>Valid Until: <span class="${expired ? 'text-orange-400 font-bold' : 'text-slate-300'}">${p.validityEnd ? p.validityEnd.replace('T',' ') : '—'}${expired ? '  ⚠ Expired' : ''}</span></p>
+        <p>Current Status: <span class="text-emerald-400 font-bold">${p.status}</span></p>`;
+
+      document.getElementById('permit-close-comment').value = '';
+      openModal('modal-permit-close');
+    }
+
+    function submitPermitClosure() {
+      const comment = document.getElementById('permit-close-comment').value.trim();
+      if (!comment) { showToast('Please enter a comment before confirming.', 'error'); return; }
+
+      const p = dbState.permits.find(x => x.id === permitClosingId);
+      if (!p) return;
+
+      const newStatus = permitCloseMode === 'cancel' ? 'Cancelled' : 'Closed';
+      p.status = newStatus;
+      p.comments = p.comments || [];
+      p.comments.push({
+        author: currentUser.fullname,
+        role: currentUser.role,
+        text: `[${newStatus.toUpperCase()}] ${comment}`,
+        timestamp: new Date().toLocaleString()
+      });
+      if (newStatus === 'Closed')    { p.closedBy = currentUser.fullname; p.closedAt = new Date().toLocaleString(); }
+      if (newStatus === 'Cancelled') { p.cancelledBy = currentUser.fullname; p.cancelledAt = new Date().toLocaleString(); }
+
+      saveCurrentState();
+      closeModal();
+      renderPermitsTable();
+      renderDashboardStats();
+      showToast(`Permit ${p.permitNo} ${newStatus.toLowerCase()} successfully.`, 'success');
+      pushNotification(`Permit ${p.permitNo} ${newStatus.toLowerCase()} by ${currentUser.fullname}.`);
+    }
+
+    // Check for expired Approved permits and push a reminder notification
+    function checkPermitExpiry() {
+      const now = new Date();
+      const expired = (dbState.permits || []).filter(p =>
+        p.status === 'Approved' && p.validityEnd && new Date(p.validityEnd) < now
+      );
+      expired.forEach(p => {
+        pushNotification(`⚠ Permit ${p.permitNo} (${p.type}) expired on ${p.validityEnd.replace('T',' ')} — please close it.`);
+      });
+      return expired.length;
+    }
     function previewPermit(id) {
       const p = dbState.permits.find(p => p.id === id);
       if (!p) return;
@@ -4094,6 +4259,8 @@ service cloud.firestore {
             <div style="text-align: right;">
               <p style="font-size: 12px; font-weight: bold; margin: 0; color: #f97316;">PERMIT NO: ${p.permitNo}</p>
               <p style="font-size: 10px; margin: 2px 0 0; color: #555;">Status: <strong>${p.status.toUpperCase()}</strong></p>
+              ${p.status === 'Closed' && p.closedBy ? `<p style="font-size: 9px; color:#888; margin:2px 0 0;">Closed by ${p.closedBy} · ${p.closedAt||''}</p>` : ''}
+              ${p.status === 'Cancelled' && p.cancelledBy ? `<p style="font-size: 9px; color:#c00; margin:2px 0 0;">Cancelled by ${p.cancelledBy} · ${p.cancelledAt||''}</p>` : ''}
             </div>
           </div>
 
