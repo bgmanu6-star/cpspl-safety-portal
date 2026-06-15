@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.4</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.5</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -371,18 +371,28 @@ service cloud.firestore {
                 </div>
               </div>
             </div>
-            <!-- Monthly Safe Manhours Bar -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-4">
-              <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
-                <i data-lucide="award" class="w-5 h-5"></i>
-              </div>
-              <div class="flex-grow">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Accumulated Safe Manhours</p>
-                <p id="kpi-safehours" class="text-2xl font-extrabold text-emerald-400 mt-1">0 <span class="text-xs font-normal text-emerald-500">Hours this month</span></p>
-              </div>
-              <div class="text-right hidden sm:block">
-                <p class="text-[10px] text-slate-500 uppercase tracking-wider">Formula</p>
-                <p class="text-xs text-slate-400 font-mono">(Staff + Workers) × 8 hrs/day</p>
+            <!-- Monthly Safe Manhours + Project Total -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                    <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Safe Manhours — This Month</p>
+                    <p id="kpi-safehours" class="text-2xl font-extrabold text-emerald-400 mt-0.5">0 <span class="text-xs font-normal text-emerald-500">hrs</span></p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 sm:border-l sm:border-construction-border sm:pl-4">
+                  <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-400 shrink-0">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Safe Manhours — Project Total</p>
+                    <p id="kpi-safehours-total" class="text-2xl font-extrabold text-yellow-400 mt-0.5">0 <span class="text-xs font-normal text-yellow-500">hrs</span></p>
+                    <p class="text-[9px] text-slate-500 font-mono">(Staff+Workers)×8 + Baseline</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -422,70 +432,92 @@ service cloud.firestore {
 
             <!-- SAFETY ACTIVITY TRACKER (visible to everyone; entered by Admin) -->
             <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
-              <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xs font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
                   <i data-lucide="clipboard-check" class="w-4 h-4"></i>
                   Safety Activity
                 </h3>
                 <span id="safety-activity-month-label" class="text-[10px] text-slate-500 font-mono"></span>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
 
-                <!-- TODAY COLUMN -->
-                <div class="bg-slate-900 border border-construction-border rounded-lg p-4">
-                  <p class="text-[11px] font-bold uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-1.5">
-                    <i data-lucide="sun" class="w-3.5 h-3.5"></i> Today
-                  </p>
-                  <div class="space-y-2">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <span class="text-xs text-slate-400">Toolbox Talks</span>
-                      <span id="sm-today-toolbox" class="text-lg font-extrabold text-slate-100">0</span>
+                <!-- Toolbox Talks -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                      <i data-lucide="presentation" class="w-3.5 h-3.5"></i>
                     </div>
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <span class="text-xs text-slate-400">TBT Attendance</span>
-                      <span id="sm-today-attendance" class="text-lg font-extrabold text-slate-100">0</span>
-                    </div>
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <span class="text-xs text-slate-400">Inductions</span>
-                      <span id="sm-today-induction" class="text-lg font-extrabold text-slate-100">0</span>
-                    </div>
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <span class="text-xs text-slate-400">First Aid</span>
-                      <span id="sm-today-firstaid" class="text-lg font-extrabold text-slate-100">0</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs text-slate-400">Penalties / Warnings</span>
-                      <span id="sm-today-penalty" class="text-lg font-extrabold text-red-400">0</span>
-                    </div>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Toolbox Talks</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-blue-400 leading-none"><span id="sm-today-toolbox">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-toolbox" class="text-sm font-extrabold text-slate-200">0</span>
                   </div>
                 </div>
 
-                <!-- THIS MONTH COLUMN -->
-                <div class="bg-slate-900 border border-construction-border rounded-lg p-4">
-                  <p class="text-[11px] font-bold uppercase tracking-widest text-construction-green mb-3 flex items-center gap-1.5">
-                    <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i> This Month
-                  </p>
-                  <div class="space-y-2">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <span class="text-xs text-slate-400">Toolbox Talks</span>
-                      <span id="sm-month-toolbox" class="text-lg font-extrabold text-slate-100">0</span>
+                <!-- TBT Attendance -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+                      <i data-lucide="users-round" class="w-3.5 h-3.5"></i>
                     </div>
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <span class="text-xs text-slate-400">TBT Attendance</span>
-                      <span id="sm-month-attendance" class="text-lg font-extrabold text-slate-100">0</span>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">TBT Attendance</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-purple-400 leading-none"><span id="sm-today-attendance">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-attendance" class="text-sm font-extrabold text-slate-200">0</span>
+                  </div>
+                </div>
+
+                <!-- Inductions -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-construction-green/10 flex items-center justify-center text-construction-green shrink-0">
+                      <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
                     </div>
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <span class="text-xs text-slate-400">Inductions</span>
-                      <span id="sm-month-induction" class="text-lg font-extrabold text-slate-100">0</span>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Inductions</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-construction-green leading-none"><span id="sm-today-induction">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-induction" class="text-sm font-extrabold text-slate-200">0</span>
+                  </div>
+                </div>
+
+                <!-- First Aid -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                      <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i>
                     </div>
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <span class="text-xs text-slate-400">First Aid</span>
-                      <span id="sm-month-firstaid" class="text-lg font-extrabold text-slate-100">0</span>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">First Aid</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-emerald-400 leading-none"><span id="sm-today-firstaid">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-firstaid" class="text-sm font-extrabold text-slate-200">0</span>
+                  </div>
+                </div>
+
+                <!-- Penalties / Warnings -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 shrink-0">
+                      <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i>
                     </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs text-slate-400">Penalties / Warnings</span>
-                      <span id="sm-month-penalty" class="text-lg font-extrabold text-red-400">0</span>
-                    </div>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Penalties / Warnings</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-red-400 leading-none"><span id="sm-today-penalty">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-penalty" class="text-sm font-extrabold text-red-300">0</span>
                   </div>
                 </div>
 
@@ -859,6 +891,46 @@ service cloud.firestore {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+
+            <!-- Historical Baseline (Pre-App Data) -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="history" class="w-4 h-4 text-yellow-400"></i> Historical Baseline — Pre-App Data
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Enter total figures from before you started using this app. These are added to all-time totals (safe manhours card, project total). This is a single record — saving overwrites the previous baseline.</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
+                <div class="col-span-2 sm:col-span-3 lg:col-span-2">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Total Manhours Before This App</label>
+                  <input id="bl-field-manhours" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Toolbox Talks</label>
+                  <input id="bl-field-toolbox" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">TBT Attendance</label>
+                  <input id="bl-field-attendance" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Inductions</label>
+                  <input id="bl-field-induction" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">First Aid</label>
+                  <input id="bl-field-firstaid" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+              </div>
+              <div class="mt-3">
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Penalties / Warnings</label>
+                <input id="bl-field-penalty" type="number" min="0" value="0" class="w-48 px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+              </div>
+              <div class="flex items-center justify-between mt-4">
+                <p id="bl-saved-label" class="text-[10px] text-slate-500 italic"></p>
+                <button onclick="saveBaseline()" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
+                  <i data-lucide="save" class="w-3.5 h-3.5"></i> Save Baseline
+                </button>
               </div>
             </div>
 
@@ -1620,6 +1692,7 @@ service cloud.firestore {
       if (!Array.isArray(dbState.users)) dbState.users = [];
       if (!Array.isArray(dbState.announcements)) dbState.announcements = [];
       if (!Array.isArray(dbState.safetyMetrics)) dbState.safetyMetrics = [];
+      if (!dbState.projectBaseline) dbState.projectBaseline = { manhours: 0, toolbox: 0, attendance: 0, induction: 0, firstAid: 0, penalties: 0 };
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -1713,7 +1786,7 @@ service cloud.firestore {
       else if (activeTab === 'reports')   renderObservations();
       else if (activeTab === 'emergency') renderEmergencyGrid();
       else if (activeTab === 'documents') renderDocumentLibrary();
-      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); }
+      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); }
     }
 
     // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
@@ -2079,6 +2152,7 @@ service cloud.firestore {
         renderContractorRegistry();
         renderAdminManpower();
         renderSafetyMetricsAdmin();
+        renderBaselineAdmin();
       }
 
       lucide.createIcons();
@@ -2370,11 +2444,17 @@ service cloud.firestore {
         .filter(e => e.date && e.date.slice(0, 7) === ym)
         .reduce((s, e) => s + mpManhours(e), 0);
 
+      const allManhours = (dbState.manpower || []).reduce((s, e) => s + mpManhours(e), 0);
+      const baselineManhours = (dbState.projectBaseline || {}).manhours || 0;
+      const projectTotalManhours = allManhours + baselineManhours;
+
       document.getElementById('kpi-staff').innerHTML = `${staffCount} <span class="text-[10px] font-normal text-slate-400">Personnel</span>`;
       document.getElementById('kpi-labour').innerHTML = `${workerCount} <span class="text-[10px] font-normal text-slate-400">Workers</span>`;
       document.getElementById('kpi-total-manpower').innerHTML = `${totalManpower} <span class="text-[10px] font-normal text-slate-400">On Site</span>`;
       document.getElementById('kpi-manhours').innerHTML = `${todayManhours} <span class="text-[10px] font-normal text-slate-400">Hrs</span>`;
-      document.getElementById('kpi-safehours').innerHTML = `${monthlyManhours.toLocaleString()} <span class="text-xs font-normal text-emerald-500">Hours this month</span>`;
+      document.getElementById('kpi-safehours').innerHTML = `${monthlyManhours.toLocaleString()} <span class="text-xs font-normal text-emerald-500">hrs</span>`;
+      const totalEl = document.getElementById('kpi-safehours-total');
+      if (totalEl) totalEl.innerHTML = `${projectTotalManhours.toLocaleString()} <span class="text-xs font-normal text-yellow-500">hrs</span>`;
 
       // Render contractor-wise breakdown for today on dashboard
       const dateEl = document.getElementById('dashboard-ctr-date');
@@ -2494,21 +2574,74 @@ service cloud.firestore {
         return;
       }
       tbody.innerHTML = list.map(m => `
-        <tr class="text-slate-300">
-          <td class="p-2 font-mono">${escapeHtml(m.date || '')}</td>
+        <tr class="text-slate-300 hover:bg-slate-800/20">
+          <td class="p-2 font-mono text-[11px]">${escapeHtml(m.date || '')}</td>
           <td class="p-2 text-center">${m.toolboxTalks || 0}</td>
           <td class="p-2 text-center">${m.attendance || 0}</td>
           <td class="p-2 text-center">${m.inductions || 0}</td>
           <td class="p-2 text-center">${m.firstAid || 0}</td>
           <td class="p-2 text-center">${m.penalties || 0}</td>
-          <td class="p-2 text-right"><button onclick="deleteSafetyMetric('${m.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button></td>
+          <td class="p-2 text-right space-x-2">
+            <button onclick="editSafetyMetric('${m.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
+            <button onclick="deleteSafetyMetric('${m.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
+          </td>
         </tr>`).join('');
+    }
+
+    function editSafetyMetric(id) {
+      const m = (dbState.safetyMetrics || []).find(x => x.id === id);
+      if (!m) return;
+      document.getElementById('sm-field-date').value = m.date || todayKey();
+      document.getElementById('sm-field-toolbox').value = m.toolboxTalks || 0;
+      document.getElementById('sm-field-attendance').value = m.attendance || 0;
+      document.getElementById('sm-field-induction').value = m.inductions || 0;
+      document.getElementById('sm-field-firstaid').value = m.firstAid || 0;
+      document.getElementById('sm-field-penalty').value = m.penalties || 0;
+      // Remove old record so Save Entry replaces it cleanly
+      dbState.safetyMetrics = dbState.safetyMetrics.filter(x => x.id !== id);
+      saveCurrentState();
+      renderSafetyMetricsAdmin();
+      showToast('Entry loaded for editing — update values and click Save Entry.', 'info');
+    }
+
+    function saveBaseline() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can set the baseline.', 'error'); return; }
+      const num = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
+      dbState.projectBaseline = {
+        manhours: num('bl-field-manhours'),
+        toolbox: num('bl-field-toolbox'),
+        attendance: num('bl-field-attendance'),
+        induction: num('bl-field-induction'),
+        firstAid: num('bl-field-firstaid'),
+        penalties: num('bl-field-penalty'),
+        savedBy: currentUser.fullname,
+        savedAt: new Date().toLocaleString()
+      };
+      saveCurrentState();
+      renderBaselineAdmin();
+      renderSafetyDashboard();
+      renderDashboardStats();
+      showToast('Historical baseline saved.', 'success');
+    }
+
+    function renderBaselineAdmin() {
+      const b = dbState.projectBaseline || {};
+      const setV = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || 0; };
+      setV('bl-field-manhours', b.manhours);
+      setV('bl-field-toolbox', b.toolbox);
+      setV('bl-field-attendance', b.attendance);
+      setV('bl-field-induction', b.induction);
+      setV('bl-field-firstaid', b.firstAid);
+      setV('bl-field-penalty', b.penalties);
+      const lbl = document.getElementById('bl-saved-label');
+      if (lbl) lbl.innerText = b.savedAt ? `Last saved by ${b.savedBy || 'Admin'} · ${b.savedAt}` : 'Not set yet.';
     }
 
     function renderSafetyDashboard() {
       const metrics = dbState.safetyMetrics || [];
+      const bl = dbState.projectBaseline || {};
       const today = todayKey();
-      const month = today.slice(0, 7); // YYYY-MM
+      const month = today.slice(0, 7);
       const sum = (filterFn) => metrics.reduce((acc, m) => {
         if (!filterFn(m)) return acc;
         acc.toolbox += m.toolboxTalks || 0; acc.attendance += m.attendance || 0;
@@ -2518,13 +2651,13 @@ service cloud.firestore {
       const t = sum(m => (m.date || '') === today);
       const mo = sum(m => (m.date || '').slice(0, 7) === month);
       const setT = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
-      setT('sm-today-toolbox', t.toolbox); setT('sm-month-toolbox', mo.toolbox);
+      setT('sm-today-toolbox', t.toolbox);     setT('sm-month-toolbox', mo.toolbox);
       setT('sm-today-attendance', t.attendance); setT('sm-month-attendance', mo.attendance);
-      setT('sm-today-induction', t.induction); setT('sm-month-induction', mo.induction);
-      setT('sm-today-firstaid', t.firstaid); setT('sm-month-firstaid', mo.firstaid);
-      setT('sm-today-penalty', t.penalty); setT('sm-month-penalty', mo.penalty);
+      setT('sm-today-induction', t.induction);  setT('sm-month-induction', mo.induction);
+      setT('sm-today-firstaid', t.firstaid);    setT('sm-month-firstaid', mo.firstaid);
+      setT('sm-today-penalty', t.penalty);      setT('sm-month-penalty', mo.penalty);
       const lbl = document.getElementById('safety-activity-month-label');
-      if (lbl) lbl.innerText = 'This month: ' + new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+      if (lbl) lbl.innerText = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
     }
 
     // ============================================================
@@ -2850,9 +2983,9 @@ service cloud.firestore {
           }
           lucide.createIcons();
         });
-        // Pre-fill for today if entry exists
-        dateInput.dispatchEvent(new Event('change'));
       }
+      // Always re-fill the form from saved data (fixes day-zeroing when night is added separately)
+      if (dateInput) dateInput.dispatchEvent(new Event('change'));
 
       // History cards — one per date, sorted desc
       const entries = [...(dbState.manpower || [])].sort((a,b) => b.date.localeCompare(a.date));
@@ -2972,9 +3105,7 @@ service cloud.firestore {
         pushNotification(`${currentUser?.fullname||'Staff'} logged manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
       }
       saveCurrentState();
-      document.getElementById('labour-day-staff').value = '';
-      document.getElementById('labour-night-staff').value = '';
-      buildContractorRows('contractor-worker-rows', 'labour-', null);
+      // renderLabourHistory will call dispatchEvent which re-fills form from saved data
       renderLabourHistory();
       renderDashboardStats();
     }
