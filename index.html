@@ -144,7 +144,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.3</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1279,8 +1279,23 @@ service cloud.firestore {
             <!-- Permit summary populated dynamically -->
           </div>
           <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Closing Date &amp; Time <span class="text-red-400">*</span></label>
+            <input id="permit-close-datetime" type="datetime-local" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Comments <span class="text-red-400">*</span></label>
             <textarea id="permit-close-comment" required rows="3" placeholder="Reason for closing or cancelling this permit…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
+          </div>
+          <!-- Closer Signature -->
+          <div id="permit-close-sig-wrap">
+            <label class="block text-[10px] font-bold uppercase text-construction-orange mb-1.5 flex justify-between">
+              <span>Closer Signature <span class="text-red-400">*</span></span>
+              <button type="button" onclick="clearPermitCloseSig()" class="text-[10px] text-red-400 hover:underline">Clear</button>
+            </label>
+            <div class="border border-construction-border rounded-lg bg-white overflow-hidden h-32 relative">
+              <canvas id="permit-close-sig-canvas" class="w-full h-full cursor-crosshair block" style="touch-action:none;"></canvas>
+            </div>
+            <p class="text-[9px] text-slate-500 mt-1 italic">Sign to confirm the work area has been cleared and permit is closed.</p>
           </div>
           <div class="flex justify-end gap-2 pt-2">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
@@ -3227,16 +3242,39 @@ service cloud.firestore {
 
       if (!dbState.manpower) dbState.manpower = [];
       const existing = dbState.manpower.find(e => e.date === date);
+
+      // Build contractor breakdown text for Telegram
+      const ctrLines = (contractorWorkers || []).filter(c => c.name && c.count > 0)
+        .map(c => `  • ${c.name}: ${c.count}`).join('\n') || '  • None';
+
       if (existing) {
         existing.dayStaff = dayStaff;
         existing.nightStaff = nightStaff;
         existing.contractorWorkers = contractorWorkers;
         showToast(`Manpower for ${date} updated — ${total} on site (${total*8} manhours).`, 'success');
         pushNotification(`${currentUser?.fullname||'Staff'} updated manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
+        sendTelegram(
+`👷 <b>Manpower Updated</b>
+📅 Date: ${date}
+👤 Updated by: ${currentUser.fullname} (${currentUser.role})
+🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
+👥 Total Workers: ${totalWorkers}
+${ctrLines}
+🏗 Total On Site: ${total}  |  ⏱ ${total*8} Manhours`
+        );
       } else {
         dbState.manpower.push({ id: `mp-${Date.now()}`, date, dayStaff, nightStaff, contractorWorkers });
         showToast(`Manpower logged for ${date} — ${total} on site (${total*8} manhours).`, 'success');
         pushNotification(`${currentUser?.fullname||'Staff'} logged manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
+        sendTelegram(
+`👷 <b>Manpower Logged</b>
+📅 Date: ${date}
+👤 Logged by: ${currentUser.fullname} (${currentUser.role})
+🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
+👥 Total Workers: ${totalWorkers}
+${ctrLines}
+🏗 Total On Site: ${total}  |  ⏱ ${total*8} Manhours`
+        );
       }
       saveCurrentState();
       // renderLabourHistory will call dispatchEvent which re-fills form from saved data
@@ -3283,6 +3321,18 @@ service cloud.firestore {
       renderDashboardStats();
       showToast('Manpower record updated.', 'success');
       pushNotification(`Admin edited manpower for ${date}.`);
+      const editTotal = ctrWorkers(contractorWorkers) + dayStaff + nightStaff;
+      const editCtrLines = (contractorWorkers || []).filter(c => c.name && c.count > 0)
+        .map(c => `  • ${c.name}: ${c.count}`).join('\n') || '  • None';
+      sendTelegram(
+`✏️ <b>Manpower Edited</b>
+📅 Date: ${date}
+👤 Edited by: ${currentUser.fullname} (${currentUser.role})
+🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
+👥 Workers: ${ctrWorkers(contractorWorkers)}
+${editCtrLines}
+🏗 Total On Site: ${editTotal}  |  ⏱ ${editTotal*8} Manhours`
+      );
     }
 
     function deleteLabourRecord(id) {
@@ -3291,11 +3341,17 @@ service cloud.firestore {
         return;
       }
       if (!confirm("Permanently delete this day's manpower entry? This updates safe manhours immediately.")) return;
+      const delEntry = (dbState.manpower || []).find(l => l.id === id);
       dbState.manpower = (dbState.manpower || []).filter(l => l.id !== id);
       saveCurrentState();
       renderLabourHistory();
       renderDashboardStats();
       showToast('Manpower entry deleted.', 'info');
+      if (delEntry) sendTelegram(
+`🗑 <b>Manpower Entry Deleted</b>
+📅 Date: ${delEntry.date}
+👤 Deleted by: ${currentUser.fullname} (${currentUser.role})`
+      );
     }
 
     // ============================================================
@@ -4202,7 +4258,8 @@ service cloud.firestore {
 
     // ---- Permit Close / Cancel ----
     let permitClosingId = null;
-    let permitCloseMode = 'close'; // 'close' | 'cancel'
+    let permitCloseMode = 'close';
+    let _permitCloseSigPad = null;
 
     function openPermitCloseModal(id, mode) {
       const p = dbState.permits.find(x => x.id === id);
@@ -4215,7 +4272,7 @@ service cloud.firestore {
       document.getElementById('permit-close-submit-btn').innerText = isCancelling ? 'Confirm Cancellation' : 'Confirm Closure';
       document.getElementById('permit-close-submit-btn').className = `px-5 py-2 font-bold rounded-lg text-white ${isCancelling ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-600 hover:bg-slate-700'}`;
 
-      // Action selector — only show if admin/reviewer cancelling; contractors can only close
+      // Action selector
       const actionWrap = document.getElementById('permit-close-action-wrap');
       const actionSel  = document.getElementById('permit-close-action');
       if (isCancelling) {
@@ -4225,6 +4282,15 @@ service cloud.firestore {
         actionWrap.classList.add('hidden');
         actionSel.innerHTML = '<option value="Closed">Close this permit</option>';
       }
+
+      // Signature only needed for closure, not cancellation
+      const sigWrap = document.getElementById('permit-close-sig-wrap');
+      sigWrap.classList.toggle('hidden', isCancelling);
+
+      // Pre-fill closing datetime to now
+      const d = new Date();
+      document.getElementById('permit-close-datetime').value =
+        new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
       // Permit summary
       const endTime = p.validityEnd ? new Date(p.validityEnd) : null;
@@ -4237,17 +4303,42 @@ service cloud.firestore {
         <p>Current Status: <span class="text-emerald-400 font-bold">${p.status}</span></p>`;
 
       document.getElementById('permit-close-comment').value = '';
+
       openModal('modal-permit-close');
+
+      // Setup signature pad after modal is visible
+      if (!isCancelling) {
+        setTimeout(() => {
+          _permitCloseSigPad = createSignaturePad('permit-close-sig-canvas');
+        }, 100);
+      }
+    }
+
+    function clearPermitCloseSig() {
+      if (_permitCloseSigPad) _permitCloseSigPad.clear();
     }
 
     function submitPermitClosure() {
-      const comment = document.getElementById('permit-close-comment').value.trim();
-      if (!comment) { showToast('Please enter a comment before confirming.', 'error'); return; }
+      const comment  = document.getElementById('permit-close-comment').value.trim();
+      const closeAt  = document.getElementById('permit-close-datetime').value;
+      if (!comment)  { showToast('Please enter a comment before confirming.', 'error'); return; }
+      if (!closeAt)  { showToast('Please enter the closing date and time.', 'error'); return; }
+
+      const isCancelling = permitCloseMode === 'cancel';
+
+      // Require signature for closure (not cancellation)
+      let closeSig = null;
+      if (!isCancelling) {
+        if (!_permitCloseSigPad || _permitCloseSigPad.isEmpty()) {
+          showToast('Please sign before confirming closure.', 'error'); return;
+        }
+        closeSig = _permitCloseSigPad.toDataURL();
+      }
 
       const p = dbState.permits.find(x => x.id === permitClosingId);
       if (!p) return;
 
-      const newStatus = permitCloseMode === 'cancel' ? 'Cancelled' : 'Closed';
+      const newStatus = isCancelling ? 'Cancelled' : 'Closed';
       p.status = newStatus;
       p.comments = p.comments || [];
       p.comments.push({
@@ -4256,8 +4347,18 @@ service cloud.firestore {
         text: `[${newStatus.toUpperCase()}] ${comment}`,
         timestamp: new Date().toLocaleString()
       });
-      if (newStatus === 'Closed')    { p.closedBy = currentUser.fullname; p.closedAt = new Date().toLocaleString(); }
-      if (newStatus === 'Cancelled') { p.cancelledBy = currentUser.fullname; p.cancelledAt = new Date().toLocaleString(); }
+
+      if (newStatus === 'Closed') {
+        p.closedBy        = currentUser.fullname;
+        p.closedAt        = closeAt.replace('T', ' ');
+        p.closureSignature = closeSig;
+        p.closureComment  = comment;
+      }
+      if (newStatus === 'Cancelled') {
+        p.cancelledBy      = currentUser.fullname;
+        p.cancelledAt      = closeAt.replace('T', ' ');
+        p.cancellationComment = comment;
+      }
 
       saveCurrentState();
       closeModal();
@@ -4272,6 +4373,7 @@ service cloud.firestore {
 👷 Contractor: ${p.contractor}
 📍 Location: ${p.location}
 👤 By: ${currentUser.fullname} (${currentUser.role})
+🕐 Closed at: ${closeAt.replace('T',' ')}
 💬 ${comment}`
       );
     }
@@ -4318,6 +4420,29 @@ service cloud.firestore {
           </div>
         `;
       });
+
+      // Permit closure signature block
+      let closureSigHtml = '';
+      if (p.status === 'Closed' && p.closedBy) {
+        closureSigHtml = `
+          <div style="margin-top: 20px; border: 2px solid #222; border-radius: 6px; padding: 12px; background: #f9f9f9;">
+            <h4 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 0 0 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px;">Permit Closure Certificate</h4>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+              <div style="flex: 1; font-size: 10px;">
+                <p style="margin: 3px 0;"><strong>Closed By:</strong> ${escapeHtml(p.closedBy)}</p>
+                <p style="margin: 3px 0;"><strong>Closing Date &amp; Time:</strong> ${escapeHtml(p.closedAt || '')}</p>
+                ${p.closureComment ? `<p style="margin: 6px 0;"><strong>Remarks:</strong> ${escapeHtml(p.closureComment)}</p>` : ''}
+                <p style="margin: 6px 0; font-size: 9px; color: #555;">I confirm that the work area has been inspected, all personnel accounted for, equipment removed, and the area is safe.</p>
+              </div>
+              ${p.closureSignature ? `
+              <div style="text-align: center; border: 1px solid #ccc; padding: 6px; border-radius: 4px; min-width: 140px;">
+                <p style="font-size: 9px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">Closer Signature</p>
+                <img src="${p.closureSignature}" style="height: 50px; display: block; margin: 0 auto;" />
+                <p style="font-size: 9px; color: #555; margin-top: 4px;">${escapeHtml(p.closedBy)}</p>
+              </div>` : ''}
+            </div>
+          </div>`;
+      }
 
       // Reviewer remarks / site comments for the printed record
       let commentsHtml = '';
@@ -4439,6 +4564,8 @@ service cloud.firestore {
             ${sigsHtml}
             ${sigsHtml === '' ? '<p style="font-size: 11px; color: #666; italic">Signatures pending review approvals.</p>' : ''}
           </div>
+
+          ${closureSigHtml}
 
           <div class="no-print" style="margin-top: 30px; padding: 15px; background: #f3f4f6; border-radius: 8px; text-align: center; display: flex; justify-content: center; gap: 10px;">
             <button onclick="window.print()" style="background: #ea580c; color: white; border: none; font-weight: bold; font-size: 12px; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Print Safe Copy (PDF)</button>
