@@ -4,8 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CTO-ConNect</title>
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" href="logo.png">
+  <meta name="description" content="Chettinad Products & Services – Site Safety Management Portal">
+  <meta name="theme-color" content="#f97316">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CTO Safety">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="logo.png">
 
   
   <!-- Tailwind CSS -->
@@ -144,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.2</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -156,13 +163,13 @@ service cloud.firestore {
         <!-- User controls / active session info -->
         <div class="flex items-center gap-2">
           <!-- Notifications Bell -->
-          <div class="relative hidden sm:block">
+          <div id="notif-bell-wrap" class="relative hidden">
             <button onclick="toggleNotifications()" class="p-2 text-slate-300 hover:text-construction-orange hover:bg-slate-800 rounded-lg transition-colors relative">
               <i data-lucide="bell" class="w-5 h-5"></i>
               <span id="nav-notif-count" class="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
             </button>
             <!-- Dropdown list -->
-            <div id="notif-dropdown" class="absolute right-0 mt-2 w-80 bg-construction-cardBg border border-construction-border rounded-lg shadow-2xl p-4 hidden z-50">
+            <div id="notif-dropdown" class="absolute right-0 mt-2 w-72 max-w-[90vw] bg-construction-cardBg border border-construction-border rounded-lg shadow-2xl p-4 hidden z-50">
               <div class="flex items-center justify-between border-b border-construction-border pb-2 mb-2">
                 <span class="text-xs font-bold text-slate-300">Recent Updates</span>
                 <button onclick="clearNotifications()" class="text-[10px] text-construction-orange hover:underline">Mark all read</button>
@@ -188,7 +195,7 @@ service cloud.firestore {
     </header>
 
     <!-- MOBILE NAVIGATION BOTTOM TAB BAR (DYNAMICAL TO SUPPORT ADMIN VIEWS) -->
-    <nav id="mobile-nav" class="bg-construction-cardBg border-t border-construction-border fixed bottom-0 left-0 right-0 z-40 flex justify-around py-1.5 sm:hidden no-print shadow-xl">
+    <nav id="mobile-nav" style="display:none" class="bg-construction-cardBg border-t border-construction-border fixed bottom-0 left-0 right-0 z-40 flex justify-around py-1.5 sm:hidden no-print shadow-xl">
       <!-- Generated Dynamically based on current user role -->
     </nav>
 
@@ -199,7 +206,7 @@ service cloud.firestore {
       <div class="flex flex-col lg:flex-row gap-6 items-start flex-grow w-full">
         
         <!-- SIDE NAVIGATION BAR (FOR TABLET & DESKTOP SCREEN RESOLUTIONS) -->
-        <aside class="w-full lg:w-64 bg-construction-cardBg border border-construction-border rounded-xl p-4 hidden sm:block shrink-0 shadow-lg space-y-4 no-print">
+        <aside id="app-sidebar" style="display:none" class="w-full lg:w-64 bg-construction-cardBg border border-construction-border rounded-xl p-4 hidden sm:block shrink-0 shadow-lg space-y-4 no-print">
           <div class="px-2 py-1 bg-slate-800/50 rounded-lg border border-construction-border flex items-center gap-2">
             <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span class="text-xs text-slate-300 font-semibold uppercase">Chennai Node Active</span>
@@ -371,18 +378,28 @@ service cloud.firestore {
                 </div>
               </div>
             </div>
-            <!-- Monthly Safe Manhours Bar -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-4">
-              <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
-                <i data-lucide="award" class="w-5 h-5"></i>
-              </div>
-              <div class="flex-grow">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Accumulated Safe Manhours</p>
-                <p id="kpi-safehours" class="text-2xl font-extrabold text-emerald-400 mt-1">0 <span class="text-xs font-normal text-emerald-500">Hours this month</span></p>
-              </div>
-              <div class="text-right hidden sm:block">
-                <p class="text-[10px] text-slate-500 uppercase tracking-wider">Formula</p>
-                <p class="text-xs text-slate-400 font-mono">(Staff + Workers) × 8 hrs/day</p>
+            <!-- Monthly Safe Manhours + Project Total -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                    <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Safe Manhours — This Month</p>
+                    <p id="kpi-safehours" class="text-2xl font-extrabold text-emerald-400 mt-0.5">0 <span class="text-xs font-normal text-emerald-500">hrs</span></p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 sm:border-l sm:border-construction-border sm:pl-4">
+                  <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-400 shrink-0">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Safe Manhours — Project Total</p>
+                    <p id="kpi-safehours-total" class="text-2xl font-extrabold text-yellow-400 mt-0.5">0 <span class="text-xs font-normal text-yellow-500">hrs</span></p>
+                    <p class="text-[9px] text-slate-500 font-mono">(Staff+Workers)×8 + Baseline</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -411,12 +428,106 @@ service cloud.firestore {
                 <p id="kpi-permits-approved" class="text-3xl font-extrabold text-construction-green mt-1">0</p>
               </div>
               <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
-                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Unresolved Hazards</p>
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Observations</p>
                 <p id="kpi-hazards" class="text-3xl font-extrabold text-yellow-500 mt-1">0</p>
               </div>
               <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
                 <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Incidents</p>
                 <p id="kpi-incidents" class="text-3xl font-extrabold text-red-500 mt-1">0</p>
+              </div>
+            </div>
+
+            <!-- SAFETY ACTIVITY TRACKER (visible to everyone; entered by Admin) -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
+                  <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                  Safety Activity
+                </h3>
+                <span id="safety-activity-month-label" class="text-[10px] text-slate-500 font-mono"></span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+
+                <!-- Toolbox Talks -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                      <i data-lucide="presentation" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Toolbox Talks</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-blue-400 leading-none"><span id="sm-today-toolbox">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-toolbox" class="text-sm font-extrabold text-slate-200">0</span>
+                  </div>
+                </div>
+
+                <!-- TBT Attendance -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+                      <i data-lucide="users-round" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">TBT Attendance</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-purple-400 leading-none"><span id="sm-today-attendance">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-attendance" class="text-sm font-extrabold text-slate-200">0</span>
+                  </div>
+                </div>
+
+                <!-- Inductions -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-construction-green/10 flex items-center justify-center text-construction-green shrink-0">
+                      <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Inductions</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-construction-green leading-none"><span id="sm-today-induction">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-induction" class="text-sm font-extrabold text-slate-200">0</span>
+                  </div>
+                </div>
+
+                <!-- First Aid -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                      <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">First Aid</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-emerald-400 leading-none"><span id="sm-today-firstaid">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-firstaid" class="text-sm font-extrabold text-slate-200">0</span>
+                  </div>
+                </div>
+
+                <!-- Penalties / Warnings -->
+                <div class="bg-slate-900 border border-construction-border rounded-xl p-3.5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 shrink-0">
+                      <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Penalties / Warnings</p>
+                  </div>
+                  <p class="text-3xl font-extrabold text-red-400 leading-none"><span id="sm-today-penalty">0</span></p>
+                  <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
+                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500">This Month</span>
+                    <span id="sm-month-penalty" class="text-sm font-extrabold text-red-300">0</span>
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -434,7 +545,7 @@ service cloud.firestore {
                 </button>
                 <button onclick="switchTab('reports')" class="bg-gradient-to-b from-slate-800 to-slate-900 border border-construction-border p-4 rounded-xl text-center hover:border-construction-orange transition-all flex flex-col items-center justify-center gap-2">
                   <i data-lucide="alert-octagon" class="w-6 h-6 text-yellow-500"></i>
-                  <span class="text-xs font-bold">Log Hazard</span>
+                  <span class="text-xs font-bold">Add Observation</span>
                 </button>
                 <button onclick="switchTab('emergency')" class="bg-gradient-to-b from-slate-800 to-slate-900 border border-construction-border p-4 rounded-xl text-center hover:border-construction-orange transition-all flex flex-col items-center justify-center gap-2">
                   <i data-lucide="phone-call" class="w-6 h-6 text-red-500"></i>
@@ -493,6 +604,15 @@ service cloud.firestore {
               </button>
             </div>
 
+            <!-- Expired permit warning banner (shown when applicable) -->
+            <div id="permit-expiry-banner" class="hidden bg-orange-950/60 border border-orange-700/50 rounded-xl p-3 flex items-center gap-3">
+              <i data-lucide="alarm-clock" class="w-5 h-5 text-orange-400 shrink-0"></i>
+              <div>
+                <p class="text-xs font-bold text-orange-300">Permits require closure</p>
+                <p id="permit-expiry-banner-text" class="text-[11px] text-orange-400/80 mt-0.5"></p>
+              </div>
+            </div>
+
             <!-- Filters Bar -->
             <div class="bg-construction-cardBg border border-construction-border p-3 rounded-xl flex flex-wrap gap-2 items-center justify-between">
               <span class="text-xs font-semibold text-slate-400 uppercase">Filters:</span>
@@ -502,6 +622,8 @@ service cloud.firestore {
                 <button onclick="filterPermits('Pending Staff Review')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Staff Review">Pending Staff</button>
                 <button onclick="filterPermits('Pending Admin Approval')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Admin Approval">Pending Admin</button>
                 <button onclick="filterPermits('Approved')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Approved">Approved</button>
+                <button onclick="filterPermits('Closed')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Closed">Closed</button>
+                <button onclick="filterPermits('Cancelled')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Cancelled">Cancelled</button>
               </div>
             </div>
 
@@ -581,9 +703,14 @@ service cloud.firestore {
 
                 <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
                   <p class="text-[10px] text-slate-500">Leave fields blank if no workers for that shift. Saving again on the same date will update existing record.</p>
-                  <button type="submit" class="py-2.5 px-6 bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider">
-                    Save Day's Manpower
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button id="manpower-tg-btn" type="button" class="hidden py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 uppercase tracking-wider">
+                      <i data-lucide="send" class="w-3.5 h-3.5"></i> Send to Telegram
+                    </button>
+                    <button type="submit" class="py-2.5 px-6 bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider">
+                      Save Day's Manpower
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -608,13 +735,13 @@ service cloud.firestore {
               <div>
                 <h2 class="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
                   <i data-lucide="alert-octagon" class="w-5 h-5 text-yellow-500"></i>
-                  Site Hazard & Incident Tracker
+                  Site Observation &amp; Incident Tracker
                 </h2>
-                <p class="text-xs text-slate-400">Log hazards immediately on detection or document accidents to maintain project compliance audits.</p>
+                <p class="text-xs text-slate-400">Record safety observations on detection or document accidents to maintain project compliance audits.</p>
               </div>
               <div class="flex gap-2 w-full sm:w-auto">
-                <button onclick="openReportModal('hazard')" class="flex-grow sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
-                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Log Hazard
+                <button onclick="openReportModal('observation')" class="flex-grow sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Observation
                 </button>
                 <button onclick="openReportModal('incident')" class="flex-grow sm:flex-none bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
                   <i data-lucide="alert-triangle" class="w-4 h-4"></i> Log Incident
@@ -629,7 +756,7 @@ service cloud.firestore {
               <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
                 <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-wider flex items-center gap-2 mb-3">
                   <i data-lucide="alert-octagon" class="w-4 h-4"></i>
-                  Identified Site Hazards
+                  Site Observations
                 </h3>
                 <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="hazards-list-panel">
                   <!-- Rendered dynamically -->
@@ -725,6 +852,188 @@ service cloud.firestore {
                   </button>
                   <input id="restore-file-input" type="file" accept="application/json,.json" class="hidden" onchange="importBackupFile(this)">
                 </div>
+              </div>
+            </div>
+
+            <!-- Monthly HSE Report -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="file-bar-chart" class="w-4 h-4 text-emerald-400"></i> Monthly HSE Report
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Generate a printable monthly HSE report with daily manpower, safety activity, observations, incidents and permit summary. Prepared under your name as Senior Safety Officer.</p>
+              <div class="flex items-end gap-3 flex-wrap">
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Month</label>
+                  <select id="hse-report-month" class="px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                    <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                    <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                    <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                    <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Year</label>
+                  <input id="hse-report-year" type="number" min="2024" max="2099" value="2026" class="w-24 px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <button onclick="generateHSEReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-5 rounded-lg flex items-center gap-2">
+                  <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Generate PDF
+                </button>
+              </div>
+            </div>
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="send" class="w-4 h-4 text-blue-400"></i> Telegram Notifications
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Token and chat IDs are stored privately in Firebase — never in source code. Add a group chat ID to broadcast all alerts to your safety team.</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-3">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Bot Token</label>
+                  <input id="tg-field-token" type="text" placeholder="1234567890:AAFxxxxx..." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Your Personal Chat ID</label>
+                  <input id="tg-field-chatid" type="text" placeholder="1127702612" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Group Chat ID <span class="text-slate-500">(optional)</span></label>
+                  <input id="tg-field-groupid" type="text" placeholder="-987654321" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+                <div class="flex flex-col justify-end gap-2">
+                  <button onclick="testTelegram('personal')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+                    <i data-lucide="user" class="w-3 h-3"></i> Test Personal
+                  </button>
+                  <button onclick="testTelegram('group')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+                    <i data-lucide="users" class="w-3 h-3"></i> Test Group
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-4">
+                <p id="tg-saved-label" class="text-[10px] text-slate-500 italic"></p>
+                <button onclick="saveTelegramConfig()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5">
+                  <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+                </button>
+              </div>
+            </div>
+
+            <!-- ImgBB Photo Hosting -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="image" class="w-4 h-4 text-emerald-400"></i> Photo Hosting (ImgBB)
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-1">Free photo hosting — keeps Firebase document small and sends photos to Telegram.</p>
+              <p class="text-[11px] text-slate-500 mb-4">Get a free API key at <span class="text-emerald-400 font-mono">imgbb.com</span> → Sign up → Settings → API.</p>
+              <div class="flex gap-3 items-end">
+                <div class="flex-1">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">ImgBB API Key</label>
+                  <input id="imgbb-field-key" type="text" placeholder="Paste your ImgBB API key here" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+                <button onclick="saveImgbbConfig()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5 shrink-0">
+                  <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+                </button>
+              </div>
+              <div class="flex items-center justify-between mt-3">
+                <p id="imgbb-saved-label" class="text-[10px] text-slate-500 italic"></p>
+                <div id="imgbb-status" class="text-[10px] font-bold"></div>
+              </div>
+            </div>
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="clipboard-check" class="w-4 h-4 text-construction-orange"></i> Daily Safety Activity
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Record the day's safety figures. You can pick any past date to back-date an entry. Totals for today and this month appear on everyone's dashboard.</p>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
+                <div class="col-span-2 sm:col-span-1">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Date</label>
+                  <input id="sm-field-date" type="date" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Toolbox Talks</label>
+                  <input id="sm-field-toolbox" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">TBT Attendance</label>
+                  <input id="sm-field-attendance" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Inductions</label>
+                  <input id="sm-field-induction" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">First Aid</label>
+                  <input id="sm-field-firstaid" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Penalties / Warnings</label>
+                  <input id="sm-field-penalty" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+              </div>
+              <div class="flex justify-end mt-4">
+                <button onclick="addSafetyMetric()" class="bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
+                  <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Save Entry
+                </button>
+              </div>
+
+              <div class="mt-5">
+                <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-2">Recent Entries</p>
+                <div class="overflow-x-auto rounded-lg border border-construction-border">
+                  <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr class="bg-slate-800 text-slate-400 uppercase tracking-wider text-[10px] border-b border-construction-border">
+                        <th class="p-2">Date</th>
+                        <th class="p-2 text-center">TBT</th>
+                        <th class="p-2 text-center">Attend.</th>
+                        <th class="p-2 text-center">Induct.</th>
+                        <th class="p-2 text-center">First Aid</th>
+                        <th class="p-2 text-center">Penalty</th>
+                        <th class="p-2 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="safety-metrics-table-body" class="divide-y divide-construction-border">
+                      <!-- rendered by renderSafetyMetricsAdmin -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Historical Baseline (Pre-App Data) -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="history" class="w-4 h-4 text-yellow-400"></i> Historical Baseline — Pre-App Data
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Enter total figures from before you started using this app. These are added to all-time totals (safe manhours card, project total). This is a single record — saving overwrites the previous baseline.</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
+                <div class="col-span-2 sm:col-span-3 lg:col-span-2">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Total Manhours Before This App</label>
+                  <input id="bl-field-manhours" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Toolbox Talks</label>
+                  <input id="bl-field-toolbox" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">TBT Attendance</label>
+                  <input id="bl-field-attendance" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Inductions</label>
+                  <input id="bl-field-induction" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">First Aid</label>
+                  <input id="bl-field-firstaid" type="number" min="0" value="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+              </div>
+              <div class="mt-3">
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Penalties / Warnings</label>
+                <input id="bl-field-penalty" type="number" min="0" value="0" class="w-48 px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+              </div>
+              <div class="flex items-center justify-between mt-4">
+                <p id="bl-saved-label" class="text-[10px] text-slate-500 italic"></p>
+                <button onclick="saveBaseline()" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
+                  <i data-lucide="save" class="w-3.5 h-3.5"></i> Save Baseline
+                </button>
               </div>
             </div>
 
@@ -1018,35 +1327,167 @@ service cloud.firestore {
         </form>
       </div>
 
-      <!-- REPORT HAZARD/INCIDENT MODAL (NOW DUAL PURPOSE - CREATE & EDIT) -->
-      <div id="modal-report" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
+      <!-- PERMIT CLOSE / CANCEL MODAL -->
+      <div id="modal-permit-close" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
-          <h3 id="report-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Log Observation</h3>
+          <h3 id="permit-close-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Close Permit</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form onsubmit="event.preventDefault(); submitPermitClosure();" class="space-y-4 text-xs">
+          <div id="permit-close-action-wrap">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Action</label>
+            <select id="permit-close-action" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div id="permit-close-info" class="bg-slate-900 border border-construction-border rounded-lg p-3 space-y-1 text-[11px] text-slate-400">
+            <!-- Permit summary populated dynamically -->
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Closing Date &amp; Time <span class="text-red-400">*</span></label>
+            <input id="permit-close-datetime" type="datetime-local" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Comments <span class="text-red-400">*</span></label>
+            <textarea id="permit-close-comment" required rows="3" placeholder="Reason for closing or cancelling this permit…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
+          </div>
+          <!-- Closer Signature -->
+          <div id="permit-close-sig-wrap">
+            <label class="block text-[10px] font-bold uppercase text-construction-orange mb-1.5 flex justify-between">
+              <span>Closer Signature <span class="text-red-400">*</span></span>
+              <button type="button" onclick="clearPermitCloseSig()" class="text-[10px] text-red-400 hover:underline">Clear</button>
+            </label>
+            <div class="border border-construction-border rounded-lg bg-white overflow-hidden h-32 relative">
+              <canvas id="permit-close-sig-canvas" class="w-full h-full cursor-crosshair block" style="touch-action:none;"></canvas>
+            </div>
+            <p class="text-[9px] text-slate-500 mt-1 italic">Sign to confirm the work area has been cleared and permit is closed.</p>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button id="permit-close-submit-btn" type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg">Confirm</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- REPORT HAZARD/INCIDENT MODAL (NOW DUAL PURPOSE - CREATE & EDIT) -->
+      <div id="modal-report" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 id="report-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Add Observation</h3>
           <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
 
         <form id="report-modal-form" onsubmit="event.preventDefault(); submitSafetyObservation();" class="space-y-4 text-xs">
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Occurrence Date</label>
-            <input id="report-field-date" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation Date &amp; Time</label>
+            <input id="report-field-date" type="datetime-local" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Location Details</label>
             <input id="report-field-loc" type="text" required placeholder="e.g. Block B, Crane Yard No 4" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation Details / Incident Description</label>
-            <textarea id="report-field-desc" required rows="3" placeholder="Provide description of hazard, machinery risk or accident..." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation / Description</label>
+            <textarea id="report-field-desc" required rows="3" placeholder="Describe the unsafe act, condition or accident…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
           </div>
-          <div id="photo-ref-field-wrapper">
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Photo Reference</label>
-            <input id="report-field-photo" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-xs">
-            <p class="text-[9px] text-slate-500 mt-1">Select an image representing the hazard or safety incident.</p>
+
+          <div id="obs-photos-wrap">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Photos (up to 2)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <input id="report-photo-1" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-[10px]" onchange="previewObsPhoto(this,0)">
+                <img id="report-prev-1" src="" class="hidden mt-1 max-h-20 rounded border border-construction-border">
+              </div>
+              <div>
+                <input id="report-photo-2" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-[10px]" onchange="previewObsPhoto(this,1)">
+                <img id="report-prev-2" src="" class="hidden mt-1 max-h-20 rounded border border-construction-border">
+              </div>
+            </div>
+          </div>
+
+          <div id="obs-capa-wrap" class="space-y-3 border-t border-construction-border pt-3">
+            <p class="text-[10px] font-bold uppercase text-construction-orange">Action Plan</p>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Corrective Action</label>
+              <textarea id="report-corrective" rows="2" placeholder="Immediate action taken / to be taken" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Preventive Action</label>
+              <textarea id="report-preventive" rows="2" placeholder="How to prevent recurrence" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Responsible Person</label>
+              <input id="report-responsible" type="text" placeholder="Name of person responsible" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
           </div>
 
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Submit Observation</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ADD / UPDATE ACTION PLAN (CAPA) MODAL -->
+      <div id="modal-capa" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Add / Update Action Plan</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form onsubmit="event.preventDefault(); submitCapa();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Corrective Action</label>
+            <textarea id="capa-corrective" rows="2" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Preventive Action</label>
+            <textarea id="capa-preventive" rows="2" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Responsible Person</label>
+            <input id="capa-responsible" type="text" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <div class="flex justify-end gap-2 pt-4">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save Action</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- CLOSE OBSERVATION MODAL -->
+      <div id="modal-close-observation" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Close Observation</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form onsubmit="event.preventDefault(); submitCloseObservation();" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Completion Status</label>
+            <select id="close-obs-status" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <option value="Completed">Completed — close observation</option>
+              <option value="In Progress">In Progress — keep open</option>
+              <option value="Pending">Pending — keep open</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Closure Remarks</label>
+            <textarea id="close-obs-note" rows="2" placeholder="What was done to resolve this" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Completion Photos (up to 2)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <input id="close-photo-1" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-[10px]" onchange="previewClosePhoto(this,0)">
+                <img id="close-prev-1" src="" class="hidden mt-1 max-h-20 rounded border border-construction-border">
+              </div>
+              <div>
+                <input id="close-photo-2" type="file" accept="image/*" class="w-full p-1 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-[10px]" onchange="previewClosePhoto(this,1)">
+                <img id="close-prev-2" src="" class="hidden mt-1 max-h-20 rounded border border-construction-border">
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-4">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg">Save</button>
           </div>
         </form>
       </div>
@@ -1322,6 +1763,7 @@ service cloud.firestore {
         { id: 'haz-1', date: '2026-06-10', location: 'Silo Yard Area C', description: 'Scaffolding boards found damaged without inspection tags', status: 'Open', reporter: 'R. K. Raman' }
       ],
       incidents: [],
+      safetyMetrics: [],
       contacts: [
         { id: 'con-1', name: 'R. K. Raman', designation: 'HSE Safety Manager', phone: '+91 98840 12345' },
         { id: 'con-2', name: 'A. Pillai', designation: 'Project Director', phone: '+91 98840 66778' },
@@ -1394,6 +1836,10 @@ service cloud.firestore {
       if (!dbState.contractors)  dbState.contractors = [];
       if (!Array.isArray(dbState.users)) dbState.users = [];
       if (!Array.isArray(dbState.announcements)) dbState.announcements = [];
+      if (!Array.isArray(dbState.safetyMetrics)) dbState.safetyMetrics = [];
+      if (!dbState.projectBaseline) dbState.projectBaseline = { manhours: 0, toolbox: 0, attendance: 0, induction: 0, firstAid: 0, penalties: 0 };
+      if (!dbState.telegramConfig)  dbState.telegramConfig  = {};
+      if (!dbState.imgbbConfig)     dbState.imgbbConfig     = {};
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -1487,7 +1933,7 @@ service cloud.firestore {
       else if (activeTab === 'reports')   renderObservations();
       else if (activeTab === 'emergency') renderEmergencyGrid();
       else if (activeTab === 'documents') renderDocumentLibrary();
-      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); }
+      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderImgbbAdmin(); initHSEReportInputs(); }
     }
 
     // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
@@ -1720,14 +2166,36 @@ service cloud.firestore {
     let applicantSigPad = null;  // signature pad in the create-permit modal
     let selectedPermitType = null;
     let currentEditPermit = null;
-    let currentReportType = 'hazard';
+    let currentReportType = 'observation';
     let editingContactId = null;
     let editingUserId = null;
     let editingLabourId = null;
     let editingObservationId = null;
     let resettingPasswordUserId = null;
+    let _obsPhotos = [null, null];     // pending entry photos for an observation
+    let _closePhotos = [null, null];   // pending closure photos
+    let capaTargetId = null;           // observation receiving an action plan
+    let closingObsId = null;           // observation being closed
 
-    // Toast Notification generator
+    // Permission helpers for the observation workflow
+    function canAddCapa() {
+      return !!currentUser && (currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove));
+    }
+    function canCloseObservation() {
+      return !!currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Staff');
+    }
+    // Staff & Admin fill the action plan at entry time; contractors do not.
+    function fillsCapaAtCreate() {
+      return !!currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Staff');
+    }
+
+    // Returns "Full Name (Designation)" — used in all alerts and documents
+    function userLabel(u) {
+      u = u || currentUser;
+      if (!u) return 'Unknown';
+      const desig = u.designation || u.role || '';
+      return desig ? `${u.fullname} (${desig})` : u.fullname;
+    }
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -1767,8 +2235,8 @@ service cloud.firestore {
     function closeModal() {
       document.getElementById('modal-backdrop').classList.add('hidden');
       const modals = [
-        'modal-create-permit', 'modal-permit-form', 'modal-permit-review', 
-        'modal-report', 'modal-create-user', 'modal-contact', 
+        'modal-create-permit', 'modal-permit-form', 'modal-permit-review', 'modal-permit-close',
+        'modal-report', 'modal-capa', 'modal-close-observation', 'modal-create-user', 'modal-contact',
         'modal-edit-profile', 'modal-upload-doc', 'modal-edit-labour', 'modal-reset-password',
         'modal-contractor', 'modal-staff-strength'
       ];
@@ -1836,6 +2304,11 @@ service cloud.firestore {
         renderPersonnelTable();
         renderContractorRegistry();
         renderAdminManpower();
+        renderSafetyMetricsAdmin();
+        renderBaselineAdmin();
+        renderTelegramAdmin();
+        renderImgbbAdmin();
+        initHSEReportInputs();
       }
 
       lucide.createIcons();
@@ -1862,7 +2335,7 @@ service cloud.firestore {
         </button>
         <button onclick="switchTab('reports')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="reports">
           <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-          <span>Hazards & Incidents</span>
+          <span>Observations &amp; Incidents</span>
         </button>
         <button onclick="switchTab('emergency')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="emergency">
           <i data-lucide="phone-call" class="w-4 h-4"></i>
@@ -1900,7 +2373,7 @@ service cloud.firestore {
         </button>
         <button onclick="switchTab('reports')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="reports">
           <i data-lucide="alert-triangle" class="w-5 h-5 mb-0.5"></i>
-          <span class="text-[9px] font-medium">Hazards</span>
+          <span class="text-[9px] font-medium">Observe</span>
         </button>
       `;
 
@@ -1959,6 +2432,9 @@ service cloud.firestore {
       currentUser = user;
       document.getElementById('view-login').classList.add('hidden');
       document.getElementById('user-header-card').classList.remove('hidden');
+      document.getElementById('notif-bell-wrap').classList.remove('hidden');
+      const _aside = document.getElementById('app-sidebar'); if (_aside) _aside.style.display = '';
+      const _mnav = document.getElementById('mobile-nav'); if (_mnav) _mnav.style.display = '';
       
       // Bind User Cards In Top Header
       document.getElementById('user-display-name').innerText = user.fullname;
@@ -1984,6 +2460,11 @@ service cloud.firestore {
 
       showToast(`Welcome back, ${user.fullname}! Session active.`, 'success');
       switchTab('dashboard');
+      // Remind about expired permits after a short delay
+      setTimeout(() => {
+        const n = checkPermitExpiry();
+        if (n > 0) showToast(`⚠ ${n} permit${n>1?'s are':' is'} past end time — please close ${n>1?'them':'it'}.`, 'info');
+      }, 1500);
     }
 
     function updateForcedPassword() {
@@ -2022,11 +2503,24 @@ service cloud.firestore {
 
     function handleLogout() {
       currentUser = null;
+
+      // Hide every app view so no tab stays visible after logout
+      ['view-dashboard','view-permits','view-labour','view-reports','view-emergency','view-documents','view-admin','view-force-pin']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); });
+
+      // Clear navigation menus (rebuilt on next login) and hide their shells
+      const dn = document.getElementById('desktop-sidebar-nav'); if (dn) dn.innerHTML = '';
+      const mn = document.getElementById('mobile-nav'); if (mn) { mn.innerHTML = ''; mn.style.display = 'none'; }
+      const aside = document.getElementById('app-sidebar'); if (aside) aside.style.display = 'none';
+
+      // Hide header session controls + close any open dropdown/modal
       document.getElementById('user-header-card').classList.add('hidden');
-      document.getElementById('view-dashboard').classList.add('hidden');
+      document.getElementById('notif-bell-wrap').classList.add('hidden');
+      const nd = document.getElementById('notif-dropdown'); if (nd) nd.classList.add('hidden');
+      closeModal();
+
+      // Show login
       document.getElementById('view-login').classList.remove('hidden');
-      
-      // Clear forms
       document.getElementById('login-username').value = '';
       document.getElementById('login-pin').value = '';
 
@@ -2111,11 +2605,17 @@ service cloud.firestore {
         .filter(e => e.date && e.date.slice(0, 7) === ym)
         .reduce((s, e) => s + mpManhours(e), 0);
 
+      const allManhours = (dbState.manpower || []).reduce((s, e) => s + mpManhours(e), 0);
+      const baselineManhours = (dbState.projectBaseline || {}).manhours || 0;
+      const projectTotalManhours = allManhours + baselineManhours;
+
       document.getElementById('kpi-staff').innerHTML = `${staffCount} <span class="text-[10px] font-normal text-slate-400">Personnel</span>`;
       document.getElementById('kpi-labour').innerHTML = `${workerCount} <span class="text-[10px] font-normal text-slate-400">Workers</span>`;
       document.getElementById('kpi-total-manpower').innerHTML = `${totalManpower} <span class="text-[10px] font-normal text-slate-400">On Site</span>`;
       document.getElementById('kpi-manhours').innerHTML = `${todayManhours} <span class="text-[10px] font-normal text-slate-400">Hrs</span>`;
-      document.getElementById('kpi-safehours').innerHTML = `${monthlyManhours.toLocaleString()} <span class="text-xs font-normal text-emerald-500">Hours this month</span>`;
+      document.getElementById('kpi-safehours').innerHTML = `${monthlyManhours.toLocaleString()} <span class="text-xs font-normal text-emerald-500">hrs</span>`;
+      const totalEl = document.getElementById('kpi-safehours-total');
+      if (totalEl) totalEl.innerHTML = `${projectTotalManhours.toLocaleString()} <span class="text-xs font-normal text-yellow-500">hrs</span>`;
 
       // Render contractor-wise breakdown for today on dashboard
       const dateEl = document.getElementById('dashboard-ctr-date');
@@ -2176,11 +2676,292 @@ service cloud.firestore {
       renderNotifications();
       renderDashboardSOSShortcuts();
       renderAnnouncements();
+      renderSafetyDashboard();
     }
 
     // ============================================================
-    // SITE NOTICE BOARD / ANNOUNCEMENTS
+    // DAILY SAFETY ACTIVITY METRICS (entered by Admin, shown to all)
     // ============================================================
+    function todayKey() {
+      const d = new Date();
+      return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    }
+
+    function addSafetyMetric() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can add safety activity.', 'error'); return; }
+      const date = document.getElementById('sm-field-date').value || todayKey();
+      const num = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
+      const rec = {
+        date,
+        toolboxTalks: num('sm-field-toolbox'),
+        attendance:   num('sm-field-attendance'),
+        inductions:   num('sm-field-induction'),
+        firstAid:     num('sm-field-firstaid'),
+        penalties:    num('sm-field-penalty'),
+        recordedBy:   currentUser.fullname,
+        recordedAt:   new Date().toLocaleString()
+      };
+      if (!rec.toolboxTalks && !rec.attendance && !rec.inductions && !rec.firstAid && !rec.penalties) {
+        showToast('Enter at least one figure before saving.', 'error'); return;
+      }
+      dbState.safetyMetrics = dbState.safetyMetrics || [];
+
+      // Update existing entry for same date, or create new
+      const existingIdx = dbState.safetyMetrics.findIndex(m => m.date === date);
+      const isUpdate = existingIdx !== -1;
+      if (isUpdate) {
+        dbState.safetyMetrics[existingIdx] = { ...dbState.safetyMetrics[existingIdx], ...rec };
+      } else {
+        dbState.safetyMetrics.unshift({ id: `sm-${Date.now()}`, ...rec });
+      }
+
+      saveCurrentState();
+      // Re-dispatch so form shows the just-saved values (prevents accidental double-add)
+      const df = document.getElementById('sm-field-date');
+      if (df) df.dispatchEvent(new Event('change'));
+      renderSafetyMetricsAdmin();
+      renderSafetyDashboard();
+      showToast(`Safety activity ${isUpdate ? 'updated' : 'saved'} for ${date}.`, 'success');
+      sendTelegram(
+`📊 <b>Safety Activity ${isUpdate ? 'Updated' : 'Logged'}</b>
+📅 Date: ${date}
+👤 By: ${userLabel()}
+🗣 Toolbox Talks: ${rec.toolboxTalks}
+👥 TBT Attendance: ${rec.attendance}
+🎓 Inductions: ${rec.inductions}
+🩺 First Aid: ${rec.firstAid}
+⚠️ Penalties/Warnings: ${rec.penalties}`
+      );
+    }
+
+    function deleteSafetyMetric(id) {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can delete.', 'error'); return; }
+      if (!confirm('Delete this safety activity entry?')) return;
+      dbState.safetyMetrics = (dbState.safetyMetrics || []).filter(m => m.id !== id);
+      saveCurrentState();
+      renderSafetyMetricsAdmin();
+      renderSafetyDashboard();
+      showToast('Entry deleted.', 'info');
+    }
+
+    function renderSafetyMetricsAdmin() {
+      const tbody = document.getElementById('safety-metrics-table-body');
+      if (!tbody) return;
+      const df = document.getElementById('sm-field-date');
+      if (df && !df.value) df.value = todayKey();
+
+      // When date changes, pre-fill existing entry for that date (same pattern as manpower)
+      if (df && !df._smListener) {
+        df._smListener = true;
+        df.addEventListener('change', () => {
+          const existing = (dbState.safetyMetrics || []).find(m => m.date === df.value);
+          const setV = (id, v) => { const el = document.getElementById(id); if (el) el.value = v !== undefined ? v : 0; };
+          if (existing) {
+            setV('sm-field-toolbox',    existing.toolboxTalks);
+            setV('sm-field-attendance', existing.attendance);
+            setV('sm-field-induction',  existing.inductions);
+            setV('sm-field-firstaid',   existing.firstAid);
+            setV('sm-field-penalty',    existing.penalties);
+          } else {
+            ['sm-field-toolbox','sm-field-attendance','sm-field-induction','sm-field-firstaid','sm-field-penalty']
+              .forEach(id => { const el = document.getElementById(id); if (el) el.value = 0; });
+          }
+        });
+      }
+      // Always re-fill from saved data for the current date (prevents stale 0 on re-open)
+      if (df) df.dispatchEvent(new Event('change'));
+      const list = (dbState.safetyMetrics || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 30);
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="p-3 text-center text-slate-500 italic">No safety activity recorded yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(m => `
+        <tr class="text-slate-300 hover:bg-slate-800/20">
+          <td class="p-2 font-mono text-[11px]">${escapeHtml(m.date || '')}</td>
+          <td class="p-2 text-center">${m.toolboxTalks || 0}</td>
+          <td class="p-2 text-center">${m.attendance || 0}</td>
+          <td class="p-2 text-center">${m.inductions || 0}</td>
+          <td class="p-2 text-center">${m.firstAid || 0}</td>
+          <td class="p-2 text-center">${m.penalties || 0}</td>
+          <td class="p-2 text-right space-x-2">
+            <button onclick="editSafetyMetric('${m.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
+            <button onclick="deleteSafetyMetric('${m.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function editSafetyMetric(id) {
+      const m = (dbState.safetyMetrics || []).find(x => x.id === id);
+      if (!m) return;
+      // Set date — the change listener will pre-fill all fields from existing record
+      const df = document.getElementById('sm-field-date');
+      if (df) { df.value = m.date || todayKey(); df.dispatchEvent(new Event('change')); }
+      showToast('Entry loaded for ' + m.date + ' — update values and click Save Entry.', 'info');
+    }
+
+    function saveBaseline() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can set the baseline.', 'error'); return; }
+      const num = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
+      dbState.projectBaseline = {
+        manhours: num('bl-field-manhours'),
+        toolbox: num('bl-field-toolbox'),
+        attendance: num('bl-field-attendance'),
+        induction: num('bl-field-induction'),
+        firstAid: num('bl-field-firstaid'),
+        penalties: num('bl-field-penalty'),
+        savedBy: currentUser.fullname,
+        savedAt: new Date().toLocaleString()
+      };
+      saveCurrentState();
+      renderBaselineAdmin();
+      renderSafetyDashboard();
+      renderDashboardStats();
+      showToast('Historical baseline saved.', 'success');
+    }
+
+    function renderBaselineAdmin() {
+      const b = dbState.projectBaseline || {};
+      const setV = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || 0; };
+      setV('bl-field-manhours', b.manhours);
+      setV('bl-field-toolbox', b.toolbox);
+      setV('bl-field-attendance', b.attendance);
+      setV('bl-field-induction', b.induction);
+      setV('bl-field-firstaid', b.firstAid);
+      setV('bl-field-penalty', b.penalties);
+      const lbl = document.getElementById('bl-saved-label');
+      if (lbl) lbl.innerText = b.savedAt ? `Last saved by ${b.savedBy || 'Admin'} · ${b.savedAt}` : 'Not set yet.';
+    }
+
+    function renderSafetyDashboard() {
+      const metrics = dbState.safetyMetrics || [];
+      const bl = dbState.projectBaseline || {};
+      const today = todayKey();
+      const month = today.slice(0, 7);
+      const sum = (filterFn) => metrics.reduce((acc, m) => {
+        if (!filterFn(m)) return acc;
+        acc.toolbox += m.toolboxTalks || 0; acc.attendance += m.attendance || 0;
+        acc.induction += m.inductions || 0; acc.firstaid += m.firstAid || 0; acc.penalty += m.penalties || 0;
+        return acc;
+      }, { toolbox: 0, attendance: 0, induction: 0, firstaid: 0, penalty: 0 });
+      const t = sum(m => (m.date || '') === today);
+      const mo = sum(m => (m.date || '').slice(0, 7) === month);
+      const setT = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+      setT('sm-today-toolbox', t.toolbox);     setT('sm-month-toolbox', mo.toolbox);
+      setT('sm-today-attendance', t.attendance); setT('sm-month-attendance', mo.attendance);
+      setT('sm-today-induction', t.induction);  setT('sm-month-induction', mo.induction);
+      setT('sm-today-firstaid', t.firstaid);    setT('sm-month-firstaid', mo.firstaid);
+      setT('sm-today-penalty', t.penalty);      setT('sm-month-penalty', mo.penalty);
+      const lbl = document.getElementById('safety-activity-month-label');
+      if (lbl) lbl.innerText = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+    }
+
+    function saveTelegramConfig() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can save Telegram settings.', 'error'); return; }
+      const token   = document.getElementById('tg-field-token').value.trim();
+      const chatId  = document.getElementById('tg-field-chatid').value.trim();
+      const groupId = document.getElementById('tg-field-groupid').value.trim();
+      if (!token || !chatId) { showToast('Enter at least the bot token and your personal chat ID.', 'error'); return; }
+      dbState.telegramConfig = { token, chatId, groupChatId: groupId, savedBy: currentUser.fullname, savedAt: new Date().toLocaleString() };
+      saveCurrentState();
+      renderTelegramAdmin();
+      showToast('Telegram settings saved to Firebase.', 'success');
+    }
+
+    function testTelegram(target) {
+      const token   = document.getElementById('tg-field-token').value.trim();
+      const chatId  = document.getElementById('tg-field-chatid').value.trim();
+      const groupId = document.getElementById('tg-field-groupid').value.trim();
+      if (!token || !chatId) { showToast('Enter token and personal chat ID first.', 'error'); return; }
+      const sendTo = (target === 'group') ? groupId : chatId;
+      if (!sendTo) { showToast('No group chat ID entered.', 'error'); return; }
+      showToast('Sending test message…', 'info');
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: sendTo, text: `✅ <b>CTO Safety App</b>\nTelegram ${target} notifications are working!`, parse_mode: 'HTML' })
+      }).then(r => r.json()).then(d => {
+        if (d.ok) showToast(`✅ Test sent to ${target}! Check Telegram.`, 'success');
+        else showToast('Telegram error: ' + (d.description || JSON.stringify(d)), 'error');
+      }).catch(e => showToast('Network error: ' + e.message, 'error'));
+    }
+
+    function renderTelegramAdmin() {
+      const cfg = dbState.telegramConfig || {};
+      const setV = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+      setV('tg-field-token',   cfg.token);
+      setV('tg-field-chatid',  cfg.chatId);
+      setV('tg-field-groupid', cfg.groupChatId);
+      const lbl = document.getElementById('tg-saved-label');
+      if (lbl) lbl.innerText = cfg.savedAt ? `Last saved by ${cfg.savedBy} · ${cfg.savedAt}` : 'Not configured yet.';
+    }
+
+    // ============================================================
+    // IMGBB PHOTO HOSTING
+    // ============================================================
+    function saveImgbbConfig() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can save ImgBB settings.', 'error'); return; }
+      const apiKey = document.getElementById('imgbb-field-key').value.trim();
+      if (!apiKey) { showToast('Enter your ImgBB API key.', 'error'); return; }
+      dbState.imgbbConfig = { apiKey, savedBy: currentUser.fullname, savedAt: new Date().toLocaleString() };
+      saveCurrentState();
+      renderImgbbAdmin();
+      showToast('ImgBB API key saved to Firebase.', 'success');
+    }
+
+    function renderImgbbAdmin() {
+      const cfg = dbState.imgbbConfig || {};
+      const keyEl = document.getElementById('imgbb-field-key');
+      if (keyEl && cfg.apiKey) keyEl.value = cfg.apiKey;
+      const lbl = document.getElementById('imgbb-saved-label');
+      if (lbl) lbl.innerText = cfg.savedAt ? `Last saved by ${cfg.savedBy} · ${cfg.savedAt}` : 'Not configured yet.';
+      const status = document.getElementById('imgbb-status');
+      if (status) {
+        status.innerText = cfg.apiKey ? '✅ Active — photos upload to cloud' : '⚠ Not set — photos stored as base64';
+        status.className = `text-[10px] font-bold ${cfg.apiKey ? 'text-emerald-400' : 'text-yellow-400'}`;
+      }
+    }
+
+    async function uploadToImgBB(dataUrl) {
+      const apiKey = (dbState.imgbbConfig || {}).apiKey;
+      if (!apiKey) return dataUrl; // fallback to base64 if not configured
+      try {
+        const base64 = dataUrl.indexOf(',') !== -1 ? dataUrl.split(',')[1] : dataUrl;
+        const formData = new FormData();
+        formData.append('image', base64);
+        const res  = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) return data.data.url;
+        console.warn('ImgBB error:', data); return dataUrl;
+      } catch (e) { console.warn('ImgBB upload failed, using base64:', e); return dataUrl; }
+    }
+
+    // ============================================================
+    // TELEGRAM ALERT — sends to personal + optional group, with photos
+    // ============================================================
+    function sendTelegram(message, photos = []) {
+      try {
+        const cfg = dbState.telegramConfig || {};
+        if (!cfg.token || !cfg.chatId) { console.warn('Telegram not configured'); return; }
+        const targets = [cfg.chatId, cfg.groupChatId].filter(Boolean);
+        targets.forEach(chatId => {
+          fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+          }).then(r => r.json()).then(d => {
+            if (!d.ok) { showToast('Telegram: ' + (d.description || 'error'), 'error'); console.error('TG:', d); }
+          }).catch(e => console.error('TG fetch:', e));
+          // Send photo URLs (skip base64 — Telegram can't receive them)
+          (photos || []).filter(url => url && !url.startsWith('data:')).forEach(url => {
+            fetch(`https://api.telegram.org/bot${cfg.token}/sendPhoto`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: chatId, photo: url })
+            }).catch(() => {});
+          });
+        });
+      } catch (e) { console.error('TG exception:', e); }
+    }
     let _pendingAnnouncementPhoto = null; // compressed dataURL awaiting post
 
     // Admin or authorised permit reviewers (Staff with canApprove) may post.
@@ -2255,9 +3036,12 @@ service cloud.firestore {
       const file = input.files && input.files[0];
       if (!file) return;
       try {
-        _pendingAnnouncementPhoto = await compressImage(file, 800, 0.5);
+        showToast('Uploading photo…', 'info');
+        const compressed = await compressImage(file, 800, 0.5);
+        _pendingAnnouncementPhoto = await uploadToImgBB(compressed);
         document.getElementById('announce-photo-img').src = _pendingAnnouncementPhoto;
         document.getElementById('announce-photo-preview').classList.remove('hidden');
+        if (!_pendingAnnouncementPhoto.startsWith('data:')) showToast('Photo uploaded to cloud.', 'success');
       } catch (e) {
         showToast('Could not read that image.', 'error');
       }
@@ -2307,6 +3091,12 @@ service cloud.firestore {
       renderAnnouncements();
       showToast('Announcement posted to the site notice board.', 'success');
       pushNotification(`New notice board message from ${currentUser.fullname}`);
+      sendTelegram(
+`📢 <b>Site Notice Board</b>
+👤 Posted by: ${userLabel()}
+🕐 ${new Date().toLocaleString()}${candidate.text ? '\n📝 ' + escapeHtml(candidate.text) : ''}`,
+        candidate.photo && !candidate.photo.startsWith('data:') ? [candidate.photo] : []
+      );
     }
 
     function deleteAnnouncement(id) {
@@ -2501,9 +3291,9 @@ service cloud.firestore {
           }
           lucide.createIcons();
         });
-        // Pre-fill for today if entry exists
-        dateInput.dispatchEvent(new Event('change'));
       }
+      // Always re-fill the form from saved data (fixes day-zeroing when night is added separately)
+      if (dateInput) dateInput.dispatchEvent(new Event('change'));
 
       // History cards — one per date, sorted desc
       const entries = [...(dbState.manpower || [])].sort((a,b) => b.date.localeCompare(a.date));
@@ -2611,6 +3401,21 @@ service cloud.firestore {
 
       if (!dbState.manpower) dbState.manpower = [];
       const existing = dbState.manpower.find(e => e.date === date);
+
+      // Build contractor breakdown text for Telegram
+      const ctrLines = (contractorWorkers || []).filter(c => c.name && c.count > 0)
+        .map(c => `  • ${c.name}: ${c.count}`).join('\n') || '  • None';
+
+      // Store the message for the manual Send to Telegram button
+      const tgMsg =
+`👷 <b>Manpower ${existing ? 'Updated' : 'Logged'}</b>
+📅 Date: ${date}
+👤 By: ${userLabel()}
+🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
+👥 Total Workers: ${totalWorkers}
+${ctrLines}
+🏗 Total On Site: ${total}  |  ⏱ ${total*8} Manhours`;
+
       if (existing) {
         existing.dayStaff = dayStaff;
         existing.nightStaff = nightStaff;
@@ -2622,10 +3427,15 @@ service cloud.firestore {
         showToast(`Manpower logged for ${date} — ${total} on site (${total*8} manhours).`, 'success');
         pushNotification(`${currentUser?.fullname||'Staff'} logged manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
       }
+
       saveCurrentState();
-      document.getElementById('labour-day-staff').value = '';
-      document.getElementById('labour-night-staff').value = '';
-      buildContractorRows('contractor-worker-rows', 'labour-', null);
+      // Show Send to Telegram button with the prepared message
+      const tgBtn = document.getElementById('manpower-tg-btn');
+      if (tgBtn) {
+        tgBtn.classList.remove('hidden');
+        tgBtn.onclick = () => { sendTelegram(tgMsg); showToast('Manpower sent to Telegram.', 'success'); tgBtn.classList.add('hidden'); };
+      }
+      // renderLabourHistory will call dispatchEvent which re-fills form from saved data
       renderLabourHistory();
       renderDashboardStats();
     }
@@ -2669,6 +3479,22 @@ service cloud.firestore {
       renderDashboardStats();
       showToast('Manpower record updated.', 'success');
       pushNotification(`Admin edited manpower for ${date}.`);
+      const editTotal = ctrWorkers(contractorWorkers) + dayStaff + nightStaff;
+      const editCtrLines = (contractorWorkers || []).filter(c => c.name && c.count > 0)
+        .map(c => `  • ${c.name}: ${c.count}`).join('\n') || '  • None';
+      const editMsg =
+`✏️ <b>Manpower Edited</b>
+📅 Date: ${date}
+👤 Edited by: ${userLabel()}
+🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
+👥 Workers: ${ctrWorkers(contractorWorkers)}
+${editCtrLines}
+🏗 Total On Site: ${editTotal}  |  ⏱ ${editTotal*8} Manhours`;
+      const tgBtn = document.getElementById('manpower-tg-btn');
+      if (tgBtn) {
+        tgBtn.classList.remove('hidden');
+        tgBtn.onclick = () => { sendTelegram(editMsg); showToast('Manpower sent to Telegram.', 'success'); tgBtn.classList.add('hidden'); };
+      }
     }
 
     function deleteLabourRecord(id) {
@@ -2677,122 +3503,237 @@ service cloud.firestore {
         return;
       }
       if (!confirm("Permanently delete this day's manpower entry? This updates safe manhours immediately.")) return;
+      const delEntry = (dbState.manpower || []).find(l => l.id === id);
       dbState.manpower = (dbState.manpower || []).filter(l => l.id !== id);
       saveCurrentState();
       renderLabourHistory();
       renderDashboardStats();
       showToast('Manpower entry deleted.', 'info');
+      if (delEntry) {
+        const delMsg = `🗑 <b>Manpower Entry Deleted</b>\n📅 Date: ${delEntry.date}\n👤 Deleted by: ${userLabel()}`;
+        const tgBtn = document.getElementById('manpower-tg-btn');
+        if (tgBtn) {
+          tgBtn.classList.remove('hidden');
+          tgBtn.onclick = () => { sendTelegram(delMsg); showToast('Sent to Telegram.', 'success'); tgBtn.classList.add('hidden'); };
+        }
+      }
     }
 
-    // HAZARDS & INCIDENTS (WITH EDIT & DELETE FOR ADMIN)
-    function renderObservations() {
-      const hazardsList = document.getElementById('hazards-list-panel');
-      const incidentsList = document.getElementById('incidents-list-panel');
-      if (!hazardsList || !incidentsList) return;
-      
-      hazardsList.innerHTML = '';
-      incidentsList.innerHTML = '';
+    // ============================================================
+    // SITE OBSERVATIONS (action plan + closure) and INCIDENTS
+    // ============================================================
+    function nowLocalInput() {
+      const d = new Date();
+      return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    }
+    function toInputDate(d) {
+      if (!d) return nowLocalInput();
+      const dt = new Date(d);
+      if (isNaN(dt)) return nowLocalInput();
+      return new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    }
+    function formatObsDate(d) {
+      if (!d) return '';
+      const dt = new Date(d);
+      return isNaN(dt) ? String(d) : dt.toLocaleString();
+    }
 
+    // Full-screen photo viewer
+    function viewPhoto(src) {
+      const lb = document.createElement('div');
+      lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';
+      lb.onclick = () => lb.remove();
+      const img = document.createElement('img');
+      img.src = src;
+      img.style.cssText = 'max-width:100%;max-height:100%;border-radius:8px';
+      lb.appendChild(img);
+      document.body.appendChild(lb);
+    }
+
+    async function previewObsPhoto(input, slot) {
+      const f = input.files && input.files[0];
+      if (!f) return;
+      try {
+        showToast('Uploading photo…', 'info');
+        const compressed = await compressImage(f, 800, 0.5);
+        const url = await uploadToImgBB(compressed);
+        _obsPhotos[slot] = url;
+        const p = document.getElementById('report-prev-' + (slot + 1));
+        p.src = url; p.classList.remove('hidden');
+        if (!url.startsWith('data:')) showToast('Photo uploaded to cloud.', 'success');
+      } catch (e) { showToast('Could not read that image.', 'error'); }
+    }
+    async function previewClosePhoto(input, slot) {
+      const f = input.files && input.files[0];
+      if (!f) return;
+      try {
+        showToast('Uploading photo…', 'info');
+        const compressed = await compressImage(f, 800, 0.5);
+        const url = await uploadToImgBB(compressed);
+        _closePhotos[slot] = url;
+        const p = document.getElementById('close-prev-' + (slot + 1));
+        p.src = url; p.classList.remove('hidden');
+        if (!url.startsWith('data:')) showToast('Photo uploaded to cloud.', 'success');
+      } catch (e) { showToast('Could not read that image.', 'error'); }
+    }
+
+    function renderObservations() {
+      const obsList = document.getElementById('hazards-list-panel');
+      const incidentsList = document.getElementById('incidents-list-panel');
+      if (!obsList || !incidentsList) return;
       const isAdmin = currentUser && currentUser.role === 'Admin';
 
-      if (dbState.hazards.length === 0) {
-        hazardsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No safety hazards reported.</p>';
+      // ---------- Observations ----------
+      const observations = dbState.hazards || [];
+      if (!observations.length) {
+        obsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No observations recorded.</p>';
       } else {
-        dbState.hazards.forEach(h => {
-          const statusBadge = h.status === 'Open' 
-            ? `<span class="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Open</span>`
-            : `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Closed</span>`;
+        obsList.innerHTML = observations.map(h => {
+          const open = h.status !== 'Closed';
+          const statusBadge = open
+            ? '<span class="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Open</span>'
+            : '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Closed</span>';
 
-          const adminActions = isAdmin ? `
-            <div class="flex gap-2 items-center">
-              <button onclick="editObservation('hazard', '${h.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
-              <button onclick="deleteObservation('hazard', '${h.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
-              ${h.status === 'Open' ? `<button onclick="closeObservation('hazard', '${h.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Mark Safe</button>` : ''}
-            </div>
-          ` : (h.status === 'Open' && currentUser.role === 'Staff' ? `
-            <button onclick="closeObservation('hazard', '${h.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Mark Safe</button>
-          ` : '');
+          const photos = (h.photos || []).filter(Boolean).map(src =>
+            `<img src="${src}" onclick="viewPhoto('${src}')" class="h-16 w-16 object-cover rounded border border-construction-border cursor-pointer">`).join('');
+          const photoRow = photos ? `<div class="flex gap-2 flex-wrap">${photos}</div>` : '';
 
-          hazardsList.insertAdjacentHTML('beforeend', `
+          let capaBlock;
+          if (h.correctiveAction || h.preventiveAction || h.responsiblePerson) {
+            capaBlock = `
+              <div class="bg-slate-950/40 border border-slate-800 rounded p-2 space-y-1 text-[10px]">
+                ${h.correctiveAction ? `<p><span class="text-construction-orange font-bold">Corrective:</span> <span class="text-slate-300">${escapeHtml(h.correctiveAction)}</span></p>` : ''}
+                ${h.preventiveAction ? `<p><span class="text-construction-orange font-bold">Preventive:</span> <span class="text-slate-300">${escapeHtml(h.preventiveAction)}</span></p>` : ''}
+                ${h.responsiblePerson ? `<p><span class="text-construction-orange font-bold">Responsible:</span> <span class="text-slate-300">${escapeHtml(h.responsiblePerson)}</span></p>` : ''}
+                ${h.capaBy ? `<p class="text-slate-500">Action by ${escapeHtml(h.capaBy)}${h.capaAt ? ' · ' + escapeHtml(h.capaAt) : ''}</p>` : ''}
+              </div>`;
+          } else {
+            capaBlock = `<p class="text-[10px] text-slate-500 italic">No action plan yet.</p>`;
+          }
+
+          let closeBlock = '';
+          if (!open && h.closure) {
+            const cphotos = (h.closure.photos || []).filter(Boolean).map(src =>
+              `<img src="${src}" onclick="viewPhoto('${src}')" class="h-16 w-16 object-cover rounded border border-emerald-800 cursor-pointer">`).join('');
+            closeBlock = `
+              <div class="bg-emerald-950/20 border border-emerald-900/40 rounded p-2 space-y-1 text-[10px]">
+                <p class="text-emerald-400 font-bold uppercase">Closed — ${escapeHtml(h.closure.status || 'Completed')}</p>
+                ${h.closure.note ? `<p class="text-slate-300">${escapeHtml(h.closure.note)}</p>` : ''}
+                ${cphotos ? `<div class="flex gap-2 flex-wrap">${cphotos}</div>` : ''}
+                <p class="text-slate-500">By ${escapeHtml(h.closure.closedBy || '')}${h.closure.closedAt ? ' · ' + escapeHtml(h.closure.closedAt) : ''}</p>
+              </div>`;
+          }
+
+          const btns = [];
+          if (canAddCapa()) btns.push(`<button onclick="openCapaModal('${h.id}')" class="text-[10px] text-construction-orange hover:underline">Action Plan</button>`);
+          if (open && canCloseObservation()) btns.push(`<button onclick="openCloseObservationModal('${h.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Close</button>`);
+          if (isAdmin || (currentUser && h.reporterId === currentUser.id)) btns.push(`<button onclick="editObservation('${h.id}')" class="text-[10px] text-slate-300 hover:underline">Edit</button>`);
+          if (isAdmin) btns.push(`<button onclick="deleteObservation('${h.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>`);
+
+          return `
             <div class="bg-slate-900 border border-construction-border p-3.5 rounded-lg space-y-2 text-left">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] text-slate-500 font-mono">${h.date}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(formatObsDate(h.date))}</span>
                 ${statusBadge}
               </div>
-              <p class="text-xs font-semibold text-slate-300">${h.location}</p>
-              <p class="text-xs text-slate-400 leading-relaxed">${h.description}</p>
-              <div class="flex items-center justify-between pt-2 border-t border-slate-800/50">
-                <span class="text-[9px] text-slate-500">By: ${h.reporter || 'Field Team'}</span>
-                ${adminActions}
+              <p class="text-xs font-semibold text-slate-300">${escapeHtml(h.location || '')}</p>
+              <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(h.description || '')}</p>
+              ${photoRow}
+              ${capaBlock}
+              ${closeBlock}
+              <div class="flex items-center justify-between pt-2 border-t border-slate-800/50 gap-2">
+                <span class="text-[9px] text-slate-500">By: ${escapeHtml(h.reporter || 'Field Team')}${h.reporterRole ? ' (' + escapeHtml(h.reporterRole) + ')' : ''}</span>
+                <div class="flex gap-2 items-center flex-wrap justify-end">${btns.join('')}</div>
               </div>
-            </div>
-          `);
-        });
+            </div>`;
+        }).join('');
       }
 
-      if (dbState.incidents.length === 0) {
+      // ---------- Incidents (simple log) ----------
+      const incidents = dbState.incidents || [];
+      if (!incidents.length) {
         incidentsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">All clear. No site incidents reported.</p>';
       } else {
-        dbState.incidents.forEach(i => {
-          const statusBadge = i.status === 'Open'
-            ? `<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Unresolved</span>`
-            : `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Resolved</span>`;
-
-          const adminActions = isAdmin ? `
-            <div class="flex gap-2 items-center">
-              <button onclick="editObservation('incident', '${i.id}')" class="text-[10px] text-construction-orange hover:underline">Edit</button>
-              <button onclick="deleteObservation('incident', '${i.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>
-              ${i.status === 'Open' ? `<button onclick="closeObservation('incident', '${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>` : ''}
-            </div>
-          ` : (i.status === 'Open' && currentUser.role === 'Staff' ? `
-            <button onclick="closeObservation('incident', '${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>
-          ` : '');
-
-          incidentsList.insertAdjacentHTML('beforeend', `
+        incidentsList.innerHTML = incidents.map(i => {
+          const open = i.status !== 'Closed';
+          const statusBadge = open
+            ? '<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Unresolved</span>'
+            : '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Resolved</span>';
+          const btns = [];
+          if (open && canCloseObservation()) btns.push(`<button onclick="resolveIncident('${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>`);
+          if (isAdmin) { btns.push(`<button onclick="editIncident('${i.id}')" class="text-[10px] text-slate-300 hover:underline">Edit</button>`); btns.push(`<button onclick="deleteIncident('${i.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>`); }
+          return `
             <div class="bg-slate-900 border border-construction-border p-3.5 rounded-lg space-y-2 text-left">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] text-slate-500 font-mono">${i.date}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(formatObsDate(i.date))}</span>
                 ${statusBadge}
               </div>
-              <p class="text-xs font-semibold text-slate-300">${i.location}</p>
-              <p class="text-xs text-slate-400 leading-relaxed">${i.description}</p>
+              <p class="text-xs font-semibold text-slate-300">${escapeHtml(i.location || '')}</p>
+              <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(i.description || '')}</p>
               <div class="flex items-center justify-between pt-2 border-t border-slate-800/50">
-                <span class="text-[9px] text-slate-500">By: ${i.reporter || 'Field Team'}</span>
-                ${adminActions}
+                <span class="text-[9px] text-slate-500">By: ${escapeHtml(i.reporter || 'Field Team')}</span>
+                <div class="flex gap-2 items-center">${btns.join('')}</div>
               </div>
-            </div>
-          `);
-        });
+            </div>`;
+        }).join('');
       }
+
+      lucide.createIcons();
     }
 
     function openReportModal(type) {
+      type = (type === 'incident') ? 'incident' : 'observation';
       currentReportType = type;
       editingObservationId = null;
-      document.getElementById('report-modal-title').innerText = type === 'hazard' ? 'Report Identified Site Hazard' : 'Record Site Incident / Accident';
-      document.getElementById('report-field-date').value = new Date().toISOString().split('T')[0];
+      _obsPhotos = [null, null];
+
+      document.getElementById('report-field-date').value = nowLocalInput();
       document.getElementById('report-field-loc').value = '';
       document.getElementById('report-field-desc').value = '';
-      document.getElementById('report-field-photo').value = '';
-      document.getElementById('photo-ref-field-wrapper').classList.remove('hidden');
+      document.getElementById('report-photo-1').value = '';
+      document.getElementById('report-photo-2').value = '';
+      ['report-prev-1', 'report-prev-2'].forEach(i => { const el = document.getElementById(i); el.src = ''; el.classList.add('hidden'); });
+      document.getElementById('report-corrective').value = '';
+      document.getElementById('report-preventive').value = '';
+      document.getElementById('report-responsible').value = '';
+
+      const photosWrap = document.getElementById('obs-photos-wrap');
+      const capaWrap = document.getElementById('obs-capa-wrap');
+      if (type === 'incident') {
+        document.getElementById('report-modal-title').innerText = 'Record Site Incident';
+        photosWrap.classList.add('hidden');
+        capaWrap.classList.add('hidden');
+      } else {
+        document.getElementById('report-modal-title').innerText = 'Add Observation';
+        photosWrap.classList.remove('hidden');
+        capaWrap.classList.toggle('hidden', !fillsCapaAtCreate());
+      }
       openModal('modal-report');
     }
 
-    function editObservation(type, id) {
-      currentReportType = type;
+    function editObservation(id) {
+      currentReportType = 'observation';
       editingObservationId = id;
+      const h = (dbState.hazards || []).find(x => x.id === id);
+      if (!h) return;
+      _obsPhotos = [(h.photos && h.photos[0]) || null, (h.photos && h.photos[1]) || null];
 
-      const list = type === 'hazard' ? dbState.hazards : dbState.incidents;
-      const target = list.find(item => item.id === id);
-      if (!target) return;
-
-      document.getElementById('report-modal-title').innerText = type === 'hazard' ? 'Modify Hazard Report' : 'Modify Incident Log';
-      document.getElementById('report-field-date').value = target.date;
-      document.getElementById('report-field-loc').value = target.location;
-      document.getElementById('report-field-desc').value = target.description;
-      
-      // Hide photo attachment during quick edits
-      document.getElementById('photo-ref-field-wrapper').classList.add('hidden');
+      document.getElementById('report-modal-title').innerText = 'Edit Observation';
+      document.getElementById('report-field-date').value = toInputDate(h.date);
+      document.getElementById('report-field-loc').value = h.location || '';
+      document.getElementById('report-field-desc').value = h.description || '';
+      [0, 1].forEach(s => {
+        const el = document.getElementById('report-prev-' + (s + 1));
+        if (_obsPhotos[s]) { el.src = _obsPhotos[s]; el.classList.remove('hidden'); }
+        else { el.src = ''; el.classList.add('hidden'); }
+      });
+      document.getElementById('report-photo-1').value = '';
+      document.getElementById('report-photo-2').value = '';
+      document.getElementById('report-corrective').value = h.correctiveAction || '';
+      document.getElementById('report-preventive').value = h.preventiveAction || '';
+      document.getElementById('report-responsible').value = h.responsiblePerson || '';
+      document.getElementById('obs-photos-wrap').classList.remove('hidden');
+      document.getElementById('obs-capa-wrap').classList.toggle('hidden', !(fillsCapaAtCreate() || canAddCapa()));
       openModal('modal-report');
     }
 
@@ -2801,65 +3742,177 @@ service cloud.firestore {
       const location = document.getElementById('report-field-loc').value;
       const description = document.getElementById('report-field-desc').value;
 
-      if (editingObservationId) {
-        // Edit flow
-        const list = currentReportType === 'hazard' ? dbState.hazards : dbState.incidents;
-        const idx = list.findIndex(item => item.id === editingObservationId);
-        if (idx !== -1) {
-          list[idx] = { ...list[idx], date, location, description };
-          showToast('Record changes updated successfully.', 'success');
-          pushNotification(`Admin modified ${currentReportType} at ${location}`);
-        }
-      } else {
-        // Create flow
-        const record = {
-          id: `${currentReportType}-${Date.now()}`,
-          date,
-          location,
-          description,
-          status: 'Open',
-          reporter: currentUser.fullname
-        };
-
-        if (currentReportType === 'hazard') {
-          dbState.hazards.unshift(record);
-          showToast('Safety hazard report saved.', 'success');
-          pushNotification(`Hazard reported: ${location} - ${description.substring(0, 30)}...`);
+      // ---- Incident path ----
+      if (currentReportType === 'incident') {
+        if (editingObservationId) {
+          const idx = dbState.incidents.findIndex(i => i.id === editingObservationId);
+          if (idx !== -1) { dbState.incidents[idx] = { ...dbState.incidents[idx], date, location, description }; showToast('Incident updated.', 'success'); }
         } else {
-          dbState.incidents.unshift(record);
+          dbState.incidents.unshift({ id: `incident-${Date.now()}`, date, location, description, status: 'Open', reporter: currentUser.fullname, reporterRole: currentUser.designation || currentUser.role, reporterId: currentUser.id });
           showToast('Incident recorded & queued for audit.', 'error');
-          pushNotification(`Incident logged: ${location} - ${description.substring(0, 30)}...`);
+          pushNotification(`Incident logged at ${location}`);
+          sendTelegram(
+`🚨 <b>SITE INCIDENT REPORTED</b>
+📍 Location: ${location}
+👤 Reported by: ${userLabel()}
+🕐 Date/Time: ${date.replace('T',' ')}
+📝 ${description}`
+          );
         }
+        saveCurrentState(); closeModal(); renderObservations();
+        return;
       }
 
-      saveCurrentState();
-      closeModal();
-      renderObservations();
+      // ---- Observation path ----
+      const capaVisible = !document.getElementById('obs-capa-wrap').classList.contains('hidden');
+      const corrective = capaVisible ? document.getElementById('report-corrective').value.trim() : '';
+      const preventive = capaVisible ? document.getElementById('report-preventive').value.trim() : '';
+      const responsible = capaVisible ? document.getElementById('report-responsible').value.trim() : '';
+      const photos = _obsPhotos.filter(Boolean);
+
+      if (editingObservationId) {
+        const idx = dbState.hazards.findIndex(h => h.id === editingObservationId);
+        if (idx !== -1) {
+          const h = dbState.hazards[idx];
+          h.date = date; h.location = location; h.description = description; h.photos = photos;
+          if (capaVisible) {
+            h.correctiveAction = corrective; h.preventiveAction = preventive; h.responsiblePerson = responsible;
+            if (corrective || preventive || responsible) { h.capaBy = h.capaBy || currentUser.fullname; h.capaAt = new Date().toLocaleString(); }
+          }
+          showToast('Observation updated.', 'success');
+        }
+      } else {
+        const rec = {
+          id: `obs-${Date.now()}`, date, location, description, status: 'Open',
+          reporter: currentUser.fullname, reporterRole: currentUser.designation || currentUser.role, reporterId: currentUser.id, photos
+        };
+        if (capaVisible && (corrective || preventive || responsible)) {
+          rec.correctiveAction = corrective; rec.preventiveAction = preventive; rec.responsiblePerson = responsible;
+          rec.capaBy = currentUser.fullname; rec.capaAt = new Date().toLocaleString();
+        }
+        dbState.hazards.unshift(rec);
+        showToast('Observation saved.', 'success');
+        pushNotification(`Observation reported at ${location} by ${currentUser.fullname}`);
+        sendTelegram(
+`🔶 <b>New Safety Observation</b>
+📍 Location: ${location}
+👤 Reported by: ${userLabel()}
+🕐 Date/Time: ${date.replace('T',' ')}
+📝 ${description}${rec.correctiveAction ? '\n✅ Corrective: ' + rec.correctiveAction : ''}${rec.responsiblePerson ? '\n👷 Responsible: ' + rec.responsiblePerson : ''}`,
+          rec.photos || []
+        );
+      }
+
+      try { if (JSON.stringify(dbState).length > 950000) showToast('Heads up: stored photos are getting large. Consider deleting old ones.', 'info'); } catch (e) {}
+      saveCurrentState(); closeModal(); renderObservations();
     }
 
-    function deleteObservation(type, id) {
-      if (!confirm(`Are you sure you want to permanently delete this ${type} report?`)) return;
-      if (type === 'hazard') {
-        dbState.hazards = dbState.hazards.filter(h => h.id !== id);
-      } else {
-        dbState.incidents = dbState.incidents.filter(i => i.id !== id);
-      }
-      saveCurrentState();
-      renderObservations();
-      showToast('Observation deleted successfully.', 'info');
+    // Action plan (CAPA) — reviewers & admin
+    function openCapaModal(id) {
+      if (!canAddCapa()) { showToast('You are not authorised to add an action plan.', 'error'); return; }
+      const h = (dbState.hazards || []).find(x => x.id === id);
+      if (!h) return;
+      capaTargetId = id;
+      document.getElementById('capa-corrective').value = h.correctiveAction || '';
+      document.getElementById('capa-preventive').value = h.preventiveAction || '';
+      document.getElementById('capa-responsible').value = h.responsiblePerson || '';
+      openModal('modal-capa');
+    }
+    function submitCapa() {
+      const h = (dbState.hazards || []).find(x => x.id === capaTargetId);
+      if (!h) return;
+      h.correctiveAction = document.getElementById('capa-corrective').value.trim();
+      h.preventiveAction = document.getElementById('capa-preventive').value.trim();
+      h.responsiblePerson = document.getElementById('capa-responsible').value.trim();
+      h.capaBy = currentUser.fullname; h.capaAt = new Date().toLocaleString();
+      saveCurrentState(); closeModal(); renderObservations();
+      showToast('Action plan saved.', 'success');
+      pushNotification(`Action plan updated for observation at ${h.location} by ${currentUser.fullname}`);
+      sendTelegram(
+`📋 <b>Action Plan Updated</b>
+📍 Location: ${escapeHtml(h.location || '')}
+👤 By: ${userLabel()}
+✅ Corrective: ${h.correctiveAction || '—'}
+🛡 Preventive: ${h.preventiveAction || '—'}
+👷 Responsible: ${h.responsiblePerson || '—'}`
+      );
     }
 
-    function closeObservation(type, id) {
-      if (type === 'hazard') {
-        const item = dbState.hazards.find(h => h.id === id);
-        if (item) item.status = 'Closed';
-      } else {
-        const item = dbState.incidents.find(i => i.id === id);
-        if (item) item.status = 'Closed';
-      }
-      saveCurrentState();
-      renderObservations();
-      showToast('Status successfully updated to Closed / Resolved.', 'success');
+    // Close observation — staff & admin
+    function openCloseObservationModal(id) {
+      if (!canCloseObservation()) { showToast('You are not authorised to close observations.', 'error'); return; }
+      closingObsId = id;
+      _closePhotos = [null, null];
+      document.getElementById('close-obs-status').value = 'Completed';
+      document.getElementById('close-obs-note').value = '';
+      document.getElementById('close-photo-1').value = '';
+      document.getElementById('close-photo-2').value = '';
+      ['close-prev-1', 'close-prev-2'].forEach(i => { const el = document.getElementById(i); el.src = ''; el.classList.add('hidden'); });
+      openModal('modal-close-observation');
+    }
+
+    function submitCloseObservation() {
+      const h = (dbState.hazards || []).find(x => x.id === closingObsId);
+      if (!h) return;
+      const status = document.getElementById('close-obs-status').value;
+      const note   = document.getElementById('close-obs-note').value.trim();
+      const photos = _closePhotos.filter(Boolean);
+      h.closure = { status, note, photos, closedBy: currentUser.fullname, closedAt: new Date().toLocaleString() };
+      h.status = (status === 'Completed') ? 'Closed' : 'Open';
+      try { if (JSON.stringify(dbState).length > 950000) { showToast('Storage nearly full — delete some old observation photos first.', 'error'); return; } } catch (e) {}
+      saveCurrentState(); closeModal(); renderObservations();
+      showToast(status === 'Completed' ? 'Observation closed.' : 'Closure progress saved.', 'success');
+      pushNotification(`Observation at ${h.location} marked ${status} by ${currentUser.fullname}`);
+      const emoji = status === 'Completed' ? '✅' : '🔄';
+      sendTelegram(
+`${emoji} <b>Observation ${status}</b>
+📍 Location: ${escapeHtml(h.location || '')}
+📝 Original: ${escapeHtml((h.description || '').substring(0, 80))}${(h.description||'').length > 80 ? '…' : ''}
+👤 Closed by: ${userLabel()}
+🕐 At: ${new Date().toLocaleString()}${note ? '\n💬 ' + escapeHtml(note) : ''}`,
+        photos
+      );
+    }
+
+    function deleteObservation(id) {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can delete observations.', 'error'); return; }
+      if (!confirm('Permanently delete this observation?')) return;
+      const delObs = (dbState.hazards || []).find(h => h.id === id);
+      dbState.hazards = dbState.hazards.filter(h => h.id !== id);
+      saveCurrentState(); renderObservations();
+      showToast('Observation deleted.', 'info');
+      if (delObs) sendTelegram(`🗑 <b>Observation Deleted</b>\n📍 Location: ${escapeHtml(delObs.location || '')}\n📝 ${escapeHtml((delObs.description || '').substring(0, 80))}\n👤 Deleted by: ${currentUser.fullname} (Admin)`);
+    }
+
+    // Incident helpers
+    function editIncident(id) {
+      currentReportType = 'incident';
+      editingObservationId = id;
+      const t = (dbState.incidents || []).find(i => i.id === id);
+      if (!t) return;
+      document.getElementById('report-modal-title').innerText = 'Modify Incident';
+      document.getElementById('report-field-date').value = toInputDate(t.date);
+      document.getElementById('report-field-loc').value = t.location || '';
+      document.getElementById('report-field-desc').value = t.description || '';
+      document.getElementById('obs-photos-wrap').classList.add('hidden');
+      document.getElementById('obs-capa-wrap').classList.add('hidden');
+      openModal('modal-report');
+    }
+    function deleteIncident(id) {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only an Admin can delete.', 'error'); return; }
+      if (!confirm('Permanently delete this incident?')) return;
+      const delInc = (dbState.incidents || []).find(i => i.id === id);
+      dbState.incidents = dbState.incidents.filter(i => i.id !== id);
+      saveCurrentState(); renderObservations();
+      showToast('Incident deleted.', 'info');
+      if (delInc) sendTelegram(`🗑 <b>Incident Deleted</b>\n📍 Location: ${escapeHtml(delInc.location || '')}\n👤 Deleted by: ${currentUser.fullname} (Admin)`);
+    }
+    function resolveIncident(id) {
+      const i = (dbState.incidents || []).find(x => x.id === id);
+      if (i) i.status = 'Closed';
+      saveCurrentState(); renderObservations();
+      showToast('Incident marked resolved.', 'success');
+      if (i) sendTelegram(`✅ <b>Incident Resolved</b>\n📍 Location: ${escapeHtml(i.location || '')}\n📝 ${escapeHtml((i.description || '').substring(0, 80))}\n👤 Resolved by: ${userLabel()}`);
     }
 
     // DOCUMENT LIBRARY LOGICS
@@ -2907,6 +3960,7 @@ service cloud.firestore {
       closeModal();
       renderDocumentLibrary();
       showToast('Document securely uploaded to compliance vault.', 'success');
+      sendTelegram(`📄 <b>Document Uploaded</b>\n📁 Title: ${escapeHtml(title)}\n🗂 Category: ${escapeHtml(cat)}\n📎 File: ${escapeHtml(file.name)}\n👤 Uploaded by: ${userLabel()}`);
     }
 
     function downloadMockPdf(title) {
@@ -3126,12 +4180,38 @@ service cloud.firestore {
       closeModal();
       pushNotification(`New ${selectedPermitType} Permit submitted: ${permitNo} by ${contractor}`);
       renderPermitsTable();
+      const isEdit = !!currentEditPermit;
+      sendTelegram(
+`📝 <b>Permit ${isEdit ? 'Resubmitted' : 'Submitted'}</b>
+📋 Permit No: ${permitNo}
+🏗 Type: ${selectedPermitType.toUpperCase()}
+👷 Contractor: ${escapeHtml(contractor)}
+📍 Location: ${escapeHtml(location)}
+👤 Submitted by: ${userLabel()}
+🕐 Valid: ${validityStart.replace('T',' ')} → ${validityEnd.replace('T',' ')}`
+      );
     }
 
     function renderPermitsTable() {
       const tbody = document.getElementById('permits-table-body');
       if(!tbody) return;
       tbody.innerHTML = '';
+
+      // Expiry banner — computed after the shared `now` below, so use a forward-compatible ref
+      const _bannerNow = new Date();
+      const expiredOpen = (dbState.permits || []).filter(p =>
+        p.status === 'Approved' && p.validityEnd && new Date(p.validityEnd) < _bannerNow
+      );
+      const banner = document.getElementById('permit-expiry-banner');
+      const bannerText = document.getElementById('permit-expiry-banner-text');
+      if (banner) {
+        if (expiredOpen.length > 0) {
+          banner.classList.remove('hidden');
+          if (bannerText) bannerText.innerText = `${expiredOpen.length} approved permit${expiredOpen.length > 1 ? 's have' : ' has'} passed its validity end time. Please close ${expiredOpen.length > 1 ? 'them' : 'it'} using the Close button.`;
+        } else {
+          banner.classList.add('hidden');
+        }
+      }
 
       let list = [...dbState.permits];
       if (activePermitFilter !== 'all') {
@@ -3145,27 +4225,55 @@ service cloud.firestore {
         document.getElementById('empty-permits-message').classList.add('hidden');
       }
 
+      const now = new Date();
+      const isReviewer = currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove);
+      const isContractor = currentUser.role === 'Contractor';
+
       list.forEach(p => {
         let statusClass = "bg-slate-800 text-slate-300";
-        if (p.status === 'Approved') statusClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
-        else if (p.status === 'Rejected') statusClass = "bg-red-950 text-red-400 border border-red-800/50";
-        else if (p.status === 'Submitted') statusClass = "bg-blue-950 text-blue-400 border border-blue-800/50";
+        if      (p.status === 'Approved')               statusClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
+        else if (p.status === 'Rejected')               statusClass = "bg-red-950 text-red-400 border border-red-800/50";
+        else if (p.status === 'Submitted')              statusClass = "bg-blue-950 text-blue-400 border border-blue-800/50";
         else if (p.status === 'Returned To Contractor') statusClass = "bg-yellow-950 text-yellow-400 border border-yellow-800/50";
+        else if (p.status === 'Closed')                 statusClass = "bg-slate-700 text-slate-400 border border-slate-600/50";
+        else if (p.status === 'Cancelled')              statusClass = "bg-red-950/60 text-red-300 border border-red-900/50";
 
-        let actions = `
-          <button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>
-        `;
+        // Expiry logic for Approved permits
+        const isApproved = p.status === 'Approved';
+        const endTime = p.validityEnd ? new Date(p.validityEnd) : null;
+        const isExpired  = isApproved && endTime && endTime < now;
+        const expiringSoon = isApproved && endTime && !isExpired && (endTime - now) < 2 * 60 * 60 * 1000; // <2 hrs
 
-        if (currentUser.role === 'Admin') {
-          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
-        } else if (currentUser.role === 'Staff' && currentUser.canApprove) {
-          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
-        } else if (currentUser.role === 'Contractor' && p.status === 'Returned To Contractor') {
-          actions += ` <button onclick="editReturnedPermit('${p.id}')" class="text-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 py-1 px-2.5 rounded border border-yellow-500/20">Edit</button>`;
+        let expiryBadge = '';
+        if (isExpired)    expiryBadge = '<span class="ml-1 px-1.5 py-0.5 bg-orange-900 text-orange-300 text-[9px] font-bold rounded uppercase animate-pulse">Expired — Close Required</span>';
+        else if (expiringSoon) expiryBadge = '<span class="ml-1 px-1.5 py-0.5 bg-yellow-900 text-yellow-300 text-[9px] font-bold rounded uppercase">Expiring Soon</span>';
+
+        let actions = `<button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>`;
+
+        // Review button (not on closed/cancelled)
+        if (!['Closed','Cancelled'].includes(p.status)) {
+          if (isReviewer) {
+            actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
+          } else if (isContractor && p.status === 'Returned To Contractor') {
+            actions += ` <button onclick="editReturnedPermit('${p.id}')" class="text-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 py-1 px-2.5 rounded border border-yellow-500/20">Edit</button>`;
+          }
+        }
+
+        // Close button — reviewer or contractor, only on Approved (especially if expired)
+        if (p.status === 'Approved' && (isReviewer || isContractor)) {
+          const closeCls = isExpired
+            ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
+            : 'bg-slate-700 hover:bg-slate-600 text-slate-200';
+          actions += ` <button onclick="openPermitCloseModal('${p.id}','close')" class="text-xs py-1 px-2.5 rounded border border-slate-600 ${closeCls}">Close</button>`;
+        }
+
+        // Cancel button — reviewer/admin only, any non-terminal status
+        if (!['Closed','Cancelled','Rejected'].includes(p.status) && isReviewer) {
+          actions += ` <button onclick="openPermitCloseModal('${p.id}','cancel')" class="text-xs bg-red-900/40 hover:bg-red-700 text-red-300 hover:text-white py-1 px-2.5 rounded border border-red-800/40">Cancel</button>`;
         }
 
         tbody.insertAdjacentHTML('beforeend', `
-          <tr class="hover:bg-slate-800/40">
+          <tr class="hover:bg-slate-800/40${isExpired ? ' border-l-2 border-orange-500' : ''}">
             <td class="p-3">
               <p class="font-bold text-slate-200 text-xs">${p.permitNo}</p>
               <p class="text-[10px] text-construction-orange font-mono uppercase mt-0.5">${p.type} Permit</p>
@@ -3176,12 +4284,13 @@ service cloud.firestore {
             </td>
             <td class="p-3">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${statusClass}">${p.status}</span>
+              ${expiryBadge}
             </td>
             <td class="p-3">
-              <p class="text-[11px] text-slate-400">Valid: ${p.validityStart.replace('T',' ')}</p>
-              <p class="text-[11px] text-slate-500">Till: ${p.validityEnd.replace('T',' ')}</p>
+              <p class="text-[11px] text-slate-400">Start: ${p.validityStart.replace('T',' ')}</p>
+              <p class="text-[11px] ${isExpired ? 'text-orange-400 font-bold' : 'text-slate-500'}">End: ${p.validityEnd.replace('T',' ')}</p>
             </td>
-            <td class="p-3 text-right space-x-1">
+            <td class="p-3 text-right space-x-1 space-y-1">
               ${actions}
             </td>
           </tr>
@@ -3264,9 +4373,11 @@ service cloud.firestore {
       canvas.addEventListener('mousemove', move);
       canvas.addEventListener('mouseup', end);
       canvas.addEventListener('mouseleave', end);
-      canvas.addEventListener('touchstart', e => { const t = e.touches[0]; start({ clientX: t.clientX, clientY: t.clientY }); }, { passive: true });
-      canvas.addEventListener('touchmove',  e => { const t = e.touches[0]; move({ clientX: t.clientX, clientY: t.clientY }); }, { passive: true });
-      canvas.addEventListener('touchend', end, { passive: true });
+      canvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; start({ clientX: t.clientX, clientY: t.clientY }); }, { passive: false });
+      canvas.addEventListener('touchmove',  e => { e.preventDefault(); const t = e.touches[0]; move({ clientX: t.clientX, clientY: t.clientY }); }, { passive: false });
+      canvas.addEventListener('touchend', e => { e.preventDefault(); end(); }, { passive: false });
+      // Block the page from scrolling while signing on touch screens
+      canvas.style.touchAction = 'none';
 
       return {
         clear()      { ctx.clearRect(0, 0, canvas.width, canvas.height); dirty = false; },
@@ -3326,6 +4437,7 @@ service cloud.firestore {
       permit.comments.push({
         author: currentUser.fullname,
         role: currentUser.role,
+        designation: currentUser.designation || currentUser.role,
         text: comment,
         timestamp: new Date().toLocaleString()
       });
@@ -3341,10 +4453,300 @@ service cloud.firestore {
       closeModal();
       showToast(`Safety Permit updated to: ${decision}`, 'success');
       pushNotification(`Permit ${permit.permitNo} reviewed: status ${decision} by ${currentUser.fullname}`);
+
+      const decisionEmoji = decision === 'Approved' ? '✅' : decision === 'Rejected' ? '❌' : decision === 'Returned To Contractor' ? '↩️' : '🔄';
+      sendTelegram(
+`${decisionEmoji} <b>Permit ${decision.toUpperCase()}</b>
+📋 Permit No: ${permit.permitNo} (${permit.type})
+👷 Contractor: ${permit.contractor}
+📍 Location: ${permit.location}
+👤 Reviewed by: ${userLabel()}
+🕐 Valid: ${permit.validityStart.replace('T',' ')} → ${permit.validityEnd.replace('T',' ')}${comment ? '\n💬 ' + comment : ''}`
+      );
       renderPermitsTable();
     }
 
-    // PRINT PREVIEW GENERATOR TO MIMIC PHYSICAL FORMS
+    // ---- Permit Close / Cancel ----
+    let permitClosingId = null;
+    let permitCloseMode = 'close';
+    let _permitCloseSigPad = null;
+
+    function openPermitCloseModal(id, mode) {
+      const p = dbState.permits.find(x => x.id === id);
+      if (!p) return;
+      permitClosingId = id;
+      permitCloseMode = mode;
+
+      const isCancelling = mode === 'cancel';
+      document.getElementById('permit-close-modal-title').innerText = isCancelling ? 'Cancel Permit' : 'Close Permit';
+      document.getElementById('permit-close-submit-btn').innerText = isCancelling ? 'Confirm Cancellation' : 'Confirm Closure';
+      document.getElementById('permit-close-submit-btn').className = `px-5 py-2 font-bold rounded-lg text-white ${isCancelling ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-600 hover:bg-slate-700'}`;
+
+      // Action selector
+      const actionWrap = document.getElementById('permit-close-action-wrap');
+      const actionSel  = document.getElementById('permit-close-action');
+      if (isCancelling) {
+        actionWrap.classList.remove('hidden');
+        actionSel.innerHTML = '<option value="Cancelled">Cancel this permit</option>';
+      } else {
+        actionWrap.classList.add('hidden');
+        actionSel.innerHTML = '<option value="Closed">Close this permit</option>';
+      }
+
+      // Signature only needed for closure, not cancellation
+      const sigWrap = document.getElementById('permit-close-sig-wrap');
+      sigWrap.classList.toggle('hidden', isCancelling);
+
+      // Pre-fill closing datetime to now
+      const d = new Date();
+      document.getElementById('permit-close-datetime').value =
+        new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+      // Permit summary
+      const endTime = p.validityEnd ? new Date(p.validityEnd) : null;
+      const expired = endTime && endTime < new Date();
+      document.getElementById('permit-close-info').innerHTML = `
+        <p class="font-bold text-slate-200">${p.permitNo} — ${p.type} Permit</p>
+        <p>Contractor: <span class="text-slate-300">${escapeHtml(p.contractor)}</span></p>
+        <p>Location: <span class="text-slate-300">${escapeHtml(p.location)}</span></p>
+        <p>Valid Until: <span class="${expired ? 'text-orange-400 font-bold' : 'text-slate-300'}">${p.validityEnd ? p.validityEnd.replace('T',' ') : '—'}${expired ? '  ⚠ Expired' : ''}</span></p>
+        <p>Current Status: <span class="text-emerald-400 font-bold">${p.status}</span></p>`;
+
+      document.getElementById('permit-close-comment').value = '';
+
+      openModal('modal-permit-close');
+
+      // Setup signature pad after modal is visible
+      if (!isCancelling) {
+        setTimeout(() => {
+          _permitCloseSigPad = createSignaturePad('permit-close-sig-canvas');
+        }, 100);
+      }
+    }
+
+    function clearPermitCloseSig() {
+      if (_permitCloseSigPad) _permitCloseSigPad.clear();
+    }
+
+    function submitPermitClosure() {
+      const comment  = document.getElementById('permit-close-comment').value.trim();
+      const closeAt  = document.getElementById('permit-close-datetime').value;
+      if (!comment)  { showToast('Please enter a comment before confirming.', 'error'); return; }
+      if (!closeAt)  { showToast('Please enter the closing date and time.', 'error'); return; }
+
+      const isCancelling = permitCloseMode === 'cancel';
+
+      // Require signature for closure (not cancellation)
+      let closeSig = null;
+      if (!isCancelling) {
+        if (!_permitCloseSigPad || _permitCloseSigPad.isEmpty()) {
+          showToast('Please sign before confirming closure.', 'error'); return;
+        }
+        closeSig = _permitCloseSigPad.toDataURL();
+      }
+
+      const p = dbState.permits.find(x => x.id === permitClosingId);
+      if (!p) return;
+
+      const newStatus = isCancelling ? 'Cancelled' : 'Closed';
+      p.status = newStatus;
+      p.comments = p.comments || [];
+      p.comments.push({
+        author: currentUser.fullname,
+        role: currentUser.role,
+        designation: currentUser.designation || currentUser.role,
+        text: `[${newStatus.toUpperCase()}] ${comment}`,
+        timestamp: new Date().toLocaleString()
+      });
+
+      if (newStatus === 'Closed') {
+        p.closedBy        = currentUser.fullname;
+        p.closedAt        = closeAt.replace('T', ' ');
+        p.closureSignature = closeSig;
+        p.closureComment  = comment;
+      }
+      if (newStatus === 'Cancelled') {
+        p.cancelledBy      = currentUser.fullname;
+        p.cancelledAt      = closeAt.replace('T', ' ');
+        p.cancellationComment = comment;
+      }
+
+      saveCurrentState();
+      closeModal();
+      renderPermitsTable();
+      renderDashboardStats();
+      showToast(`Permit ${p.permitNo} ${newStatus.toLowerCase()} successfully.`, 'success');
+      pushNotification(`Permit ${p.permitNo} ${newStatus.toLowerCase()} by ${currentUser.fullname}.`);
+      const closeEmoji = newStatus === 'Closed' ? '🔒' : '🚫';
+      sendTelegram(
+`${closeEmoji} <b>Permit ${newStatus.toUpperCase()}</b>
+📋 Permit No: ${p.permitNo} (${p.type})
+👷 Contractor: ${p.contractor}
+📍 Location: ${p.location}
+👤 By: ${userLabel()}
+🕐 Closed at: ${closeAt.replace('T',' ')}
+💬 ${comment}`
+      );
+    }
+
+    // Check for expired Approved permits and push a reminder notification
+    function checkPermitExpiry() {
+      const now = new Date();
+      const expired = (dbState.permits || []).filter(p =>
+        p.status === 'Approved' && p.validityEnd && new Date(p.validityEnd) < now
+      );
+      expired.forEach(p => {
+        pushNotification(`⚠ Permit ${p.permitNo} (${p.type}) expired on ${p.validityEnd.replace('T',' ')} — please close it.`);
+      });
+      return expired.length;
+    }
+    // ============================================================
+    // MONTHLY HSE REPORT GENERATOR
+    // ============================================================
+    function initHSEReportInputs() {
+      const now = new Date();
+      const mel = document.getElementById('hse-report-month');
+      const yel = document.getElementById('hse-report-year');
+      if (mel) mel.value = now.getMonth() + 1;
+      if (yel) yel.value = now.getFullYear();
+    }
+
+    async function generateHSEReport() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can generate reports.', 'error'); return; }
+      const month = parseInt(document.getElementById('hse-report-month').value);
+      const year  = parseInt(document.getElementById('hse-report-year').value);
+      if (!month || !year) { showToast('Select month and year.', 'error'); return; }
+
+      showToast('Building report\u2026', 'info');
+
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const monthName  = monthNames[month - 1];
+      const monthPfx   = `${year}-${String(month).padStart(2,'0')}`;
+
+      // Embed logo as base64 so it displays instantly in any tab (no network request)
+      const logoSrc = await new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth || 512; c.height = img.naturalHeight || 210;
+            c.getContext('2d').drawImage(img, 0, 0);
+            resolve(c.toDataURL('image/png'));
+          } catch(e) { resolve(''); }
+        };
+        img.onerror = () => resolve('');
+        img.src = 'chettinad-logo.png?' + Date.now();
+      });
+
+      // Data
+      const mpMap = {};
+      (dbState.manpower || []).filter(e => (e.date||'').startsWith(monthPfx)).forEach(e => { mpMap[e.date] = e; });
+
+      const smTotals = (dbState.safetyMetrics || []).filter(m => (m.date||'').startsWith(monthPfx))
+        .reduce((a,m) => ({ toolbox: a.toolbox+(m.toolboxTalks||0), attendance: a.attendance+(m.attendance||0),
+          induction: a.induction+(m.inductions||0), firstAid: a.firstAid+(m.firstAid||0), penalties: a.penalties+(m.penalties||0) }),
+          { toolbox:0, attendance:0, induction:0, firstAid:0, penalties:0 });
+
+      const allObs    = dbState.hazards || [];
+      const obsRaised = allObs.filter(h => (h.date||'').startsWith(monthPfx)).length;
+      const obsClosed = allObs.filter(h => (h.date||'').startsWith(monthPfx) && h.status === 'Closed').length;
+      const obsOpen   = allObs.filter(h => h.status !== 'Closed').length;
+      const incCount  = (dbState.incidents||[]).filter(i => (i.date||'').startsWith(monthPfx)).length;
+
+      const days = new Date(year, month, 0).getDate();
+      let cumHours = 0;
+      const rows = [];
+      for (let d = 1; d <= days; d++) {
+        const key   = `${monthPfx}-${String(d).padStart(2,'0')}`;
+        const entry = mpMap[key];
+        const label = `${String(d).padStart(2,'0')}-${String(month).padStart(2,'0')}-${String(year).slice(2)}`;
+        if (entry) {
+          const wkr = ctrWorkers(entry.contractorWorkers);
+          const stf = (entry.dayStaff||0) + (entry.nightStaff||0);
+          const md = wkr + stf; const mh = md * 8; cumHours += mh;
+          rows.push({ label, wkr, stf, md, mh, cum: cumHours, holiday: false });
+        } else {
+          rows.push({ label, wkr:0, stf:0, md:0, mh:0, cum: cumHours, holiday: true });
+        }
+      }
+      const totMd = rows.reduce((s,r) => s+r.md, 0);
+      const totMh = rows.reduce((s,r) => s+r.mh, 0);
+      const mid = Math.ceil(rows.length / 2);
+      const L = rows.slice(0, mid), R = rows.slice(mid);
+
+      const th   = (t,c) => `<th style="padding:5px 6px;font-size:9px;font-weight:700;text-transform:uppercase;background:#1e293b;color:#fff;text-align:${c?'center':'left'};">${t}</th>`;
+      const chdr = () => `<tr>${th('Date')}${th('WKR',1)}${th('STF',1)}${th('Mandays',1)}${th('Manhours',1)}${th('Cum. Hours',1)}</tr>`;
+      const mkR  = r => r.holiday
+        ? `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:4px 6px;font-size:10px;font-weight:600;">${r.label}</td><td colspan="5" style="font-size:9px;color:#94a3b8;text-align:center;font-style:italic;">Holiday / No Work</td></tr>`
+        : `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:4px 6px;font-size:10px;font-weight:600;">${r.label}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.wkr}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.stf}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.md}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.mh}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.cum.toLocaleString()}</td></tr>`;
+      const kpi  = (n,l,col) => `<div style="border:2px solid #e2e8f0;border-radius:6px;padding:10px 6px;text-align:center;flex:1;min-width:0;"><div style="font-size:26px;font-weight:900;color:${col};line-height:1;">${n}</div><div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;margin-top:5px;line-height:1.2;">${l}</div></div>`;
+      const sec  = t => `<div style="background:#1e293b;color:#fff;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:5px 12px;border-radius:3px;margin:12px 0 7px;">${t}</div>`;
+
+      const preparedBy = `${currentUser.fullname} (Senior Safety Officer)`;
+      const printDate  = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+
+      const fullHTML = `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HSE Report \u2014 ${monthName} ${year}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Arial,sans-serif;font-size:11px;background:#fff;color:#111;padding:14px;}
+  .pbtn{display:block;margin:0 auto 14px;padding:11px 32px;background:#f97316;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:0.5px;}
+  @media print{.pbtn{display:none !important;} body{padding:0;} @page{size:A4 portrait;margin:12mm 10mm;} *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+</style>
+</head><body>
+<button class="pbtn" onclick="window.print()">\uD83D\uDDA8 Print / Save as PDF</button>
+<div style="display:flex;align-items:center;justify-content:space-between;background:#0f172a;padding:13px 16px;border-radius:5px;margin-bottom:12px;">
+  <div>
+    <div style="font-size:16px;font-weight:900;text-transform:uppercase;color:#f97316;letter-spacing:1px;">HSE Monthly Report</div>
+    <div style="font-size:9px;color:#94a3b8;margin-top:3px;">CTO Chennai &nbsp;\u2022&nbsp; ${monthName.toUpperCase()} ${year} &nbsp;\u2022&nbsp; Project : CTO, Chennai</div>
+    <div style="font-size:8px;color:#64748b;margin-top:2px;">Chettinad Products and Services Pvt. Ltd.</div>
+  </div>
+  ${logoSrc ? `<img src="${logoSrc}" style="height:42px;width:auto;background:#fff;padding:4px 6px;border-radius:3px;">` : ''}
+</div>
+${sec('Safety Performance Indicators')}
+<div style="display:flex;gap:7px;margin-bottom:10px;">
+  ${kpi(incCount,'Near Miss / Incidents','#dc2626')}
+  ${kpi(smTotals.penalties,'Warnings / Penalties','#d97706')}
+  ${kpi(smTotals.firstAid,'First Aid Cases','#2563eb')}
+</div>
+${sec('HSE Activities &amp; Observations')}
+<div style="display:flex;gap:7px;margin-bottom:10px;">
+  ${kpi(smTotals.induction,'Inductions','#f97316')}
+  ${kpi(smTotals.toolbox,'TBTs Held','#0f172a')}
+  ${kpi(smTotals.attendance,'TBT Attend.','#0f172a')}
+  ${kpi(obsRaised,'Obs Raised','#2563eb')}
+  ${kpi(obsClosed,'Obs Closed','#16a34a')}
+  ${kpi(obsOpen,'Obs Open','#d97706')}
+</div>
+${sec('Manpower &amp; Exposure Log')}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+  <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${L.map(mkR).join('')}</tbody></table>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${R.map(mkR).join('')}</tbody></table>
+</div>
+<div style="background:#1e293b;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-radius:4px;margin-top:9px;font-size:11px;">
+  <span>Month-End Cumulative Totals</span>
+  <span>Mandays: <b style="color:#f97316;">${totMd.toLocaleString()}</b> &nbsp; Manhours: <b style="color:#f97316;">${totMh.toLocaleString()}</b></span>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:8px;border-top:2px solid #1e293b;font-size:9.5px;color:#555;">
+  <span>Report Status: <b style="color:#111;">Final</b></span>
+  <span>Prepared By: <b style="color:#111;">${preparedBy}</b></span>
+  <span>Date: <b style="color:#111;">${printDate}</b></span>
+</div>
+</body></html>`;
+
+      const blob = new Blob([fullHTML], { type: 'text/html; charset=utf-8' });
+      const burl = URL.createObjectURL(blob);
+      const win  = window.open(burl, '_blank');
+      setTimeout(() => URL.revokeObjectURL(burl), 120000);
+      if (!win) {
+        showToast('Please allow pop-ups for this site and try again.', 'error');
+      } else {
+        showToast('Report ready \u2014 tap the orange Print button to save as PDF.', 'success');
+      }
+    }
+
     function previewPermit(id) {
       const p = dbState.permits.find(p => p.id === id);
       if (!p) return;
@@ -3352,162 +4754,225 @@ service cloud.firestore {
       const printContainer = document.getElementById('print-area');
       printContainer.innerHTML = '';
 
+      // Checklist — compact
       let chkHtml = '';
       p.checklist.forEach((item, idx) => {
-        chkHtml += `
-          <tr style="border-bottom: 1px solid #ddd;">
-            <td style="padding: 6px; font-size: 11px; text-align: left;">${idx + 1}. ${item.label}</td>
-            <td style="padding: 6px; font-size: 11px; font-weight: bold; text-align: center; color: ${item.response === 'YES' ? 'green' : item.response === 'NO' ? 'red' : 'gray'}">${item.response}</td>
-          </tr>
-        `;
+        const col = item.response === 'YES' ? '#15803d' : item.response === 'NO' ? '#dc2626' : '#6b7280';
+        chkHtml += `<tr style="border-bottom:1px solid #eee;">
+          <td style="padding:3px 6px;font-size:10px;">${idx+1}. ${item.label}</td>
+          <td style="padding:3px 6px;font-size:10px;font-weight:bold;text-align:center;color:${col};">${item.response}</td>
+        </tr>`;
       });
 
-      let sigsHtml = '';
-      Object.keys(p.signatures).forEach(role => {
+      // Signatures — 4 per row, compact
+      const sigKeys = Object.keys(p.signatures || {});
+      let sigsHtml = sigKeys.map(role => {
         const s = p.signatures[role];
-        const roleLabel = role === 'Applicant' ? 'Applicant / Contractor (Requestor)' : `Verified / Signed By: ${role}`;
-        sigsHtml += `
-          <div style="border: 1px solid #ccc; padding: 8px; border-radius: 4px; text-align: center; width: 45%;">
-            <p style="font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">${roleLabel}</p>
-            <img src="${s.signatureImage}" style="height: 40px; margin: 0 auto; display: block;" />
-            <p style="font-size: 11px; margin-top: 4px; font-weight: bold;">${s.name}</p>
-            <p style="font-size: 10px; color: #555;">${s.designation}</p>
-            <p style="font-size: 9px; color: #777;">${s.timestamp}</p>
-          </div>
-        `;
-      });
+        const lbl = role === 'Applicant' ? 'Applicant / Contractor' : (s.designation || role);
+        return `<div style="flex:1;min-width:0;border:1px solid #ccc;padding:5px 4px;text-align:center;border-radius:3px;">
+          <p style="font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;color:#444;">${lbl}</p>
+          <img src="${s.signatureImage}" style="height:28px;display:block;margin:0 auto;max-width:100%;">
+          <p style="font-size:9px;font-weight:bold;margin-top:3px;">${s.name}</p>
+          <p style="font-size:8px;color:#555;">${s.designation || ''}</p>
+          <p style="font-size:7px;color:#888;">${s.timestamp}</p>
+        </div>`;
+      }).join('');
 
-      // Reviewer remarks / site comments for the printed record
+      // Comments — compact, show designation not role
       let commentsHtml = '';
       if (Array.isArray(p.comments) && p.comments.length) {
-        let rows = '';
-        p.comments.forEach(c => {
-          rows += `
-            <tr style="border-bottom: 1px solid #eee;">
-              <td style="padding: 6px; font-size: 10px; vertical-align: top; width: 30%;">
-                <strong>${c.author || ''}</strong><br>
-                <span style="color:#666;">${c.role || ''}</span><br>
-                <span style="color:#999; font-size:9px;">${c.timestamp || ''}</span>
-              </td>
-              <td style="padding: 6px; font-size: 11px; vertical-align: top; color:#222;">${(c.text || '').replace(/</g,'&lt;')}</td>
-            </tr>`;
-        });
+        const rows = p.comments.map(c => `
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:3px 5px;font-size:9px;vertical-align:top;white-space:nowrap;">
+              <strong>${c.author||''}</strong>
+              <span style="color:#666;"> · ${c.designation || c.role || ''}</span><br>
+              <span style="color:#999;font-size:8px;">${c.timestamp||''}</span>
+            </td>
+            <td style="padding:3px 5px;font-size:10px;vertical-align:top;">${(c.text||'').replace(/</g,'&lt;')}</td>
+          </tr>`).join('');
         commentsHtml = `
-          <h4 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 20px 0 6px; border-bottom: 2px solid #000; padding-bottom: 3px; text-align: left;">Reviewer Remarks &amp; Site Directions</h4>
-          <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
-            <thead>
-              <tr style="background:#f1f1f1;">
-                <th style="padding:6px; text-align:left; font-size:10px; width:30%;">Reviewer</th>
-                <th style="padding:6px; text-align:left; font-size:10px;">Comment / Direction</th>
-              </tr>
-            </thead>
+          <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:10px 0 4px;border-bottom:1.5px solid #000;padding-bottom:2px;">Reviewer Remarks &amp; Site Directions</p>
+          <table style="width:100%;border-collapse:collapse;border:1px solid #ddd;font-size:9px;">
+            <thead><tr style="background:#f1f1f1;">
+              <th style="padding:3px 5px;text-align:left;white-space:nowrap;">Reviewer</th>
+              <th style="padding:3px 5px;text-align:left;">Comment</th>
+            </tr></thead>
             <tbody>${rows}</tbody>
           </table>`;
       }
 
+      // Closure certificate
+      let closureSigHtml = '';
+      if (p.status === 'Closed' && p.closedBy) {
+        closureSigHtml = `
+          <div style="margin-top:10px;border:1.5px solid #222;border-radius:4px;padding:8px;background:#f9f9f9;">
+            <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:0 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px;">Permit Closure Certificate</p>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+              <div style="flex:1;font-size:9px;">
+                <p style="margin:2px 0;"><strong>Closed By:</strong> ${escapeHtml(p.closedBy)}</p>
+                <p style="margin:2px 0;"><strong>Date &amp; Time:</strong> ${escapeHtml(p.closedAt||'')}</p>
+                ${p.closureComment ? `<p style="margin:4px 0;"><strong>Remarks:</strong> ${escapeHtml(p.closureComment)}</p>` : ''}
+                <p style="margin:4px 0;font-size:8px;color:#555;">Work area inspected, personnel accounted for, area confirmed safe.</p>
+              </div>
+              ${p.closureSignature ? `<div style="text-align:center;border:1px solid #ccc;padding:5px;border-radius:3px;min-width:100px;">
+                <p style="font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">Closer Signature</p>
+                <img src="${p.closureSignature}" style="height:32px;display:block;margin:0 auto;">
+                <p style="font-size:8px;color:#555;margin-top:3px;">${escapeHtml(p.closedBy)}</p>
+              </div>` : ''}
+            </div>
+          </div>`;
+      }
+
+      // Night extra
       let nightExtraHtml = '';
       if (p.type === 'night' && p.extra) {
         nightExtraHtml = `
-          <div style="margin-top: 15px; padding: 10px; border: 1px solid #ff4500; border-radius: 6px; background-color: #fffaf0; text-align: left;">
-            <h4 style="font-size: 11px; font-weight: bold; color: #ff4500; margin-bottom: 6px; border-bottom: 1px solid #ffe4e1; padding-bottom: 2px;">SPECIAL NIGHT OPERATIONS PARAMETERS</h4>
-            <div style="display: flex; justify-content: space-between; font-size: 10px;">
-              <p><strong>Emergency Vehicle Unit & Driver:</strong> ${p.extra.driver}</p>
-              <p><strong>Safety Control / HSE Officer:</strong> ${p.extra.hse}</p>
-              <p><strong>Duty Electrician:</strong> ${p.extra.electrician}</p>
+          <div style="margin-top:8px;padding:7px;border:1px solid #ff4500;border-radius:4px;background:#fffaf0;">
+            <p style="font-size:10px;font-weight:bold;color:#ff4500;margin:0 0 4px;">Special Night Operations Parameters</p>
+            <div style="display:flex;justify-content:space-between;font-size:9px;gap:8px;">
+              <span><strong>Vehicle/Driver:</strong> ${p.extra.driver}</span>
+              <span><strong>HSE Officer:</strong> ${p.extra.hse}</span>
+              <span><strong>Electrician:</strong> ${p.extra.electrician}</span>
             </div>
-          </div>
-        `;
+          </div>`;
       }
 
       const permitFormHeader = {
-        general: "CHETTINAD PRODUCTS AND SERVICES PVT.LTD <br/> GENERAL WORK PERMIT",
-        height: "PERMIT TO WORK AT HEIGHT <br/> CPSPL/02/F08/R0",
-        hot: "HOT WORK PERMIT <br/> CPSPL/02/F07/R0",
-        night: "NIGHT WORK PERMIT <br/> CPSPL/02/F42/R0"
+        general: "CHETTINAD PRODUCTS AND SERVICES PVT.LTD — GENERAL WORK PERMIT",
+        height:  "PERMIT TO WORK AT HEIGHT — CPSPL/02/F08/R0",
+        hot:     "HOT WORK PERMIT — CPSPL/02/F07/R0",
+        night:   "NIGHT WORK PERMIT — CPSPL/02/F42/R0"
       }[p.type];
 
       const html = `
-        <div style="max-width: 800px; margin: 0 auto; background: white; color: black; font-family: sans-serif; padding: 20px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
-            <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
-              <div style="width: 50px; height: 50px; background: white; border: 1px solid #ccc; padding: 2px; border-radius: 4px;">
-                <img src="logo.png" alt="CTO-ConNect" style="width: 100%; height: 100%; object-fit: contain;">
-              </div>
+        <div style="max-width:800px;margin:0 auto;background:white;color:black;font-family:Arial,sans-serif;font-size:10px;padding:14px;">
+
+          <!-- Header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <img src="chettinad-logo.png" style="height:40px;width:auto;object-fit:contain;">
               <div>
-                <h2 style="font-size: 14px; font-weight: 800; margin: 0; color: #111;">Chettinad Products & Services Pvt. Ltd.</h2>
-                <p style="font-size: 10px; margin: 2px 0 0; color: #555;">Chennai Operations Office -- CTO Safety Node</p>
+                <p style="font-size:12px;font-weight:800;margin:0;color:#111;">Chettinad Products &amp; Services Pvt. Ltd.</p>
+                <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
               </div>
             </div>
-            <div style="text-align: right;">
-              <p style="font-size: 12px; font-weight: bold; margin: 0; color: #f97316;">PERMIT NO: ${p.permitNo}</p>
-              <p style="font-size: 10px; margin: 2px 0 0; color: #555;">Status: <strong>${p.status.toUpperCase()}</strong></p>
+            <div style="text-align:right;">
+              <p style="font-size:11px;font-weight:bold;margin:0;color:#f97316;">PERMIT NO: ${p.permitNo}</p>
+              <p style="font-size:9px;margin:2px 0 0;color:#555;">Status: <strong>${p.status.toUpperCase()}</strong></p>
+              ${p.status==='Closed'&&p.closedBy ? `<p style="font-size:8px;color:#888;margin:1px 0 0;">Closed by ${p.closedBy} · ${p.closedAt||''}</p>` : ''}
+              ${p.status==='Cancelled'&&p.cancelledBy ? `<p style="font-size:8px;color:#c00;margin:1px 0 0;">Cancelled by ${p.cancelledBy} · ${p.cancelledAt||''}</p>` : ''}
             </div>
           </div>
 
-          <div style="text-align: center; margin-bottom: 20px;">
-            <h3 style="font-size: 13px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin: 0;">${permitFormHeader}</h3>
-          </div>
+          <p style="text-align:center;font-size:11px;font-weight:bold;text-transform:uppercase;margin:0 0 10px;">${permitFormHeader}</p>
 
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; text-align: left;">
+          <!-- Info Table -->
+          <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:10px;">
             <tr>
-              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9; width: 25%;"><strong>Name of Site:</strong></td>
-              <td style="padding: 6px; border: 1px solid #ccc; width: 25%;">${p.project}</td>
-              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9; width: 25%;"><strong>Location of Work:</strong></td>
-              <td style="padding: 6px; border: 1px solid #ccc; width: 25%;">${p.location}</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;width:22%;"><strong>Name of Site:</strong></td>
+              <td style="padding:3px 6px;border:1px solid #ccc;width:28%;">${p.project}</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;width:22%;"><strong>Location:</strong></td>
+              <td style="padding:3px 6px;border:1px solid #ccc;width:28%;">${p.location}</td>
             </tr>
             <tr>
-              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Contractor Name:</strong></td>
-              <td style="padding: 6px; border: 1px solid #ccc;">${p.contractor}</td>
-              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Workers Engaged:</strong></td>
-              <td style="padding: 6px; border: 1px solid #ccc;">${p.workers} Workers</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;"><strong>Contractor:</strong></td>
+              <td style="padding:3px 6px;border:1px solid #ccc;">${p.contractor}</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;"><strong>Workers:</strong></td>
+              <td style="padding:3px 6px;border:1px solid #ccc;">${p.workers}</td>
             </tr>
             <tr>
-              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Work Validity From:</strong></td>
-              <td style="padding: 6px; border: 1px solid #ccc;">${p.validityStart.replace('T', ' ')}</td>
-              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Work Validity To:</strong></td>
-              <td style="padding: 6px; border: 1px solid #ccc;">${p.validityEnd.replace('T', ' ')}</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;"><strong>Valid From:</strong></td>
+              <td style="padding:3px 6px;border:1px solid #ccc;">${p.validityStart.replace('T',' ')}</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;"><strong>Valid To:</strong></td>
+              <td style="padding:3px 6px;border:1px solid #ccc;">${p.validityEnd.replace('T',' ')}</td>
             </tr>
             <tr>
-              <td style="padding: 6px; border: 1px solid #ccc; background: #f9f9f9;"><strong>Work Description:</strong></td>
-              <td colspan="3" style="padding: 6px; border: 1px solid #ccc;">${p.description}</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;"><strong>Description:</strong></td>
+              <td colspan="3" style="padding:3px 6px;border:1px solid #ccc;">${p.description}</td>
             </tr>
           </table>
 
-          <h4 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 15px 0 5px; border-bottom: 2px solid #000; padding-bottom: 3px; text-align: left;">HSE SAFETY POINT COMPLIANCE CHECKLIST</h4>
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #f1f1f1; border-bottom: 2px solid #ccc;">
-                <th style="padding: 6px; text-align: left; font-size: 11px;">Description / Safety Requirements</th>
-                <th style="padding: 6px; text-align: center; font-size: 11px; width: 15%;">Checked</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${chkHtml}
-            </tbody>
+          <!-- Checklist -->
+          <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:0 0 4px;border-bottom:1.5px solid #000;padding-bottom:2px;">HSE Safety Point Compliance Checklist</p>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
+            <thead><tr style="background:#f1f1f1;border-bottom:1.5px solid #ccc;">
+              <th style="padding:3px 6px;text-align:left;font-size:10px;">Safety Requirement</th>
+              <th style="padding:3px 6px;text-align:center;font-size:10px;width:12%;">Check</th>
+            </tr></thead>
+            <tbody>${chkHtml}</tbody>
           </table>
 
           ${nightExtraHtml}
-
           ${commentsHtml}
 
-          <h4 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 20px 0 10px; border-bottom: 2px solid #000; padding-bottom: 3px; text-align: left;">ISSUING AUTHORITY & REPRESENTATIVE SIGN-OFFS</h4>
-          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 15px; margin-top: 15px;">
-            ${sigsHtml}
-            ${sigsHtml === '' ? '<p style="font-size: 11px; color: #666; italic">Signatures pending review approvals.</p>' : ''}
+          <!-- Signatures — all 4 in one row -->
+          <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:10px 0 6px;border-bottom:1.5px solid #000;padding-bottom:2px;">Issuing Authority &amp; Sign-Offs</p>
+          <div style="display:flex;gap:6px;">
+            ${sigsHtml || '<p style="font-size:10px;color:#666;">Signatures pending.</p>'}
           </div>
 
-          <div class="no-print" style="margin-top: 30px; padding: 15px; background: #f3f4f6; border-radius: 8px; text-align: center; display: flex; justify-content: center; gap: 10px;">
-            <button onclick="window.print()" style="background: #ea580c; color: white; border: none; font-weight: bold; font-size: 12px; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Print Safe Copy (PDF)</button>
-            <button onclick="hidePrintArea()" style="background: #4b5563; color: white; border: none; font-weight: bold; font-size: 12px; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Close Preview</button>
+          ${closureSigHtml}
+
+          <!-- Print buttons (hidden when printing) -->
+          <div class="no-print" style="margin-top:20px;padding:12px;background:#f3f4f6;border-radius:8px;text-align:center;display:flex;justify-content:center;gap:10px;">
+            <button onclick="printPermitBlob('${p.id}')" style="background:#ea580c;color:white;border:none;font-weight:bold;font-size:12px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+            <button onclick="hidePrintArea()" style="background:#4b5563;color:white;border:none;font-weight:bold;font-size:12px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
           </div>
-        </div>
-      `;
+        </div>`;
 
       printContainer.innerHTML = html;
       printContainer.classList.remove('hidden');
       printContainer.scrollIntoView({ behavior: 'smooth' });
-      showToast('Master printable permit generated. Click Print Safe Copy to download or print PDF.', 'success');
     }
+
+    // Opens permit as blob URL in new tab — fast on all devices including iOS
+    async function printPermitBlob(id) {
+      const p = dbState.permits.find(x => x.id === id);
+      if (!p) return;
+
+      // Embed logo as base64
+      const logoSrc = await new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth||512; c.height = img.naturalHeight||210;
+            c.getContext('2d').drawImage(img,0,0);
+            resolve(c.toDataURL('image/png'));
+          } catch(e) { resolve(''); }
+        };
+        img.onerror = () => resolve('');
+        img.src = 'chettinad-logo.png?' + Date.now();
+      });
+
+      // Re-use the existing in-page preview HTML but replace relative logo + strip no-print buttons
+      const preview = document.getElementById('print-area');
+      let body = preview ? preview.innerHTML : '';
+      if (logoSrc) body = body.replace(/src="chettinad-logo\.png[^"]*"/g, `src="${logoSrc}"`);
+      // Remove the no-print buttons div
+      body = body.replace(/<div class="no-print"[\s\S]*?<\/div>/, '');
+
+      const fullHTML = `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Permit ${p.permitNo}</title>
+<style>
+  *{box-sizing:border-box;} body{margin:10mm;font-family:Arial,sans-serif;font-size:10px;background:#fff;color:#000;}
+  .pbtn{display:block;margin:0 auto 14px;padding:10px 28px;background:#ea580c;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;}
+  @media print{.pbtn{display:none!important;} body{margin:6mm;} @page{size:A4 portrait;margin:8mm 6mm;} *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+</style>
+</head><body>
+<button class="pbtn" onclick="window.print()">🖨 Print / Save as PDF</button>
+${body}
+</body></html>`;
+
+      const blob = new Blob([fullHTML], { type: 'text/html; charset=utf-8' });
+      const url  = URL.createObjectURL(blob);
+      const win  = window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+      if (!win) showToast('Allow pop-ups for this site to print.', 'error');
+    }
+
 
     function hidePrintArea() {
       document.getElementById('print-area').classList.add('hidden');
@@ -3889,6 +5354,15 @@ service cloud.firestore {
         if (currentUser && activeTab === 'dashboard') renderDashboardStats();
       }, 60000);
     };
+  </script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 </html>
