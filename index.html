@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.6</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.7.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -703,9 +703,14 @@ service cloud.firestore {
 
                 <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
                   <p class="text-[10px] text-slate-500">Leave fields blank if no workers for that shift. Saving again on the same date will update existing record.</p>
-                  <button type="submit" class="py-2.5 px-6 bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider">
-                    Save Day's Manpower
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button id="manpower-tg-btn" type="button" class="hidden py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 uppercase tracking-wider">
+                      <i data-lucide="send" class="w-3.5 h-3.5"></i> Send to Telegram
+                    </button>
+                    <button type="submit" class="py-2.5 px-6 bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider">
+                      Save Day's Manpower
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -2672,7 +2677,6 @@ service cloud.firestore {
       dbState.safetyMetrics = dbState.safetyMetrics || [];
       dbState.safetyMetrics.unshift(rec);
       saveCurrentState();
-      ['sm-field-toolbox', 'sm-field-attendance', 'sm-field-induction', 'sm-field-firstaid', 'sm-field-penalty'].forEach(i => document.getElementById(i).value = 0);
       renderSafetyMetricsAdmin();
       renderSafetyDashboard();
       showToast('Safety activity saved for ' + date + '.', 'success');
@@ -3051,7 +3055,6 @@ service cloud.firestore {
       saveCurrentState();
       renderAnnouncements();
       showToast('Announcement deleted.', 'success');
-      sendTelegram(`🗑 <b>Notice Board Post Deleted</b>\n👤 Deleted by: ${currentUser.fullname} (${currentUser.role})\n📝 Post was: "${escapeHtml((a.text || '').substring(0, 60))}${(a.text||'').length > 60 ? '…' : ''}"`);
     }
 
     function renderNotifications() {
@@ -3347,36 +3350,35 @@ service cloud.firestore {
       const ctrLines = (contractorWorkers || []).filter(c => c.name && c.count > 0)
         .map(c => `  • ${c.name}: ${c.count}`).join('\n') || '  • None';
 
+      // Store the message for the manual Send to Telegram button
+      const tgMsg =
+`👷 <b>Manpower ${existing ? 'Updated' : 'Logged'}</b>
+📅 Date: ${date}
+👤 By: ${currentUser.fullname} (${currentUser.role})
+🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
+👥 Total Workers: ${totalWorkers}
+${ctrLines}
+🏗 Total On Site: ${total}  |  ⏱ ${total*8} Manhours`;
+
       if (existing) {
         existing.dayStaff = dayStaff;
         existing.nightStaff = nightStaff;
         existing.contractorWorkers = contractorWorkers;
         showToast(`Manpower for ${date} updated — ${total} on site (${total*8} manhours).`, 'success');
         pushNotification(`${currentUser?.fullname||'Staff'} updated manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
-        sendTelegram(
-`👷 <b>Manpower Updated</b>
-📅 Date: ${date}
-👤 Updated by: ${currentUser.fullname} (${currentUser.role})
-🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
-👥 Total Workers: ${totalWorkers}
-${ctrLines}
-🏗 Total On Site: ${total}  |  ⏱ ${total*8} Manhours`
-        );
       } else {
         dbState.manpower.push({ id: `mp-${Date.now()}`, date, dayStaff, nightStaff, contractorWorkers });
         showToast(`Manpower logged for ${date} — ${total} on site (${total*8} manhours).`, 'success');
         pushNotification(`${currentUser?.fullname||'Staff'} logged manpower for ${date}: ${totalWorkers} workers, ${totalStaff} staff.`);
-        sendTelegram(
-`👷 <b>Manpower Logged</b>
-📅 Date: ${date}
-👤 Logged by: ${currentUser.fullname} (${currentUser.role})
-🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
-👥 Total Workers: ${totalWorkers}
-${ctrLines}
-🏗 Total On Site: ${total}  |  ⏱ ${total*8} Manhours`
-        );
       }
+
       saveCurrentState();
+      // Show Send to Telegram button with the prepared message
+      const tgBtn = document.getElementById('manpower-tg-btn');
+      if (tgBtn) {
+        tgBtn.classList.remove('hidden');
+        tgBtn.onclick = () => { sendTelegram(tgMsg); showToast('Manpower sent to Telegram.', 'success'); tgBtn.classList.add('hidden'); };
+      }
       // renderLabourHistory will call dispatchEvent which re-fills form from saved data
       renderLabourHistory();
       renderDashboardStats();
@@ -3424,15 +3426,19 @@ ${ctrLines}
       const editTotal = ctrWorkers(contractorWorkers) + dayStaff + nightStaff;
       const editCtrLines = (contractorWorkers || []).filter(c => c.name && c.count > 0)
         .map(c => `  • ${c.name}: ${c.count}`).join('\n') || '  • None';
-      sendTelegram(
+      const editMsg =
 `✏️ <b>Manpower Edited</b>
 📅 Date: ${date}
 👤 Edited by: ${currentUser.fullname} (${currentUser.role})
 🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
 👥 Workers: ${ctrWorkers(contractorWorkers)}
 ${editCtrLines}
-🏗 Total On Site: ${editTotal}  |  ⏱ ${editTotal*8} Manhours`
-      );
+🏗 Total On Site: ${editTotal}  |  ⏱ ${editTotal*8} Manhours`;
+      const tgBtn = document.getElementById('manpower-tg-btn');
+      if (tgBtn) {
+        tgBtn.classList.remove('hidden');
+        tgBtn.onclick = () => { sendTelegram(editMsg); showToast('Manpower sent to Telegram.', 'success'); tgBtn.classList.add('hidden'); };
+      }
     }
 
     function deleteLabourRecord(id) {
@@ -3447,11 +3453,14 @@ ${editCtrLines}
       renderLabourHistory();
       renderDashboardStats();
       showToast('Manpower entry deleted.', 'info');
-      if (delEntry) sendTelegram(
-`🗑 <b>Manpower Entry Deleted</b>
-📅 Date: ${delEntry.date}
-👤 Deleted by: ${currentUser.fullname} (${currentUser.role})`
-      );
+      if (delEntry) {
+        const delMsg = `🗑 <b>Manpower Entry Deleted</b>\n📅 Date: ${delEntry.date}\n👤 Deleted by: ${currentUser.fullname} (${currentUser.role})`;
+        const tgBtn = document.getElementById('manpower-tg-btn');
+        if (tgBtn) {
+          tgBtn.classList.remove('hidden');
+          tgBtn.onclick = () => { sendTelegram(delMsg); showToast('Sent to Telegram.', 'success'); tgBtn.classList.add('hidden'); };
+        }
+      }
     }
 
     // ============================================================
@@ -4828,7 +4837,6 @@ ${editCtrLines}
       closeModal();
       renderPersonnelTable();
       showToast('New user credential profile successfully provisioned.', 'success');
-      sendTelegram(`👤 <b>New User Created</b>\n🆔 Username: ${username}\n👤 Name: ${escapeHtml(name)}\n🎭 Role: ${role}\n🏷 Designation: ${escapeHtml(designation)}\n👤 Created by: ${currentUser.fullname} (Admin)`);
     }
 
     // ADMIN USER PASSWORD / PIN RESET CONTROLLERS
