@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.3</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.4</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -912,6 +912,17 @@ service cloud.firestore {
                 <button onclick="saveTelegramConfig()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5">
                   <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
                 </button>
+              </div>
+            </div>
+
+            <!-- Telegram Alert Toggles -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="bell" class="w-4 h-4 text-blue-400"></i> Telegram Alert Settings
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Switch each alert type on or off. Changes save instantly to Firebase.</p>
+              <div id="tg-alerts-grid" class="space-y-4">
+                <!-- Rendered by renderTelegramAlerts() -->
               </div>
             </div>
 
@@ -1840,6 +1851,7 @@ service cloud.firestore {
       if (!dbState.projectBaseline) dbState.projectBaseline = { manhours: 0, toolbox: 0, attendance: 0, induction: 0, firstAid: 0, penalties: 0 };
       if (!dbState.telegramConfig)  dbState.telegramConfig  = {};
       if (!dbState.imgbbConfig)     dbState.imgbbConfig     = {};
+      if (!dbState.telegramAlerts)  dbState.telegramAlerts  = {};
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -1933,7 +1945,7 @@ service cloud.firestore {
       else if (activeTab === 'reports')   renderObservations();
       else if (activeTab === 'emergency') renderEmergencyGrid();
       else if (activeTab === 'documents') renderDocumentLibrary();
-      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderImgbbAdmin(); initHSEReportInputs(); }
+      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderTelegramAlerts(); renderImgbbAdmin(); initHSEReportInputs(); }
     }
 
     // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
@@ -2730,7 +2742,8 @@ service cloud.firestore {
 👥 TBT Attendance: ${rec.attendance}
 🎓 Inductions: ${rec.inductions}
 🩺 First Aid: ${rec.firstAid}
-⚠️ Penalties/Warnings: ${rec.penalties}`
+⚠️ Penalties/Warnings: ${rec.penalties}`,
+        'safety_activity'
       );
     }
 
@@ -2855,6 +2868,72 @@ service cloud.firestore {
       if (lbl) lbl.innerText = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
     }
 
+    // ============================================================
+    // TELEGRAM ALERT TOGGLE SETTINGS
+    // ============================================================
+    const TG_ALERT_TYPES = [
+      { key: 'permit_submit',    label: 'Permit Submitted',        desc: 'When anyone submits a new permit',            group: 'Permits' },
+      { key: 'permit_review',    label: 'Permit Reviewed',         desc: 'Approved, rejected or returned to contractor', group: 'Permits' },
+      { key: 'permit_close',     label: 'Permit Closed / Cancelled', desc: 'When a permit is closed or cancelled',       group: 'Permits' },
+      { key: 'obs_new',          label: 'New Observation',         desc: 'When an observation is submitted',            group: 'Observations' },
+      { key: 'obs_close',        label: 'Observation Closed',      desc: 'When an observation is marked closed',        group: 'Observations' },
+      { key: 'obs_capa',         label: 'Action Plan Updated',     desc: 'Corrective / preventive action added',        group: 'Observations' },
+      { key: 'obs_delete',       label: 'Observation Deleted',     desc: 'When admin deletes an observation',           group: 'Observations' },
+      { key: 'incident_new',     label: 'New Incident',            desc: 'When a site incident is reported',            group: 'Incidents' },
+      { key: 'incident_resolve', label: 'Incident Resolved',       desc: 'When an incident is marked resolved',         group: 'Incidents' },
+      { key: 'incident_delete',  label: 'Incident Deleted',        desc: 'When admin deletes an incident',              group: 'Incidents' },
+      { key: 'notice_board',     label: 'Notice Board Post',       desc: 'When a new site notice is posted',            group: 'Other' },
+      { key: 'safety_activity',  label: 'Safety Activity Logged',  desc: 'Toolbox talks, inductions, etc.',             group: 'Other' },
+      { key: 'document',         label: 'Document Uploaded',       desc: 'When a document is added to the vault',       group: 'Other' },
+    ];
+
+    function isTgAlertOn(type) {
+      // Default is ON — only off if explicitly set to false
+      return (dbState.telegramAlerts || {})[type] !== false;
+    }
+
+    function toggleTelegramAlert(type) {
+      if (!(currentUser && currentUser.role === 'Admin')) return;
+      dbState.telegramAlerts = dbState.telegramAlerts || {};
+      dbState.telegramAlerts[type] = !isTgAlertOn(type);
+      saveCurrentState();
+      renderTelegramAlerts();
+    }
+
+    function renderTelegramAlerts() {
+      const grid = document.getElementById('tg-alerts-grid');
+      if (!grid) return;
+
+      // Group by category
+      const groups = {};
+      TG_ALERT_TYPES.forEach(t => {
+        if (!groups[t.group]) groups[t.group] = [];
+        groups[t.group].push(t);
+      });
+
+      grid.innerHTML = Object.entries(groups).map(([group, types]) => `
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-construction-orange mb-2">${group}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            ${types.map(t => {
+              const on = isTgAlertOn(t.key);
+              return `<div class="flex items-center justify-between bg-slate-900 border border-construction-border rounded-lg px-3 py-2 gap-2">
+                <div class="min-w-0">
+                  <p class="text-xs font-semibold text-slate-200 truncate">${t.label}</p>
+                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5">${t.desc}</p>
+                </div>
+                <button onclick="toggleTelegramAlert('${t.key}')"
+                  class="shrink-0 px-2.5 py-1 rounded text-[10px] font-bold transition-colors ${on ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-400'}">
+                  ${on ? 'ON' : 'OFF'}
+                </button>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`).join('');
+
+      lucide.createIcons();
+    }
+
     function saveTelegramConfig() {
       if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can save Telegram settings.', 'error'); return; }
       const token   = document.getElementById('tg-field-token').value.trim();
@@ -2938,10 +3017,12 @@ service cloud.firestore {
     // ============================================================
     // TELEGRAM ALERT — sends to personal + optional group, with photos
     // ============================================================
-    function sendTelegram(message, photos = []) {
+    function sendTelegram(message, photos = [], alertType = null) {
       try {
         const cfg = dbState.telegramConfig || {};
         if (!cfg.token || !cfg.chatId) { console.warn('Telegram not configured'); return; }
+        // Check if this alert type is enabled (default ON if not set)
+        if (alertType && !isTgAlertOn(alertType)) return;
         const targets = [cfg.chatId, cfg.groupChatId].filter(Boolean);
         targets.forEach(chatId => {
           fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
@@ -3095,7 +3176,8 @@ service cloud.firestore {
 `📢 <b>Site Notice Board</b>
 👤 Posted by: ${userLabel()}
 🕐 ${new Date().toLocaleString()}${candidate.text ? '\n📝 ' + escapeHtml(candidate.text) : ''}`,
-        candidate.photo && !candidate.photo.startsWith('data:') ? [candidate.photo] : []
+        candidate.photo && !candidate.photo.startsWith('data:') ? [candidate.photo] : [],
+        'notice_board'
       );
     }
 
@@ -3834,7 +3916,10 @@ ${editCtrLines}
 👤 By: ${userLabel()}
 ✅ Corrective: ${h.correctiveAction || '—'}
 🛡 Preventive: ${h.preventiveAction || '—'}
-👷 Responsible: ${h.responsiblePerson || '—'}`
+👷 Responsible: ${h.responsiblePerson || '—'}`,
+        'obs_new',
+        'incident_new',
+        'obs_capa'
       );
     }
 
@@ -3870,7 +3955,8 @@ ${editCtrLines}
 📝 Original: ${escapeHtml((h.description || '').substring(0, 80))}${(h.description||'').length > 80 ? '…' : ''}
 👤 Closed by: ${userLabel()}
 🕐 At: ${new Date().toLocaleString()}${note ? '\n💬 ' + escapeHtml(note) : ''}`,
-        photos
+        photos,
+        'obs_close'
       );
     }
 
@@ -4188,7 +4274,12 @@ ${editCtrLines}
 👷 Contractor: ${escapeHtml(contractor)}
 📍 Location: ${escapeHtml(location)}
 👤 Submitted by: ${userLabel()}
-🕐 Valid: ${validityStart.replace('T',' ')} → ${validityEnd.replace('T',' ')}`
+🕐 Valid: ${validityStart.replace('T',' ')} → ${validityEnd.replace('T',' ')}`,
+        'permit_submit',
+        'obs_delete',
+        'incident_resolve',
+        'incident_delete',
+        'document'
       );
     }
 
@@ -4461,7 +4552,8 @@ ${editCtrLines}
 👷 Contractor: ${permit.contractor}
 📍 Location: ${permit.location}
 👤 Reviewed by: ${userLabel()}
-🕐 Valid: ${permit.validityStart.replace('T',' ')} → ${permit.validityEnd.replace('T',' ')}${comment ? '\n💬 ' + comment : ''}`
+🕐 Valid: ${permit.validityStart.replace('T',' ')} → ${permit.validityEnd.replace('T',' ')}${comment ? '\n💬 ' + comment : ''}`,
+        'permit_review'
       );
       renderPermitsTable();
     }
@@ -4585,7 +4677,8 @@ ${editCtrLines}
 📍 Location: ${p.location}
 👤 By: ${userLabel()}
 🕐 Closed at: ${closeAt.replace('T',' ')}
-💬 ${comment}`
+💬 ${comment}`,
+        'permit_close'
       );
     }
 
