@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.8</span>
+              <span class="text-[10px] text-slate-400 font-mono">v4.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1376,6 +1376,12 @@ service cloud.firestore {
             <p class="text-[9px] text-slate-500 mt-1 italic">Draw your signature using mouse pointer or touch interaction on mobile screens.</p>
           </div>
 
+          <!-- PM note — shown only for Project Manager signing -->
+          <div id="review-pm-note" class="hidden bg-yellow-950/40 border border-yellow-700/40 rounded-lg px-3 py-2 flex items-center gap-2">
+            <i data-lucide="star" class="w-4 h-4 text-yellow-400 shrink-0"></i>
+            <p class="text-[11px] text-yellow-300">You are signing as <strong>Project Manager</strong>. Admin has already approved — your signature adds final PM authorisation. Admin's label will change to "Checked By".</p>
+          </div>
+
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
             <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Apply Signature & Submit</button>
@@ -1433,19 +1439,22 @@ service cloud.firestore {
         </div>
 
         <form id="report-modal-form" onsubmit="event.preventDefault(); submitSafetyObservation();" class="space-y-4 text-xs">
+
+          <!-- COMMON FIELDS -->
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation Date &amp; Time</label>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Date &amp; Time <span class="text-red-400">*</span></label>
             <input id="report-field-date" type="datetime-local" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Location Details</label>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Location <span class="text-red-400">*</span></label>
             <input id="report-field-loc" type="text" required placeholder="e.g. Block B, Crane Yard No 4" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation / Description</label>
-            <textarea id="report-field-desc" required rows="3" placeholder="Describe the unsafe act, condition or accident…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Description <span class="text-red-400">*</span></label>
+            <textarea id="report-field-desc" required rows="3" placeholder="Describe what happened or was observed…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
           </div>
 
+          <!-- OBSERVATION-ONLY: Photos + Action Plan -->
           <div id="obs-photos-wrap">
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Photos (up to 2)</label>
             <div class="grid grid-cols-2 gap-2">
@@ -1476,9 +1485,91 @@ service cloud.firestore {
             </div>
           </div>
 
+          <!-- INCIDENT-ONLY FIELDS -->
+          <div id="inc-fields-wrap" class="hidden space-y-4">
+
+            <div class="border-t border-construction-border pt-3">
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Incident Category <span class="text-red-400">*</span></label>
+              <select id="inc-category" onchange="updateIncidentFields()" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+                <option value="">— Select category —</option>
+                <option value="Near-Miss">Near-Miss</option>
+                <option value="Accident">Accident</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-2">Type of Incident <span class="text-[9px] text-slate-500 normal-case font-normal">(select all that apply)</span></label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center gap-2 bg-slate-900 border border-construction-border rounded-lg px-3 py-2 cursor-pointer hover:border-slate-500">
+                  <input type="checkbox" id="inc-type-injury" class="w-3.5 h-3.5 accent-red-500" onchange="updateIncidentFields()">
+                  <span class="text-[11px] text-slate-300">🤕 Injury / Illness</span>
+                </label>
+                <label class="flex items-center gap-2 bg-slate-900 border border-construction-border rounded-lg px-3 py-2 cursor-pointer hover:border-slate-500">
+                  <input type="checkbox" id="inc-type-property" class="w-3.5 h-3.5 accent-yellow-500" onchange="updateIncidentFields()">
+                  <span class="text-[11px] text-slate-300">🔧 Property &amp; Equipment</span>
+                </label>
+                <label class="flex items-center gap-2 bg-slate-900 border border-construction-border rounded-lg px-3 py-2 cursor-pointer hover:border-slate-500">
+                  <input type="checkbox" id="inc-type-environmental" class="w-3.5 h-3.5 accent-emerald-500">
+                  <span class="text-[11px] text-slate-300">🌿 Environmental Spill</span>
+                </label>
+                <label class="flex items-center gap-2 bg-slate-900 border border-construction-border rounded-lg px-3 py-2 cursor-pointer hover:border-slate-500">
+                  <input type="checkbox" id="inc-type-fire" class="w-3.5 h-3.5 accent-orange-500">
+                  <span class="text-[11px] text-slate-300">🔥 Fire / Explosion</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Injury fields: Accident + Injury/Illness -->
+            <div id="inc-injury-wrap" class="hidden space-y-3 bg-red-950/20 border border-red-900/30 rounded-lg p-3">
+              <p class="text-[10px] font-bold uppercase text-red-400">Injury Details</p>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Affected Person(s)</label>
+                <input id="inc-affected-person" type="text" placeholder="Full name(s) of injured person(s)" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Injury Type</label>
+                  <select id="inc-injury-type" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+                    <option value="None">None</option>
+                    <option value="Laceration">Laceration</option>
+                    <option value="Fracture">Fracture</option>
+                    <option value="Burn">Burn</option>
+                    <option value="Sprain">Sprain</option>
+                    <option value="Contusion">Contusion</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Severity</label>
+                  <select id="inc-severity" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+                    <option value="First Aid Only">First Aid Only</option>
+                    <option value="Medical / Hospital Visit">Medical / Hospital</option>
+                    <option value="Lost Time Injury (LTI)">LTI</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Property damage: Accident + Property/Equipment -->
+            <div id="inc-property-wrap" class="hidden space-y-2 bg-yellow-950/20 border border-yellow-900/30 rounded-lg p-3">
+              <p class="text-[10px] font-bold uppercase text-yellow-400">Property / Equipment Damage</p>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Equipment / Property Description</label>
+                <input id="inc-property-desc" type="text" placeholder="e.g. Breaker Machine, Material Winch, Scaffolding" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              </div>
+            </div>
+
+            <!-- Witnesses — always shown for incidents -->
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Witnesses / Statements</label>
+              <textarea id="inc-witnesses" rows="2" placeholder="Names of witnesses or brief statements…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+            </div>
+
+          </div>
+          <!-- END INCIDENT FIELDS -->
+
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save</button>
+            <button type="submit" id="report-submit-btn" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save</button>
           </div>
         </form>
       </div>
@@ -3813,29 +3904,82 @@ ${editCtrLines}
         }).join('');
       }
 
-      // ---------- Incidents (simple log) ----------
+      // ── INCIDENTS ──────────────────────────────────────────────────────────
       const incidents = dbState.incidents || [];
       if (!incidents.length) {
         incidentsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">All clear. No site incidents reported.</p>';
       } else {
         incidentsList.innerHTML = incidents.map(i => {
           const open = i.status !== 'Closed';
+
+          // Category badge
+          const isNearMiss = i.category === 'Near-Miss';
+          const catBadge = i.category
+            ? (isNearMiss
+              ? '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">⚠️ Near-Miss</span>'
+              : '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">🚨 Accident</span>')
+            : '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-700 text-slate-400">Incident</span>';
+
+          // Status badge
           const statusBadge = open
-            ? '<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Unresolved</span>'
-            : '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Resolved</span>';
+            ? '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-orange-950/60 text-orange-400 border border-orange-800/30">Unresolved</span>'
+            : '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-950/60 text-emerald-400 border border-emerald-800/30">Resolved</span>';
+
+          // Incident type chips
+          let typeChips = '';
+          if (Array.isArray(i.incTypes) && i.incTypes.length) {
+            typeChips = `<div class="flex flex-wrap gap-1 mt-1">
+              ${i.incTypes.map(t => `<span class="px-1.5 py-0.5 bg-slate-800 text-slate-300 text-[9px] rounded border border-slate-700">${t}</span>`).join('')}
+            </div>`;
+          }
+
+          // Injury block
+          let injuryBlock = '';
+          if (i.injuryData) {
+            injuryBlock = `<div class="bg-red-950/20 border border-red-900/30 rounded p-2 text-[10px] space-y-0.5">
+              <p class="text-red-400 font-bold uppercase text-[9px]">Injury Details</p>
+              ${i.injuryData.affectedPerson ? `<p class="text-slate-300">👤 ${escapeHtml(i.injuryData.affectedPerson)}</p>` : ''}
+              <p class="text-slate-400">${escapeHtml(i.injuryData.injuryType || '')} · ${escapeHtml(i.injuryData.severity || '')}</p>
+            </div>`;
+          }
+
+          // Property block
+          let propertyBlock = '';
+          if (i.propertyData?.description) {
+            propertyBlock = `<div class="bg-yellow-950/20 border border-yellow-900/30 rounded p-2 text-[10px]">
+              <p class="text-yellow-400 font-bold uppercase text-[9px]">Equipment / Property Damage</p>
+              <p class="text-slate-300 mt-0.5">🔧 ${escapeHtml(i.propertyData.description)}</p>
+            </div>`;
+          }
+
+          // Witnesses
+          let witnessBlock = '';
+          if (i.witnesses) {
+            witnessBlock = `<p class="text-[10px] text-slate-400 italic">👁 Witnesses: ${escapeHtml(i.witnesses)}</p>`;
+          }
+
           const btns = [];
           if (open && canCloseObservation()) btns.push(`<button onclick="resolveIncident('${i.id}')" class="text-[10px] text-emerald-400 hover:underline border border-emerald-800/30 px-1.5 py-0.5 bg-emerald-950/20 rounded">Resolve</button>`);
-          if (isAdmin) { btns.push(`<button onclick="editIncident('${i.id}')" class="text-[10px] text-slate-300 hover:underline">Edit</button>`); btns.push(`<button onclick="deleteIncident('${i.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>`); }
+          if (isAdmin) {
+            btns.push(`<button onclick="editIncident('${i.id}')" class="text-[10px] text-slate-300 hover:underline">Edit</button>`);
+            btns.push(`<button onclick="deleteIncident('${i.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>`);
+          }
+
           return `
-            <div class="bg-slate-900 border border-construction-border p-3.5 rounded-lg space-y-2 text-left">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(formatObsDate(i.date))}</span>
+            <div class="bg-slate-900 border ${isNearMiss ? 'border-yellow-900/40' : 'border-red-900/30'} p-3.5 rounded-lg space-y-2 text-left">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${catBadge}
                 ${statusBadge}
+                <span class="text-[10px] text-slate-500 font-mono ml-auto">${escapeHtml(formatObsDate(i.date))}</span>
               </div>
               <p class="text-xs font-semibold text-slate-300">${escapeHtml(i.location || '')}</p>
               <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(i.description || '')}</p>
+              ${typeChips}
+              ${injuryBlock}
+              ${propertyBlock}
+              ${witnessBlock}
               <div class="flex items-center justify-between pt-2 border-t border-slate-800/50">
-                <span class="text-[9px] text-slate-500">By: ${escapeHtml(i.reporter || 'Field Team')}</span>
+                <span class="text-[9px] text-slate-500">By: ${escapeHtml(i.reporter || 'Field Team')}${i.reporterRole ? ' · ' + escapeHtml(i.reporterRole) : ''}</span>
                 <div class="flex gap-2 items-center">${btns.join('')}</div>
               </div>
             </div>`;
@@ -3845,33 +3989,69 @@ ${editCtrLines}
       lucide.createIcons();
     }
 
+    // ── Helper: show/hide incident sub-fields based on category + checkboxes ──
+    function updateIncidentFields() {
+      const cat        = (document.getElementById('inc-category')?.value) || '';
+      const isAccident = cat === 'Accident';
+      const injChk     = document.getElementById('inc-type-injury')?.checked;
+      const propChk    = document.getElementById('inc-type-property')?.checked;
+      const injWrap    = document.getElementById('inc-injury-wrap');
+      const propWrap   = document.getElementById('inc-property-wrap');
+      if (injWrap)  injWrap.classList.toggle('hidden',  !(isAccident && injChk));
+      if (propWrap) propWrap.classList.toggle('hidden', !(isAccident && propChk));
+    }
+
     function openReportModal(type) {
       type = (type === 'incident') ? 'incident' : 'observation';
       currentReportType = type;
       editingObservationId = null;
       _obsPhotos = [null, null];
 
+      // ── Reset all common fields ──
       document.getElementById('report-field-date').value = nowLocalInput();
-      document.getElementById('report-field-loc').value = '';
+      document.getElementById('report-field-loc').value  = '';
       document.getElementById('report-field-desc').value = '';
-      document.getElementById('report-photo-1').value = '';
-      document.getElementById('report-photo-2').value = '';
-      ['report-prev-1', 'report-prev-2'].forEach(i => { const el = document.getElementById(i); el.src = ''; el.classList.add('hidden'); });
-      document.getElementById('report-corrective').value = '';
-      document.getElementById('report-preventive').value = '';
+      document.getElementById('report-photo-1').value    = '';
+      document.getElementById('report-photo-2').value    = '';
+      ['report-prev-1','report-prev-2'].forEach(id => {
+        const el = document.getElementById(id); if (el) { el.src = ''; el.classList.add('hidden'); }
+      });
+      document.getElementById('report-corrective').value  = '';
+      document.getElementById('report-preventive').value  = '';
       document.getElementById('report-responsible').value = '';
 
-      const photosWrap = document.getElementById('obs-photos-wrap');
-      const capaWrap = document.getElementById('obs-capa-wrap');
+      // ── Reset incident-only fields ──
+      const incCat = document.getElementById('inc-category');
+      if (incCat) incCat.value = '';
+      ['inc-type-injury','inc-type-property','inc-type-environmental','inc-type-fire'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.checked = false;
+      });
+      const clearV = id => { const el = document.getElementById(id); if (el) el.value = ''; };
+      clearV('inc-affected-person'); clearV('inc-property-desc'); clearV('inc-witnesses');
+      const injType = document.getElementById('inc-injury-type'); if (injType) injType.value = 'None';
+      const sev     = document.getElementById('inc-severity');    if (sev)     sev.value     = 'First Aid Only';
+      document.getElementById('inc-injury-wrap')?.classList.add('hidden');
+      document.getElementById('inc-property-wrap')?.classList.add('hidden');
+
+      const obsPhotosWrap = document.getElementById('obs-photos-wrap');
+      const obsCapaWrap   = document.getElementById('obs-capa-wrap');
+      const incFieldsWrap = document.getElementById('inc-fields-wrap');
+      const submitBtn     = document.getElementById('report-submit-btn');
+
       if (type === 'incident') {
         document.getElementById('report-modal-title').innerText = 'Record Site Incident';
-        photosWrap.classList.add('hidden');
-        capaWrap.classList.add('hidden');
+        obsPhotosWrap.classList.add('hidden');
+        obsCapaWrap.classList.add('hidden');
+        incFieldsWrap.classList.remove('hidden');
+        if (submitBtn) submitBtn.textContent = 'Record Incident';
       } else {
         document.getElementById('report-modal-title').innerText = 'Add Observation';
-        photosWrap.classList.remove('hidden');
-        capaWrap.classList.toggle('hidden', !fillsCapaAtCreate());
+        obsPhotosWrap.classList.remove('hidden');
+        obsCapaWrap.classList.toggle('hidden', !fillsCapaAtCreate());
+        incFieldsWrap.classList.add('hidden');
+        if (submitBtn) submitBtn.textContent = 'Save Observation';
       }
+
       openModal('modal-report');
     }
 
@@ -3902,40 +4082,95 @@ ${editCtrLines}
     }
 
     function submitSafetyObservation() {
-      const date = document.getElementById('report-field-date').value;
-      const location = document.getElementById('report-field-loc').value;
-      const description = document.getElementById('report-field-desc').value;
+      const date        = document.getElementById('report-field-date').value;
+      const location    = document.getElementById('report-field-loc').value.trim();
+      const description = document.getElementById('report-field-desc').value.trim();
 
-      // ---- Incident path ----
+      // ── INCIDENT PATH ──────────────────────────────────────────────────────
       if (currentReportType === 'incident') {
+        const category = document.getElementById('inc-category')?.value || '';
+        if (!category) { showToast('Please select Near-Miss or Accident.', 'error'); return; }
+
+        // Collect incident types
+        const incTypes = [];
+        if (document.getElementById('inc-type-injury')?.checked)       incTypes.push('Injury / Illness');
+        if (document.getElementById('inc-type-property')?.checked)      incTypes.push('Property & Equipment Damage');
+        if (document.getElementById('inc-type-environmental')?.checked) incTypes.push('Environmental Spill');
+        if (document.getElementById('inc-type-fire')?.checked)          incTypes.push('Fire / Explosion');
+
+        const isAccident = category === 'Accident';
+
+        // Injury details (only if Accident + Injury/Illness)
+        let injuryData = null;
+        if (isAccident && incTypes.includes('Injury / Illness')) {
+          injuryData = {
+            affectedPerson: document.getElementById('inc-affected-person')?.value.trim() || '',
+            injuryType:     document.getElementById('inc-injury-type')?.value || 'None',
+            severity:       document.getElementById('inc-severity')?.value    || 'First Aid Only',
+          };
+        }
+
+        // Property damage (only if Accident + Property/Equipment)
+        let propertyData = null;
+        if (isAccident && incTypes.includes('Property & Equipment Damage')) {
+          propertyData = { description: document.getElementById('inc-property-desc')?.value.trim() || '' };
+        }
+
+        const witnesses = document.getElementById('inc-witnesses')?.value.trim() || '';
+
         if (editingObservationId) {
-          const idx = dbState.incidents.findIndex(i => i.id === editingObservationId);
-          if (idx !== -1) { dbState.incidents[idx] = { ...dbState.incidents[idx], date, location, description }; showToast('Incident updated.', 'success'); }
+          const idx = (dbState.incidents || []).findIndex(i => i.id === editingObservationId);
+          if (idx !== -1) {
+            dbState.incidents[idx] = { ...dbState.incidents[idx], date, location, description, category, incTypes, injuryData, propertyData, witnesses };
+            showToast('Incident updated.', 'success');
+          }
         } else {
-          dbState.incidents.unshift({ id: `incident-${Date.now()}`, date, location, description, status: 'Open', reporter: currentUser.fullname, reporterRole: currentUser.designation || currentUser.role, reporterId: currentUser.id });
-          showToast('Incident recorded & queued for audit.', 'error');
-          pushNotification(`Incident logged at ${location}`);
-          sendTelegram(
-`🚨 <b>SITE INCIDENT REPORTED</b>
+          const rec = {
+            id: `incident-${Date.now()}`,
+            date, location, description,
+            category,          // 'Near-Miss' or 'Accident'
+            incTypes,          // array of checked types
+            injuryData,        // null or { affectedPerson, injuryType, severity }
+            propertyData,      // null or { description }
+            witnesses,
+            status:      'Open',
+            reporter:    currentUser.fullname,
+            reporterRole: currentUser.designation || currentUser.role,
+            reporterId:  currentUser.id,
+          };
+          dbState.incidents = dbState.incidents || [];
+          dbState.incidents.unshift(rec);
+
+          // Telegram — detailed summary
+          const categoryEmoji = category === 'Accident' ? '🚨' : '⚠️';
+          let tgMsg = `${categoryEmoji} <b>[${category.toUpperCase()}] SITE INCIDENT</b>
 📍 Location: ${location}
 👤 Reported by: ${userLabel()}
 🕐 Date/Time: ${date.replace('T',' ')}
-📝 ${description}`
-          );
+📝 ${description}`;
+          if (incTypes.length) tgMsg += `\n🏷 Type: ${incTypes.join(', ')}`;
+          if (injuryData)      tgMsg += `\n🤕 Injured: ${injuryData.affectedPerson || '—'} | ${injuryData.injuryType} | ${injuryData.severity}`;
+          if (propertyData?.description) tgMsg += `\n🔧 Equipment: ${propertyData.description}`;
+          if (witnesses)       tgMsg += `\n👁 Witnesses: ${witnesses}`;
+
+          pushNotification(`${category} reported at ${location} by ${currentUser.fullname}`);
+          sendTelegram(tgMsg, [], 'incident_new');
+          showToast(`${category} recorded.`, category === 'Accident' ? 'error' : 'info');
         }
+
         saveCurrentState(); closeModal(); renderObservations();
         return;
       }
 
-      // ---- Observation path ----
+      // ── OBSERVATION PATH ───────────────────────────────────────────────────
       const capaVisible = !document.getElementById('obs-capa-wrap').classList.contains('hidden');
-      const corrective = capaVisible ? document.getElementById('report-corrective').value.trim() : '';
-      const preventive = capaVisible ? document.getElementById('report-preventive').value.trim() : '';
+      const corrective  = capaVisible ? document.getElementById('report-corrective').value.trim() : '';
+      const preventive  = capaVisible ? document.getElementById('report-preventive').value.trim() : '';
       const responsible = capaVisible ? document.getElementById('report-responsible').value.trim() : '';
-      const photos = _obsPhotos.filter(Boolean);
+      const photos      = _obsPhotos.filter(Boolean);
 
       if (editingObservationId) {
-        const idx = dbState.hazards.findIndex(h => h.id === editingObservationId);
+        const idx = (dbState.hazards || []).findIndex(h => h.id === editingObservationId);
         if (idx !== -1) {
           const h = dbState.hazards[idx];
           h.date = date; h.location = location; h.description = description; h.photos = photos;
@@ -3948,7 +4183,8 @@ ${editCtrLines}
       } else {
         const rec = {
           id: `obs-${Date.now()}`, date, location, description, status: 'Open',
-          reporter: currentUser.fullname, reporterRole: currentUser.designation || currentUser.role, reporterId: currentUser.id, photos
+          reporter: currentUser.fullname, reporterRole: currentUser.designation || currentUser.role,
+          reporterId: currentUser.id, photos,
         };
         if (capaVisible && (corrective || preventive || responsible)) {
           rec.correctiveAction = corrective; rec.preventiveAction = preventive; rec.responsiblePerson = responsible;
@@ -3963,11 +4199,11 @@ ${editCtrLines}
 👤 Reported by: ${userLabel()}
 🕐 Date/Time: ${date.replace('T',' ')}
 📝 ${description}${rec.correctiveAction ? '\n✅ Corrective: ' + rec.correctiveAction : ''}${rec.responsiblePerson ? '\n👷 Responsible: ' + rec.responsiblePerson : ''}`,
-          rec.photos || []
+          rec.photos || [], 'obs_new'
         );
       }
 
-      try { if (JSON.stringify(dbState).length > 950000) showToast('Heads up: stored photos are getting large. Consider deleting old ones.', 'info'); } catch (e) {}
+      try { if (JSON.stringify(dbState).length > 950000) showToast('Storage nearly full — consider deleting old photos.', 'info'); } catch(e) {}
       saveCurrentState(); closeModal(); renderObservations();
     }
 
@@ -4058,12 +4294,45 @@ ${editCtrLines}
       editingObservationId = id;
       const t = (dbState.incidents || []).find(i => i.id === id);
       if (!t) return;
-      document.getElementById('report-modal-title').innerText = 'Modify Incident';
+
+      // open modal first so fields exist in DOM
+      document.getElementById('report-modal-title').innerText = 'Edit Incident';
       document.getElementById('report-field-date').value = toInputDate(t.date);
-      document.getElementById('report-field-loc').value = t.location || '';
+      document.getElementById('report-field-loc').value  = t.location || '';
       document.getElementById('report-field-desc').value = t.description || '';
       document.getElementById('obs-photos-wrap').classList.add('hidden');
       document.getElementById('obs-capa-wrap').classList.add('hidden');
+      document.getElementById('inc-fields-wrap').classList.remove('hidden');
+      document.getElementById('report-submit-btn').textContent = 'Update Incident';
+
+      // Pre-fill incident-specific fields
+      const catEl = document.getElementById('inc-category');
+      if (catEl) catEl.value = t.category || '';
+
+      ['inc-type-injury','inc-type-property','inc-type-environmental','inc-type-fire'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.checked = false;
+      });
+      const typeMap = {
+        'Injury / Illness':             'inc-type-injury',
+        'Property & Equipment Damage':  'inc-type-property',
+        'Environmental Spill':          'inc-type-environmental',
+        'Fire / Explosion':             'inc-type-fire',
+      };
+      (t.incTypes || []).forEach(type => {
+        const el = document.getElementById(typeMap[type]); if (el) el.checked = true;
+      });
+
+      if (t.injuryData) {
+        const ap = document.getElementById('inc-affected-person'); if (ap) ap.value = t.injuryData.affectedPerson || '';
+        const it = document.getElementById('inc-injury-type');     if (it) it.value = t.injuryData.injuryType || 'None';
+        const sv = document.getElementById('inc-severity');        if (sv) sv.value = t.injuryData.severity || 'First Aid Only';
+      }
+      if (t.propertyData) {
+        const pd = document.getElementById('inc-property-desc'); if (pd) pd.value = t.propertyData.description || '';
+      }
+      const wt = document.getElementById('inc-witnesses'); if (wt) wt.value = t.witnesses || '';
+
+      updateIncidentFields();
       openModal('modal-report');
     }
     function deleteIncident(id) {
@@ -4401,6 +4670,7 @@ ${editCtrLines}
       const now = new Date();
       const isReviewer = currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove);
       const isContractor = currentUser.role === 'Contractor';
+      const isPMUser   = currentUser.role === 'Staff' && currentUser.isProjectManager;
 
       list.forEach(p => {
         let statusClass = "bg-slate-800 text-slate-300";
@@ -4430,6 +4700,11 @@ ${editCtrLines}
           } else if (isContractor && p.status === 'Returned To Contractor') {
             actions += ` <button onclick="editReturnedPermit('${p.id}')" class="text-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 py-1 px-2.5 rounded border border-yellow-500/20">Edit</button>`;
           }
+        }
+
+        // PM sign button — on Approved permits where admin has signed and PM hasn't yet
+        if (isPMUser && p.status === 'Approved' && p.signatures && p.signatures['Admin'] && !p.signatures['ProjectManager']) {
+          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600 hover:text-white py-1 px-2.5 rounded border border-yellow-600/30">⭐ PM Sign</button>`;
         }
 
         // Close button — reviewer or contractor, only on Approved (especially if expired)
@@ -4574,23 +4849,33 @@ ${editCtrLines}
       const decisionSel = document.getElementById('review-decision');
       decisionSel.innerHTML = '';
 
-      if (currentUser.role === 'Admin') {
+      const isPM = currentUser.role === 'Staff' && currentUser.isProjectManager;
+      const adminHasSigned = !!(currentEditPermit.signatures && currentEditPermit.signatures['Admin']);
+      const pmNote = document.getElementById('review-pm-note');
+
+      if (isPM) {
+        if (!adminHasSigned) {
+          showToast('Admin must sign and approve before Project Manager can add final approval.', 'error');
+          return;
+        }
+        decisionSel.innerHTML = `<option value="Approved">Final Approve (Project Manager)</option>`;
+        if (pmNote) pmNote.classList.remove('hidden');
+      } else if (currentUser.role === 'Admin') {
         decisionSel.innerHTML = `
           <option value="Approved">Final Approve Permit</option>
           <option value="Rejected">Final Reject Permit</option>
-          <option value="Returned To Contractor">Return with Corrections</option>
-        `;
+          <option value="Returned To Contractor">Return with Corrections</option>`;
+        if (pmNote) pmNote.classList.add('hidden');
       } else if (currentUser.role === 'Staff' && currentUser.canApprove) {
         decisionSel.innerHTML = `
           <option value="Pending Admin Approval">Approve (Forward to Admin)</option>
           <option value="Returned To Contractor">Return with Corrections</option>
-          <option value="Rejected">Reject Permit</option>
-        `;
+          <option value="Rejected">Reject Permit</option>`;
+        if (pmNote) pmNote.classList.add('hidden');
       }
 
       document.getElementById('review-comment').value = '';
       openModal('modal-permit-review');
-      
       setTimeout(setupSignaturePad, 200);
     }
 
@@ -4606,6 +4891,9 @@ ${editCtrLines}
       const updatedIdx = dbState.permits.findIndex(p => p.id === currentEditPermit.id);
       const permit = dbState.permits[updatedIdx];
 
+      const isPM = currentUser.role === 'Staff' && currentUser.isProjectManager;
+      const sigKey = isPM ? 'ProjectManager' : currentUser.role;
+
       permit.status = decision;
       permit.comments.push({
         author: currentUser.fullname,
@@ -4615,7 +4903,7 @@ ${editCtrLines}
         timestamp: new Date().toLocaleString()
       });
 
-      permit.signatures[currentUser.role] = {
+      permit.signatures[sigKey] = {
         name: currentUser.fullname,
         designation: currentUser.designation,
         timestamp: new Date().toLocaleString(),
@@ -4940,17 +5228,31 @@ ${sec('Manpower &amp; Exposure Log')}
         </tr>`;
       });
 
-      // Signatures — 4 per row, compact
-      const sigKeys = Object.keys(p.signatures || {});
-      let sigsHtml = sigKeys.map(role => {
-        const s = p.signatures[role];
-        const lbl = role === 'Applicant' ? 'Applicant / Contractor' : (s.designation || role);
-        return `<div style="flex:1;min-width:0;border:1px solid #ccc;padding:5px 4px;text-align:center;border-radius:3px;">
-          <p style="font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;color:#444;">${lbl}</p>
-          <img src="${s.signatureImage}" style="height:28px;display:block;margin:0 auto;max-width:100%;">
-          <p style="font-size:9px;font-weight:bold;margin-top:3px;">${s.name}</p>
-          <p style="font-size:8px;color:#555;">${s.designation || ''}</p>
-          <p style="font-size:7px;color:#888;">${s.timestamp}</p>
+      // Signatures — compact, correct labels, ordered: Applicant → Staff → Admin → PM
+      const sigs = p.signatures || {};
+      const hasPM = !!sigs['ProjectManager'];
+
+      const sigOrder = ['Applicant', 'Staff', 'Admin', 'ProjectManager'];
+      const sigLabel = (role) => {
+        if (role === 'Applicant')      return 'Applicant / Contractor';
+        if (role === 'Staff')          return 'Checked By';
+        if (role === 'Admin')          return hasPM ? 'Checked By' : 'Checked &amp; Approved By';
+        if (role === 'ProjectManager') return 'Approved By';
+        return role;
+      };
+
+      const orderedKeys = [...sigOrder.filter(k => sigs[k]), ...Object.keys(sigs).filter(k => !sigOrder.includes(k))];
+
+      let sigsHtml = orderedKeys.map(role => {
+        const s = sigs[role];
+        const lbl = sigLabel(role);
+        const isPMSig = role === 'ProjectManager';
+        return `<div style="flex:1;min-width:0;border:${isPMSig ? '2px solid #f97316' : '1px solid #ccc'};padding:3px 3px 4px;text-align:center;border-radius:3px;background:${isPMSig ? '#fff8f0' : '#fff'};">
+          <p style="font-size:7.5px;font-weight:800;text-transform:uppercase;margin:0 0 2px;color:${isPMSig ? '#f97316' : '#555'};letter-spacing:0.3px;">${lbl}</p>
+          <img src="${s.signatureImage}" style="height:20px;display:block;margin:0 auto;max-width:100%;">
+          <p style="font-size:8.5px;font-weight:bold;margin:2px 0 0;color:#111;">${s.name}</p>
+          <p style="font-size:7.5px;color:#666;margin:1px 0 0;">${s.designation || ''}</p>
+          <p style="font-size:7px;color:#999;margin:1px 0 0;">${s.timestamp}</p>
         </div>`;
       }).join('');
 
@@ -5164,7 +5466,7 @@ ${body}
       tbody.innerHTML = '';
       
       dbState.users.forEach(u => {
-        const authorityToggle = u.role === 'Staff' 
+        const authorityToggle = u.role === 'Staff'
           ? `
             <div class="space-y-1.5">
               <div class="flex items-center gap-2">
@@ -5175,8 +5477,11 @@ ${body}
                 <span class="text-[10px] font-bold ${u.canManageManpower ? 'text-purple-400' : 'text-slate-400'}">${u.canManageManpower ? 'Manpower Authority' : 'No Manpower Authority'}</span>
                 <button onclick="toggleUserManpowerAuthority('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
               </div>
-            </div>
-          `
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold ${u.isProjectManager ? 'text-yellow-400' : 'text-slate-400'}">${u.isProjectManager ? '⭐ Project Manager' : 'No PM Role'}</span>
+                <button onclick="toggleProjectManager('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
+              </div>
+            </div>`
           : '<span class="text-[10px] text-slate-500">--</span>';
 
         const deleteBtn = !isPrimaryAdmin(u)
@@ -5315,6 +5620,15 @@ ${body}
       saveCurrentState();
       renderPersonnelTable();
       showToast(`Permit review authority updated for: ${user.fullname}`, 'success');
+    }
+
+    function toggleProjectManager(id) {
+      const user = dbState.users.find(u => u.id === id);
+      if (!user || isPrimaryAdmin(user)) return;
+      user.isProjectManager = !user.isProjectManager;
+      saveCurrentState();
+      renderPersonnelTable();
+      showToast(`${user.fullname} ${user.isProjectManager ? 'set as' : 'removed from'} Project Manager (Super Reviewer).`, 'success');
     }
 
     function toggleUserManpowerAuthority(id) {
