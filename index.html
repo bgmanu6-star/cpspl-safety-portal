@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.7.2</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.7.3</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -5304,11 +5304,17 @@ ${sec('Manpower &amp; Exposure Log')}
       // Comments — compact, show designation not role
       let commentsHtml = '';
       if (Array.isArray(p.comments) && p.comments.length) {
+        // For old comments saved before designation was stored, look up the user by name
+        const resolveDesig = (c) => {
+          if (c.designation && c.designation !== c.role) return c.designation;
+          const u = (dbState.users || []).find(u => u.fullname === c.author);
+          return (u && u.designation) ? u.designation : (c.designation || c.role || '');
+        };
         const rows = p.comments.map(c => `
           <tr style="border-bottom:1px solid #eee;">
             <td style="padding:3px 5px;font-size:9px;vertical-align:top;white-space:nowrap;">
               <strong>${c.author||''}</strong>
-              <span style="color:#666;"> · ${c.designation || c.role || ''}</span><br>
+              <span style="color:#666;"> · ${resolveDesig(c)}</span><br>
               <span style="color:#999;font-size:8px;">${c.timestamp||''}</span>
             </td>
             <td style="padding:3px 5px;font-size:10px;vertical-align:top;">${(c.text||'').replace(/</g,'&lt;')}</td>
