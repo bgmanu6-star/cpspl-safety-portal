@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.7.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.8</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -855,7 +855,31 @@ service cloud.firestore {
               </div>
             </div>
 
-            <!-- Telegram Notification Settings -->
+            <!-- Monthly HSE Report -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="file-bar-chart" class="w-4 h-4 text-emerald-400"></i> Monthly HSE Report
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Generate a printable monthly HSE report with daily manpower, safety activity, observations, incidents and permit summary. Prepared under your name as Senior Safety Officer.</p>
+              <div class="flex items-end gap-3 flex-wrap">
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Month</label>
+                  <select id="hse-report-month" class="px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                    <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                    <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                    <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                    <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Year</label>
+                  <input id="hse-report-year" type="number" min="2024" max="2099" value="2026" class="w-24 px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <button onclick="generateHSEReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-5 rounded-lg flex items-center gap-2">
+                  <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Generate PDF
+                </button>
+              </div>
+            </div>
             <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
               <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
                 <i data-lucide="send" class="w-4 h-4 text-blue-400"></i> Telegram Notifications
@@ -1909,7 +1933,7 @@ service cloud.firestore {
       else if (activeTab === 'reports')   renderObservations();
       else if (activeTab === 'emergency') renderEmergencyGrid();
       else if (activeTab === 'documents') renderDocumentLibrary();
-      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderImgbbAdmin(); }
+      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderImgbbAdmin(); initHSEReportInputs(); }
     }
 
     // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
@@ -2165,7 +2189,13 @@ service cloud.firestore {
       return !!currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Staff');
     }
 
-    // Toast Notification generator
+    // Returns "Full Name (Designation)" — used in all alerts and documents
+    function userLabel(u) {
+      u = u || currentUser;
+      if (!u) return 'Unknown';
+      const desig = u.designation || u.role || '';
+      return desig ? `${u.fullname} (${desig})` : u.fullname;
+    }
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -2278,6 +2308,7 @@ service cloud.firestore {
         renderBaselineAdmin();
         renderTelegramAdmin();
         renderImgbbAdmin();
+        initHSEReportInputs();
       }
 
       lucide.createIcons();
@@ -3037,7 +3068,7 @@ service cloud.firestore {
       pushNotification(`New notice board message from ${currentUser.fullname}`);
       sendTelegram(
 `📢 <b>Site Notice Board</b>
-👤 Posted by: ${currentUser.fullname} (${currentUser.role})
+👤 Posted by: ${userLabel()}
 🕐 ${new Date().toLocaleString()}${candidate.text ? '\n📝 ' + escapeHtml(candidate.text) : ''}`,
         candidate.photo && !candidate.photo.startsWith('data:') ? [candidate.photo] : []
       );
@@ -3354,7 +3385,7 @@ service cloud.firestore {
       const tgMsg =
 `👷 <b>Manpower ${existing ? 'Updated' : 'Logged'}</b>
 📅 Date: ${date}
-👤 By: ${currentUser.fullname} (${currentUser.role})
+👤 By: ${userLabel()}
 🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
 👥 Total Workers: ${totalWorkers}
 ${ctrLines}
@@ -3429,7 +3460,7 @@ ${ctrLines}
       const editMsg =
 `✏️ <b>Manpower Edited</b>
 📅 Date: ${date}
-👤 Edited by: ${currentUser.fullname} (${currentUser.role})
+👤 Edited by: ${userLabel()}
 🧑‍💼 Staff — Day: ${dayStaff}  Night: ${nightStaff}
 👥 Workers: ${ctrWorkers(contractorWorkers)}
 ${editCtrLines}
@@ -3454,7 +3485,7 @@ ${editCtrLines}
       renderDashboardStats();
       showToast('Manpower entry deleted.', 'info');
       if (delEntry) {
-        const delMsg = `🗑 <b>Manpower Entry Deleted</b>\n📅 Date: ${delEntry.date}\n👤 Deleted by: ${currentUser.fullname} (${currentUser.role})`;
+        const delMsg = `🗑 <b>Manpower Entry Deleted</b>\n📅 Date: ${delEntry.date}\n👤 Deleted by: ${userLabel()}`;
         const tgBtn = document.getElementById('manpower-tg-btn');
         if (tgBtn) {
           tgBtn.classList.remove('hidden');
@@ -3692,13 +3723,13 @@ ${editCtrLines}
           const idx = dbState.incidents.findIndex(i => i.id === editingObservationId);
           if (idx !== -1) { dbState.incidents[idx] = { ...dbState.incidents[idx], date, location, description }; showToast('Incident updated.', 'success'); }
         } else {
-          dbState.incidents.unshift({ id: `incident-${Date.now()}`, date, location, description, status: 'Open', reporter: currentUser.fullname, reporterRole: currentUser.role, reporterId: currentUser.id });
+          dbState.incidents.unshift({ id: `incident-${Date.now()}`, date, location, description, status: 'Open', reporter: currentUser.fullname, reporterRole: currentUser.designation || currentUser.role, reporterId: currentUser.id });
           showToast('Incident recorded & queued for audit.', 'error');
           pushNotification(`Incident logged at ${location}`);
           sendTelegram(
 `🚨 <b>SITE INCIDENT REPORTED</b>
 📍 Location: ${location}
-👤 Reported by: ${currentUser.fullname} (${currentUser.role})
+👤 Reported by: ${userLabel()}
 🕐 Date/Time: ${date.replace('T',' ')}
 📝 ${description}`
           );
@@ -3728,7 +3759,7 @@ ${editCtrLines}
       } else {
         const rec = {
           id: `obs-${Date.now()}`, date, location, description, status: 'Open',
-          reporter: currentUser.fullname, reporterRole: currentUser.role, reporterId: currentUser.id, photos
+          reporter: currentUser.fullname, reporterRole: currentUser.designation || currentUser.role, reporterId: currentUser.id, photos
         };
         if (capaVisible && (corrective || preventive || responsible)) {
           rec.correctiveAction = corrective; rec.preventiveAction = preventive; rec.responsiblePerson = responsible;
@@ -3740,7 +3771,7 @@ ${editCtrLines}
         sendTelegram(
 `🔶 <b>New Safety Observation</b>
 📍 Location: ${location}
-👤 Reported by: ${currentUser.fullname} (${currentUser.role})
+👤 Reported by: ${userLabel()}
 🕐 Date/Time: ${date.replace('T',' ')}
 📝 ${description}${rec.correctiveAction ? '\n✅ Corrective: ' + rec.correctiveAction : ''}${rec.responsiblePerson ? '\n👷 Responsible: ' + rec.responsiblePerson : ''}`,
           rec.photos || []
@@ -3775,7 +3806,7 @@ ${editCtrLines}
       sendTelegram(
 `📋 <b>Action Plan Updated</b>
 📍 Location: ${escapeHtml(h.location || '')}
-👤 By: ${currentUser.fullname} (${currentUser.role})
+👤 By: ${userLabel()}
 ✅ Corrective: ${h.correctiveAction || '—'}
 🛡 Preventive: ${h.preventiveAction || '—'}
 👷 Responsible: ${h.responsiblePerson || '—'}`
@@ -3812,7 +3843,7 @@ ${editCtrLines}
 `${emoji} <b>Observation ${status}</b>
 📍 Location: ${escapeHtml(h.location || '')}
 📝 Original: ${escapeHtml((h.description || '').substring(0, 80))}${(h.description||'').length > 80 ? '…' : ''}
-👤 Closed by: ${currentUser.fullname} (${currentUser.role})
+👤 Closed by: ${userLabel()}
 🕐 At: ${new Date().toLocaleString()}${note ? '\n💬 ' + escapeHtml(note) : ''}`,
         photos
       );
@@ -3856,7 +3887,7 @@ ${editCtrLines}
       if (i) i.status = 'Closed';
       saveCurrentState(); renderObservations();
       showToast('Incident marked resolved.', 'success');
-      if (i) sendTelegram(`✅ <b>Incident Resolved</b>\n📍 Location: ${escapeHtml(i.location || '')}\n📝 ${escapeHtml((i.description || '').substring(0, 80))}\n👤 Resolved by: ${currentUser.fullname} (${currentUser.role})`);
+      if (i) sendTelegram(`✅ <b>Incident Resolved</b>\n📍 Location: ${escapeHtml(i.location || '')}\n📝 ${escapeHtml((i.description || '').substring(0, 80))}\n👤 Resolved by: ${userLabel()}`);
     }
 
     // DOCUMENT LIBRARY LOGICS
@@ -3904,7 +3935,7 @@ ${editCtrLines}
       closeModal();
       renderDocumentLibrary();
       showToast('Document securely uploaded to compliance vault.', 'success');
-      sendTelegram(`📄 <b>Document Uploaded</b>\n📁 Title: ${escapeHtml(title)}\n🗂 Category: ${escapeHtml(cat)}\n📎 File: ${escapeHtml(file.name)}\n👤 Uploaded by: ${currentUser.fullname} (${currentUser.role})`);
+      sendTelegram(`📄 <b>Document Uploaded</b>\n📁 Title: ${escapeHtml(title)}\n🗂 Category: ${escapeHtml(cat)}\n📎 File: ${escapeHtml(file.name)}\n👤 Uploaded by: ${userLabel()}`);
     }
 
     function downloadMockPdf(title) {
@@ -4131,7 +4162,7 @@ ${editCtrLines}
 🏗 Type: ${selectedPermitType.toUpperCase()}
 👷 Contractor: ${escapeHtml(contractor)}
 📍 Location: ${escapeHtml(location)}
-👤 Submitted by: ${currentUser.fullname} (${currentUser.role})
+👤 Submitted by: ${userLabel()}
 🕐 Valid: ${validityStart.replace('T',' ')} → ${validityEnd.replace('T',' ')}`
       );
     }
@@ -4403,7 +4434,7 @@ ${editCtrLines}
 📋 Permit No: ${permit.permitNo} (${permit.type})
 👷 Contractor: ${permit.contractor}
 📍 Location: ${permit.location}
-👤 Reviewed by: ${currentUser.fullname} (${currentUser.role})
+👤 Reviewed by: ${userLabel()}
 🕐 Valid: ${permit.validityStart.replace('T',' ')} → ${permit.validityEnd.replace('T',' ')}${comment ? '\n💬 ' + comment : ''}`
       );
       renderPermitsTable();
@@ -4525,7 +4556,7 @@ ${editCtrLines}
 📋 Permit No: ${p.permitNo} (${p.type})
 👷 Contractor: ${p.contractor}
 📍 Location: ${p.location}
-👤 By: ${currentUser.fullname} (${currentUser.role})
+👤 By: ${userLabel()}
 🕐 Closed at: ${closeAt.replace('T',' ')}
 💬 ${comment}`
       );
@@ -4542,6 +4573,207 @@ ${editCtrLines}
       });
       return expired.length;
     }
+    // ============================================================
+    // MONTHLY HSE REPORT GENERATOR
+    // ============================================================
+    function initHSEReportInputs() {
+      const now = new Date();
+      const mel = document.getElementById('hse-report-month');
+      const yel = document.getElementById('hse-report-year');
+      if (mel) mel.value = now.getMonth() + 1;
+      if (yel) yel.value = now.getFullYear();
+    }
+
+    function generateHSEReport() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can generate reports.', 'error'); return; }
+      const month  = parseInt(document.getElementById('hse-report-month').value);
+      const year   = parseInt(document.getElementById('hse-report-year').value);
+      if (!month || !year) { showToast('Select month and year.', 'error'); return; }
+
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const monthName  = monthNames[month - 1];
+      const monthPfx   = `${year}-${String(month).padStart(2,'0')}`;
+
+      // Manpower
+      const mpMap = {};
+      (dbState.manpower || []).filter(e => (e.date||'').startsWith(monthPfx)).forEach(e => { mpMap[e.date] = e; });
+
+      // Safety metrics
+      const smTotals = (dbState.safetyMetrics || []).filter(m => (m.date||'').startsWith(monthPfx))
+        .reduce((a,m) => ({ toolbox: a.toolbox+(m.toolboxTalks||0), attendance: a.attendance+(m.attendance||0),
+          induction: a.induction+(m.inductions||0), firstAid: a.firstAid+(m.firstAid||0), penalties: a.penalties+(m.penalties||0) }),
+          { toolbox:0, attendance:0, induction:0, firstAid:0, penalties:0 });
+
+      // Observations
+      const allObs   = dbState.hazards || [];
+      const obsRaised = allObs.filter(h => (h.date||'').startsWith(monthPfx)).length;
+      const obsClosed = allObs.filter(h => (h.date||'').startsWith(monthPfx) && h.status === 'Closed').length;
+      const obsOpen   = allObs.filter(h => (h.status||'') !== 'Closed').length;
+
+      // Incidents this month
+      const incidentCount = (dbState.incidents||[]).filter(i => (i.date||'').startsWith(monthPfx)).length;
+
+      // Build daily rows
+      const days = new Date(year, month, 0).getDate();
+      let cumHours = 0;
+      const rows = [];
+      for (let d = 1; d <= days; d++) {
+        const key    = `${monthPfx}-${String(d).padStart(2,'0')}`;
+        const entry  = mpMap[key];
+        const label  = `${String(d).padStart(2,'0')}-${String(month).padStart(2,'0')}-${String(year).slice(2)}`;
+        if (entry) {
+          const wkr = ctrWorkers(entry.contractorWorkers);
+          const stf = (entry.dayStaff||0) + (entry.nightStaff||0);
+          const md  = wkr + stf;
+          const mh  = md * 8;
+          cumHours += mh;
+          rows.push({ label, wkr, stf, md, mh, cum: cumHours, holiday: false });
+        } else {
+          rows.push({ label, wkr:0, stf:0, md:0, mh:0, cum: cumHours, holiday: true });
+        }
+      }
+      const totMd = rows.reduce((s,r) => s+r.md, 0);
+      const totMh = rows.reduce((s,r) => s+r.mh, 0);
+
+      // Split into two halves for two-column table
+      const mid = Math.ceil(rows.length / 2);
+      const L = rows.slice(0, mid);
+      const R = rows.slice(mid);
+
+      const trStyle = `style="border-bottom:1px solid #ddd;"`;
+      const tdStyle = `style="padding:4px 6px; font-size:10px; text-align:center;"`;
+      const tdDate  = `style="padding:4px 6px; font-size:10px; text-align:left; font-weight:600;"`;
+
+      const makeRow = (r) => r ? (r.holiday
+        ? `<tr ${trStyle}><td ${tdDate}>${r.label}</td><td colspan="5" style="padding:4px 6px;font-size:9px;color:#aaa;text-align:center;font-style:italic;">Holiday / No Work</td></tr>`
+        : `<tr ${trStyle}><td ${tdDate}>${r.label}</td><td ${tdStyle}>${r.wkr}</td><td ${tdStyle}>${r.stf}</td><td ${tdStyle}>${r.md}</td><td ${tdStyle}>${r.mh}</td><td ${tdStyle}>${r.cum.toLocaleString()}</td></tr>`)
+        : '<tr><td colspan="6"></td></tr>';
+
+      const thStyle = `style="padding:5px 6px; font-size:9px; font-weight:700; text-transform:uppercase; background:#1e293b; color:#fff; text-align:center;"`;
+      const thDate  = `style="padding:5px 6px; font-size:9px; font-weight:700; text-transform:uppercase; background:#1e293b; color:#fff; text-align:left;"`;
+
+      const colHeader = () => `<thead><tr>
+        <th ${thDate}>Date</th><th ${thStyle}>WKR</th><th ${thStyle}>STF</th>
+        <th ${thStyle}>Mandays</th><th ${thStyle}>Manhours</th><th ${thStyle}>Cum. Hours</th>
+      </tr></thead>`;
+
+      // Logo as data URL attempt — use chettinad-logo.png path
+      const preparedBy = `${currentUser.fullname} (Senior Safety Officer)`;
+
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>HSE Monthly Report — ${monthName} ${year}</title>
+<style>
+  @page { size: A4 portrait; margin: 15mm 12mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  body { background: #fff; color: #111; font-size: 11px; }
+  .page { max-width: 780px; margin: 0 auto; padding: 10px; }
+
+  /* HEADER */
+  .report-header { display:flex; align-items:center; justify-content:space-between; background:#0f172a; color:#fff; padding:14px 18px; border-radius:6px; margin-bottom:14px; }
+  .report-header .title-block h1 { font-size:16px; font-weight:900; letter-spacing:1px; text-transform:uppercase; color:#f97316; }
+  .report-header .title-block p { font-size:10px; color:#94a3b8; margin-top:3px; }
+  .report-header img { height:44px; width:auto; background:#fff; padding:4px 6px; border-radius:4px; }
+
+  /* SECTION HEADINGS */
+  .section-title { background:#0f172a; color:#fff; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; padding:6px 12px; border-radius:4px; margin:12px 0 8px; }
+
+  /* KPI CARDS */
+  .kpi-grid { display:grid; gap:8px; margin-bottom:10px; }
+  .kpi-3 { grid-template-columns: repeat(3,1fr); }
+  .kpi-6 { grid-template-columns: repeat(6,1fr); }
+  .kpi-card { border:1px solid #e2e8f0; border-radius:6px; padding:10px 8px; text-align:center; }
+  .kpi-card .num { font-size:26px; font-weight:900; color:#0f172a; line-height:1; }
+  .kpi-card .lbl { font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin-top:5px; }
+  .kpi-card.orange .num { color:#f97316; }
+  .kpi-card.green .num  { color:#16a34a; }
+  .kpi-card.red .num    { color:#dc2626; }
+  .kpi-card.blue .num   { color:#2563eb; }
+  .kpi-card.amber .num  { color:#d97706; }
+
+  /* MANPOWER TABLE */
+  .mp-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .mp-table { width:100%; border-collapse:collapse; border:1px solid #e2e8f0; border-radius:4px; overflow:hidden; }
+
+  /* TOTALS BAR */
+  .totals-bar { background:#0f172a; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:8px 14px; border-radius:4px; margin-top:10px; font-size:11px; }
+  .totals-bar span { font-weight:700; color:#f97316; }
+
+  /* FOOTER */
+  .report-footer { display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:10px; border-top:2px solid #0f172a; font-size:10px; color:#555; }
+  .report-footer strong { color:#0f172a; }
+
+  @media print {
+    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .no-print { display:none; }
+  }
+<\/style>
+<\/head><body><div class="page">
+
+  <!-- PRINT BUTTON -->
+  <div class="no-print" style="text-align:right; margin-bottom:8px;">
+    <button onclick="window.print()" style="background:#f97316;color:#fff;border:none;padding:8px 18px;border-radius:5px;font-weight:700;cursor:pointer;font-size:12px;">🖨 Print / Save PDF</button>
+  </div>
+
+  <!-- HEADER -->
+  <div class="report-header">
+    <div class="title-block">
+      <h1>HSE Monthly Report</h1>
+      <p>CTO Chennai &nbsp;•&nbsp; ${monthName.toUpperCase()} ${year} &nbsp;•&nbsp; Project : CTO, Chennai</p>
+      <p style="margin-top:4px; font-size:9px; color:#64748b;">Chettinad Products and Services Pvt. Ltd.</p>
+    </div>
+    <img src="chettinad-logo.png" alt="Chettinad">
+  </div>
+
+  <!-- SAFETY PERFORMANCE INDICATORS -->
+  <div class="section-title">Safety Performance Indicators</div>
+  <div class="kpi-grid kpi-3">
+    <div class="kpi-card red"><div class="num">${incidentCount}</div><div class="lbl">Near Miss / Incidents</div></div>
+    <div class="kpi-card amber"><div class="num">${smTotals.penalties}</div><div class="lbl">Warnings / Penalties</div></div>
+    <div class="kpi-card blue"><div class="num">${smTotals.firstAid}</div><div class="lbl">First Aid Cases</div></div>
+  </div>
+
+  <!-- HSE ACTIVITIES & OBSERVATIONS -->
+  <div class="section-title">HSE Activities &amp; Observations</div>
+  <div class="kpi-grid kpi-6">
+    <div class="kpi-card orange"><div class="num">${smTotals.induction}</div><div class="lbl">Inductions</div></div>
+    <div class="kpi-card"><div class="num">${smTotals.toolbox}</div><div class="lbl">TBTs Held</div></div>
+    <div class="kpi-card"><div class="num">${smTotals.attendance}</div><div class="lbl">TBT Attend.</div></div>
+    <div class="kpi-card blue"><div class="num">${obsRaised}</div><div class="lbl">Obs Raised</div></div>
+    <div class="kpi-card green"><div class="num">${obsClosed}</div><div class="lbl">Obs Closed</div></div>
+    <div class="kpi-card amber"><div class="num">${obsOpen}</div><div class="lbl">Obs Open</div></div>
+  </div>
+
+  <!-- MANPOWER & EXPOSURE LOG -->
+  <div class="section-title">Manpower &amp; Exposure Log</div>
+  <div class="mp-grid">
+    <table class="mp-table">${colHeader()}<tbody>${L.map(makeRow).join('')}</tbody></table>
+    <table class="mp-table">${colHeader()}<tbody>${R.map(makeRow).join('')}</tbody></table>
+  </div>
+
+  <!-- TOTALS BAR -->
+  <div class="totals-bar">
+    <div>Month-End Cumulative Totals</div>
+    <div>Total Mandays: <span>${totMd.toLocaleString()}</span> &nbsp;&nbsp; Total Manhours: <span>${totMh.toLocaleString()}</span></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="report-footer">
+    <div>Report Status: <strong>Final</strong></div>
+    <div>Prepared By: <strong>${preparedBy}</strong></div>
+    <div>Date: <strong>${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</strong></div>
+  </div>
+
+</div><\/body><\/html>`;
+
+      const win = window.open('', '_blank');
+      if (!win) { showToast('Allow pop-ups for this site to generate the report.', 'error'); return; }
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      setTimeout(() => win.print(), 900);
+    }
+
     function previewPermit(id) {
       const p = dbState.permits.find(p => p.id === id);
       if (!p) return;
@@ -4655,7 +4887,7 @@ ${editCtrLines}
               </div>
               <div>
                 <h2 style="font-size: 14px; font-weight: 800; margin: 0; color: #111;">Chettinad Products & Services Pvt. Ltd.</h2>
-                <p style="font-size: 10px; margin: 2px 0 0; color: #555;">Chennai Operations Office -- CTO Safety Node</p>
+                <p style="font-size: 10px; margin: 2px 0 0; color: #555;">Project : CTO, Chennai</p>
               </div>
             </div>
             <div style="text-align: right;">
