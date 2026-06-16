@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.2</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.3</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -4617,6 +4617,11 @@ ${editCtrLines}
       const year  = parseInt(document.getElementById('hse-report-year').value);
       if (!month || !year) { showToast('Select month and year.', 'error'); return; }
 
+      // Open window BEFORE any await — keeps iOS Safari user gesture chain intact, no pop-up block
+      const win = window.open('', '_blank');
+      if (!win) { showToast('Pop-ups are blocked. Please allow pop-ups in Settings \u2192 Safari \u2192 Block Pop-ups and try again.', 'error'); return; }
+      win.document.write('<html><body style="font-family:Arial;padding:30px;color:#555;"><p>\u23F3 Building HSE report\u2026</p></body></html>');
+
       showToast('Building report\u2026', 'info');
 
       const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -4736,15 +4741,11 @@ ${sec('Manpower &amp; Exposure Log')}
 </div>
 </body></html>`;
 
-      const blob = new Blob([fullHTML], { type: 'text/html; charset=utf-8' });
-      const burl = URL.createObjectURL(blob);
-      const win  = window.open(burl, '_blank');
-      setTimeout(() => URL.revokeObjectURL(burl), 120000);
-      if (!win) {
-        showToast('Please allow pop-ups for this site and try again.', 'error');
-      } else {
-        showToast('Report ready \u2014 tap the orange Print button to save as PDF.', 'success');
-      }
+      // Write final content into the already-open window (opened before await above)
+      win.document.open();
+      win.document.write(fullHTML);
+      win.document.close();
+      showToast('Report ready \u2014 tap the orange Print button to save as PDF.', 'success');
     }
 
     function previewPermit(id) {
@@ -4930,7 +4931,12 @@ ${sec('Manpower &amp; Exposure Log')}
       const p = dbState.permits.find(x => x.id === id);
       if (!p) return;
 
-      // Embed logo as base64
+      // Open window FIRST (synchronous user gesture — Safari allows it without pop-up permission)
+      const win = window.open('', '_blank');
+      if (!win) { showToast('Pop-ups are blocked. Please allow pop-ups in Settings → Safari → Block Pop-ups and try again.', 'error'); return; }
+      win.document.write('<html><body style="font-family:Arial;padding:30px;color:#555;"><p>⏳ Preparing permit PDF…</p></body></html>');
+
+      // Embed logo as base64 AFTER window is already open
       const logoSrc = await new Promise(resolve => {
         const img = new Image();
         img.onload = () => {
@@ -4949,7 +4955,6 @@ ${sec('Manpower &amp; Exposure Log')}
       const preview = document.getElementById('print-area');
       let body = preview ? preview.innerHTML : '';
       if (logoSrc) body = body.replace(/src="chettinad-logo\.png[^"]*"/g, `src="${logoSrc}"`);
-      // Remove the no-print buttons div
       body = body.replace(/<div class="no-print"[\s\S]*?<\/div>/, '');
 
       const fullHTML = `<!DOCTYPE html>
@@ -4966,11 +4971,10 @@ ${sec('Manpower &amp; Exposure Log')}
 ${body}
 </body></html>`;
 
-      const blob = new Blob([fullHTML], { type: 'text/html; charset=utf-8' });
-      const url  = URL.createObjectURL(blob);
-      const win  = window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 120000);
-      if (!win) showToast('Allow pop-ups for this site to print.', 'error');
+      // Write final content into the already-open window
+      win.document.open();
+      win.document.write(fullHTML);
+      win.document.close();
     }
 
 
