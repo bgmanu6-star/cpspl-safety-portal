@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.7</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.8</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -473,9 +473,15 @@ service cloud.firestore {
                   </div>
                   <p class="text-3xl font-extrabold text-blue-400 leading-none"><span id="sm-today-toolbox">0</span></p>
                   <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-toolbox" class="text-sm font-extrabold text-slate-200">0</span>
+                  <div class="mt-2 pt-2 border-t border-slate-800 space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Mth</span>
+                      <span id="sm-month-toolbox" class="text-sm font-extrabold text-slate-200">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Total</span>
+                      <span id="sm-total-toolbox" class="text-sm font-extrabold text-blue-300/70">0</span>
+                    </div>
                   </div>
                 </div>
 
@@ -489,9 +495,15 @@ service cloud.firestore {
                   </div>
                   <p class="text-3xl font-extrabold text-purple-400 leading-none"><span id="sm-today-attendance">0</span></p>
                   <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-attendance" class="text-sm font-extrabold text-slate-200">0</span>
+                  <div class="mt-2 pt-2 border-t border-slate-800 space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Mth</span>
+                      <span id="sm-month-attendance" class="text-sm font-extrabold text-slate-200">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Total</span>
+                      <span id="sm-total-attendance" class="text-sm font-extrabold text-purple-300/70">0</span>
+                    </div>
                   </div>
                 </div>
 
@@ -505,9 +517,15 @@ service cloud.firestore {
                   </div>
                   <p class="text-3xl font-extrabold text-construction-green leading-none"><span id="sm-today-induction">0</span></p>
                   <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-induction" class="text-sm font-extrabold text-slate-200">0</span>
+                  <div class="mt-2 pt-2 border-t border-slate-800 space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Mth</span>
+                      <span id="sm-month-induction" class="text-sm font-extrabold text-slate-200">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Total</span>
+                      <span id="sm-total-induction" class="text-sm font-extrabold text-construction-green/60">0</span>
+                    </div>
                   </div>
                 </div>
 
@@ -521,9 +539,15 @@ service cloud.firestore {
                   </div>
                   <p class="text-3xl font-extrabold text-emerald-400 leading-none"><span id="sm-today-firstaid">0</span></p>
                   <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-firstaid" class="text-sm font-extrabold text-slate-200">0</span>
+                  <div class="mt-2 pt-2 border-t border-slate-800 space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Mth</span>
+                      <span id="sm-month-firstaid" class="text-sm font-extrabold text-slate-200">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Total</span>
+                      <span id="sm-total-firstaid" class="text-sm font-extrabold text-emerald-300/70">0</span>
+                    </div>
                   </div>
                 </div>
 
@@ -537,9 +561,15 @@ service cloud.firestore {
                   </div>
                   <p class="text-3xl font-extrabold text-red-400 leading-none"><span id="sm-today-penalty">0</span></p>
                   <p class="text-[9px] text-slate-500 mt-0.5">Today</p>
-                  <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500">This Month</span>
-                    <span id="sm-month-penalty" class="text-sm font-extrabold text-red-300">0</span>
+                  <div class="mt-2 pt-2 border-t border-slate-800 space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Mth</span>
+                      <span id="sm-month-penalty" class="text-sm font-extrabold text-red-300">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[9px] text-slate-500">Total</span>
+                      <span id="sm-total-penalty" class="text-sm font-extrabold text-red-300/60">0</span>
+                    </div>
                   </div>
                 </div>
 
@@ -2876,20 +2906,37 @@ service cloud.firestore {
       const bl = dbState.projectBaseline || {};
       const today = todayKey();
       const month = today.slice(0, 7);
+
       const sum = (filterFn) => metrics.reduce((acc, m) => {
         if (!filterFn(m)) return acc;
-        acc.toolbox += m.toolboxTalks || 0; acc.attendance += m.attendance || 0;
-        acc.induction += m.inductions || 0; acc.firstaid += m.firstAid || 0; acc.penalty += m.penalties || 0;
+        acc.toolbox    += m.toolboxTalks || 0;
+        acc.attendance += m.attendance   || 0;
+        acc.induction  += m.inductions   || 0;
+        acc.firstaid   += m.firstAid     || 0;
+        acc.penalty    += m.penalties    || 0;
         return acc;
-      }, { toolbox: 0, attendance: 0, induction: 0, firstaid: 0, penalty: 0 });
-      const t = sum(m => (m.date || '') === today);
-      const mo = sum(m => (m.date || '').slice(0, 7) === month);
+      }, { toolbox:0, attendance:0, induction:0, firstaid:0, penalty:0 });
+
+      const t  = sum(m => (m.date||'') === today);
+      const mo = sum(m => (m.date||'').slice(0,7) === month);
+      const all = sum(() => true);
+
+      // Project totals = all recorded + baseline
+      const proj = {
+        toolbox:    all.toolbox    + (bl.toolbox    || 0),
+        attendance: all.attendance + (bl.attendance || 0),
+        induction:  all.induction  + (bl.induction  || 0),
+        firstaid:   all.firstaid   + (bl.firstAid   || 0),
+        penalty:    all.penalty    + (bl.penalties   || 0),
+      };
+
       const setT = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
-      setT('sm-today-toolbox', t.toolbox);     setT('sm-month-toolbox', mo.toolbox);
-      setT('sm-today-attendance', t.attendance); setT('sm-month-attendance', mo.attendance);
-      setT('sm-today-induction', t.induction);  setT('sm-month-induction', mo.induction);
-      setT('sm-today-firstaid', t.firstaid);    setT('sm-month-firstaid', mo.firstaid);
-      setT('sm-today-penalty', t.penalty);      setT('sm-month-penalty', mo.penalty);
+      setT('sm-today-toolbox',    t.toolbox);      setT('sm-month-toolbox',    mo.toolbox);     setT('sm-total-toolbox',    proj.toolbox);
+      setT('sm-today-attendance', t.attendance);   setT('sm-month-attendance', mo.attendance);  setT('sm-total-attendance', proj.attendance);
+      setT('sm-today-induction',  t.induction);    setT('sm-month-induction',  mo.induction);   setT('sm-total-induction',  proj.induction);
+      setT('sm-today-firstaid',   t.firstaid);     setT('sm-month-firstaid',   mo.firstaid);    setT('sm-total-firstaid',   proj.firstaid);
+      setT('sm-today-penalty',    t.penalty);      setT('sm-month-penalty',    mo.penalty);     setT('sm-total-penalty',    proj.penalty);
+
       const lbl = document.getElementById('safety-activity-month-label');
       if (lbl) lbl.innerText = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
     }
