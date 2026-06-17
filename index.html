@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.7.5</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.8.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1711,10 +1711,18 @@ service cloud.firestore {
           </div>
           <div>
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Role Type</label>
-            <select id="user-new-role" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            <select id="user-new-role" required onchange="toggleContractorCompanyField('user-new-contractor-wrap', this.value)" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
               <option value="Staff">Staff</option>
               <option value="Contractor">Contractor</option>
             </select>
+          </div>
+          <!-- Contractor company — shown only when role = Contractor -->
+          <div id="user-new-contractor-wrap" class="hidden">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contractor Company <span class="text-red-400">*</span></label>
+            <select id="user-new-contractor-id" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <option value="">— Select company —</option>
+            </select>
+            <p class="text-[9px] text-slate-500 mt-1">This user will only see their own company's manpower data.</p>
           </div>
           <div>
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Designation</label>
@@ -3562,6 +3570,8 @@ service cloud.firestore {
         return;
       }
 
+      const isContractor = currentUser && currentUser.role === 'Contractor';
+      const myContractorId = isContractor ? (currentUser.contractorId || '') : null;
       const contractors = dbState.contractors || [];
       const isAdmin = currentUser && currentUser.role === 'Admin';
 
@@ -3572,8 +3582,51 @@ service cloud.firestore {
         const manpower = workers + staff;
         const manhours = manpower * 8;
 
-        // Contractor rows
         let ctrRows = '';
+
+        if (isContractor) {
+          // Contractor sees ONLY their own company row
+          const myCw = cws.find(cw => cw.contractorId === myContractorId);
+          const myDW = myCw ? (parseInt(myCw.dayWorkers)||0) : 0;
+          const myNW = myCw ? (parseInt(myCw.nightWorkers)||0) : 0;
+          const myTotal = myDW + myNW;
+          const myName = getContractorName(myContractorId);
+
+          if (myTotal === 0 && !myCw) return; // skip dates where they have no entry
+
+          ctrRows = `<tr>
+            <td class="px-3 py-1.5 text-slate-300 text-[11px] font-semibold text-amber-400">${myName} (You)</td>
+            <td class="px-3 py-1.5 text-center text-amber-400 text-[11px] font-semibold">${myDW}</td>
+            <td class="px-3 py-1.5 text-center text-indigo-400 text-[11px] font-semibold">${myNW}</td>
+            <td class="px-3 py-1.5 text-center text-construction-orange text-[11px] font-bold">${myTotal}</td>
+          </tr>`;
+
+          container.insertAdjacentHTML('beforeend', `
+            <div class="bg-slate-900 border border-construction-border rounded-lg overflow-hidden">
+              <div class="flex items-center justify-between px-4 py-2.5 border-b border-construction-border bg-slate-800/60">
+                <span class="text-xs font-bold text-slate-200">${entry.date}</span>
+                <div class="flex items-center gap-4 text-[10px]">
+                  <span class="text-amber-400 font-bold">Your workers: ${myTotal}</span>
+                  <span class="text-purple-400 font-bold">Site total: ${manpower} on site</span>
+                </div>
+              </div>
+              <table class="w-full border-collapse">
+                <thead><tr class="bg-slate-800/30 text-slate-500 uppercase text-[9px] tracking-wider">
+                  <th class="px-3 py-1.5 text-left">Your Company</th>
+                  <th class="px-3 py-1.5 text-center">Day</th>
+                  <th class="px-3 py-1.5 text-center">Night</th>
+                  <th class="px-3 py-1.5 text-center">Total</th>
+                </tr></thead>
+                <tbody class="divide-y divide-slate-800">${ctrRows}</tbody>
+              </table>
+              <div class="px-3 py-2 border-t border-construction-border bg-slate-800/20 text-[10px] text-slate-400">
+                <span class="text-blue-400 font-semibold">Total site strength: ${manpower} people · ${manhours} manhours</span>
+              </div>
+            </div>`);
+          return;
+        }
+
+        // Admin / Staff view — full breakdown
         if (cws.length === 0) {
           ctrRows = '<tr><td colspan="4" class="px-3 py-2 text-slate-500 italic text-[10px]">No contractor data</td></tr>';
         } else {
@@ -5497,6 +5550,10 @@ ${sec('Manpower &amp; Exposure Log')}
             </div>`
           : '<span class="text-[10px] text-slate-500">--</span>';
 
+        const contractorBadge = u.role === 'Contractor' && u.contractorId
+          ? `<span class="text-[9px] text-amber-400 font-semibold">🏗 ${getContractorName(u.contractorId)}</span>`
+          : '';
+
         const deleteBtn = !isPrimaryAdmin(u)
           ? `<button onclick="deleteUser('${u.id}')" class="text-xs text-red-400 hover:underline">Delete</button>`
           : '<span class="text-[10px] text-slate-500 font-bold text-slate-400">System Lock</span>';
@@ -5510,6 +5567,7 @@ ${sec('Manpower &amp; Exposure Log')}
             <td class="p-3">
               <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${u.role === 'Admin' ? 'bg-construction-orange/20 text-construction-orange' : u.role === 'Staff' ? 'bg-blue-950 text-blue-400' : 'bg-slate-800 text-slate-400'}">${u.role}</span>
               <p class="text-[10px] text-slate-400 mt-0.5 text-left">${u.designation}</p>
+              ${contractorBadge ? `<p class="mt-0.5">${contractorBadge}</p>` : ''}
             </td>
             <td class="p-3 font-mono text-xs text-slate-300">${u.phone}</td>
             <td class="p-3">${authorityToggle}</td>
@@ -5525,12 +5583,29 @@ ${sec('Manpower &amp; Exposure Log')}
       });
     }
 
+    function toggleContractorCompanyField(wrapId, role) {
+      const wrap = document.getElementById(wrapId);
+      if (!wrap) return;
+      wrap.classList.toggle('hidden', role !== 'Contractor');
+      // Populate contractor dropdown from registry
+      if (role === 'Contractor') {
+        const sel = wrap.querySelector('select');
+        if (sel) {
+          const current = sel.value;
+          sel.innerHTML = '<option value="">— Select company —</option>' +
+            (dbState.contractors || []).map(c => `<option value="${c.id}"${c.id===current?' selected':''}>${c.name}</option>`).join('');
+        }
+      }
+    }
+
     function openCreateUserModal() {
       document.getElementById('user-new-name').value = '';
       document.getElementById('user-new-username').value = '';
       document.getElementById('user-new-designation').value = '';
       document.getElementById('user-new-phone').value = '';
       document.getElementById('user-new-pin').value = '';
+      document.getElementById('user-new-role').value = 'Staff';
+      toggleContractorCompanyField('user-new-contractor-wrap', 'Staff');
       openModal('modal-create-user');
     }
 
@@ -5557,6 +5632,14 @@ ${sec('Manpower &amp; Exposure Log')}
         return;
       }
 
+      const contractorId = role === 'Contractor'
+        ? (document.getElementById('user-new-contractor-id')?.value || '')
+        : '';
+
+      if (role === 'Contractor' && !contractorId) {
+        showToast('Please select the contractor company for this user.', 'error'); return;
+      }
+
       dbState.users.push({
         id: `usr-${Date.now()}`,
         username,
@@ -5568,7 +5651,8 @@ ${sec('Manpower &amp; Exposure Log')}
         isDefaultPin: false,
         mustChangePassword: true,
         canApprove: false,
-        canManageManpower: false
+        canManageManpower: false,
+        contractorId
       });
 
       saveCurrentState();
