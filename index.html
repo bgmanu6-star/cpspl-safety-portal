@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.7.3</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.7.5</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2882,7 +2882,7 @@ service cloud.firestore {
       renderSafetyDashboard();
       showToast(`Safety activity ${isUpdate ? 'updated' : 'saved'} for ${date}.`, 'success');
       sendTelegram(
-`📊 <b>Safety Activity ${isUpdate ? 'Updated' : 'Logged'}</b>
+`📊 Safety Activity ${isUpdate ? 'Updated' : 'Logged'}
 📅 Date: ${date}
 👤 By: ${userLabel()}
 🗣 Toolbox Talks: ${rec.toolboxTalks}
@@ -2890,7 +2890,7 @@ service cloud.firestore {
 🎓 Inductions: ${rec.inductions}
 🩺 First Aid: ${rec.firstAid}
 ⚠️ Penalties/Warnings: ${rec.penalties}`,
-        'safety_activity'
+        [], 'safety_activity'
       );
     }
 
@@ -3130,7 +3130,7 @@ service cloud.firestore {
       fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: sendTo, text: `✅ <b>CTO Safety App</b>\nTelegram ${target} notifications are working!`, parse_mode: 'HTML' })
+        body: JSON.stringify({ chat_id: sendTo, text: `✅ CTO Safety App\nTelegram ${target} notifications are working!` })
       }).then(r => r.json()).then(d => {
         if (d.ok) showToast(`✅ Test sent to ${target}! Check Telegram.`, 'success');
         else showToast('Telegram error: ' + (d.description || JSON.stringify(d)), 'error');
@@ -3194,19 +3194,24 @@ service cloud.firestore {
       try {
         const cfg = dbState.telegramConfig || {};
         if (!cfg.token || !cfg.chatId) { console.warn('Telegram not configured'); return; }
-        // Check if this alert type is enabled (default ON if not set)
         if (alertType && !isTgAlertOn(alertType)) return;
+
+        // Strip HTML tags so message works as plain text on all content
+        const plainMsg = String(message || '').replace(/<[^>]+>/g, '');
+
         const targets = [cfg.chatId, cfg.groupChatId].filter(Boolean);
+        const photoUrls = Array.isArray(photos) ? photos.filter(u => u && !u.startsWith('data:')) : [];
+
         targets.forEach(chatId => {
           fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+            body: JSON.stringify({ chat_id: chatId, text: plainMsg })
           }).then(r => r.json()).then(d => {
             if (!d.ok) { showToast('Telegram: ' + (d.description || 'error'), 'error'); console.error('TG:', d); }
           }).catch(e => console.error('TG fetch:', e));
-          // Send photo URLs (skip base64 — Telegram can't receive them)
-          (photos || []).filter(url => url && !url.startsWith('data:')).forEach(url => {
+
+          photoUrls.forEach(url => {
             fetch(`https://api.telegram.org/bot${cfg.token}/sendPhoto`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -4285,7 +4290,7 @@ ${editCtrLines}
       dbState.hazards = dbState.hazards.filter(h => h.id !== id);
       saveCurrentState(); renderObservations();
       showToast('Observation deleted.', 'info');
-      if (delObs) sendTelegram(`🗑 <b>Observation Deleted</b>\n📍 Location: ${escapeHtml(delObs.location || '')}\n📝 ${escapeHtml((delObs.description || '').substring(0, 80))}\n👤 Deleted by: ${currentUser.fullname} (Admin)`);
+      if (delObs) sendTelegram(`🗑 Observation Deleted\n📍 Location: ${delObs.location || ''}\n📝 ${(delObs.description || '').substring(0, 80)}\n👤 Deleted by: ${userLabel()}`, [], 'obs_delete');
     }
 
     // Incident helpers
@@ -4342,14 +4347,14 @@ ${editCtrLines}
       dbState.incidents = dbState.incidents.filter(i => i.id !== id);
       saveCurrentState(); renderObservations();
       showToast('Incident deleted.', 'info');
-      if (delInc) sendTelegram(`🗑 <b>Incident Deleted</b>\n📍 Location: ${escapeHtml(delInc.location || '')}\n👤 Deleted by: ${currentUser.fullname} (Admin)`);
+      if (delInc) sendTelegram(`🗑 Incident Deleted\n📍 Location: ${delInc.location || ''}\n👤 Deleted by: ${userLabel()}`, [], 'incident_delete');
     }
     function resolveIncident(id) {
       const i = (dbState.incidents || []).find(x => x.id === id);
       if (i) i.status = 'Closed';
       saveCurrentState(); renderObservations();
       showToast('Incident marked resolved.', 'success');
-      if (i) sendTelegram(`✅ <b>Incident Resolved</b>\n📍 Location: ${escapeHtml(i.location || '')}\n📝 ${escapeHtml((i.description || '').substring(0, 80))}\n👤 Resolved by: ${userLabel()}`);
+      if (i) sendTelegram(`✅ Incident Resolved\n📍 Location: ${i.location || ''}\n📝 ${(i.description || '').substring(0, 80)}\n👤 Resolved by: ${userLabel()}`, [], 'incident_resolve');
     }
 
     // DOCUMENT LIBRARY LOGICS
@@ -4397,7 +4402,7 @@ ${editCtrLines}
       closeModal();
       renderDocumentLibrary();
       showToast('Document securely uploaded to compliance vault.', 'success');
-      sendTelegram(`📄 <b>Document Uploaded</b>\n📁 Title: ${escapeHtml(title)}\n🗂 Category: ${escapeHtml(cat)}\n📎 File: ${escapeHtml(file.name)}\n👤 Uploaded by: ${userLabel()}`);
+      sendTelegram(`📄 Document Uploaded\n📁 Title: ${title}\n🗂 Category: ${cat}\n📎 File: ${file.name}\n👤 Uploaded by: ${userLabel()}`, [], 'document');
     }
 
     function downloadMockPdf(title) {
@@ -5084,37 +5089,20 @@ ${editCtrLines}
       if (yel) yel.value = now.getFullYear();
     }
 
-    async function generateHSEReport() {
+    function generateHSEReport() {
       if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can generate reports.', 'error'); return; }
       const month = parseInt(document.getElementById('hse-report-month').value);
       const year  = parseInt(document.getElementById('hse-report-year').value);
       if (!month || !year) { showToast('Select month and year.', 'error'); return; }
 
-      // Open window BEFORE any await — keeps iOS Safari user gesture chain intact, no pop-up block
-      const win = window.open('', '_blank');
-      if (!win) { showToast('Pop-ups are blocked. Please allow pop-ups in Settings \u2192 Safari \u2192 Block Pop-ups and try again.', 'error'); return; }
-      win.document.write('<html><body style="font-family:Arial;padding:30px;color:#555;"><p>\u23F3 Building HSE report\u2026</p></body></html>');
-
-      showToast('Building report\u2026', 'info');
+      showToast('Building report…', 'info');
 
       const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       const monthName  = monthNames[month - 1];
       const monthPfx   = `${year}-${String(month).padStart(2,'0')}`;
 
-      // Embed logo as base64 so it displays instantly in any tab (no network request)
-      const logoSrc = await new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const c = document.createElement('canvas');
-            c.width = img.naturalWidth || 512; c.height = img.naturalHeight || 210;
-            c.getContext('2d').drawImage(img, 0, 0);
-            resolve(c.toDataURL('image/png'));
-          } catch(e) { resolve(''); }
-        };
-        img.onerror = () => resolve('');
-        img.src = 'chettinad-logo.png?' + Date.now();
-      });
+      // Logo loads from relative URL — no async needed since we're in the same page
+      const logoSrc = 'chettinad-logo.png';
 
       // Data
       const mpMap = {};
@@ -5215,10 +5203,18 @@ ${sec('Manpower &amp; Exposure Log')}
 </body></html>`;
 
       // Write final content into the already-open window (opened before await above)
-      win.document.open();
-      win.document.write(fullHTML);
-      win.document.close();
-      showToast('Report ready \u2014 tap the orange Print button to save as PDF.', 'success');
+      const pa = document.getElementById('print-area');
+      const actionBar = `
+        <div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
+          <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+          <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+          <span style="color:#94a3b8;font-size:11px;margin-left:auto;">Tap Close to return to the app</span>
+        </div>`;
+      pa.innerHTML = actionBar + fullHTML;
+      pa.classList.remove('hidden');
+      pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
+      pa.scrollTop = 0;
+      showToast('Report ready — tap Print to save as PDF.', 'success');
     }
 
     function previewPermit(id) {
@@ -5439,80 +5435,41 @@ ${sec('Manpower &amp; Exposure Log')}
           ${sigsHtml}
 
           ${closureSigHtml}
-
-          <!-- Print buttons (hidden when printing) -->
-          <div class="no-print" style="margin-top:20px;padding:12px;background:#f3f4f6;border-radius:8px;text-align:center;display:flex;justify-content:center;gap:10px;">
-            <button onclick="printPermitBlob('${p.id}')" style="background:#ea580c;color:white;border:none;font-weight:bold;font-size:12px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
-            <button onclick="hidePrintArea()" style="background:#4b5563;color:white;border:none;font-weight:bold;font-size:12px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-          </div>
         </div>`;
 
-      printContainer.innerHTML = html;
+      // Wrap with sticky action bar
+      const wrapper = `
+        <div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
+          <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+          <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+          <span style="color:#94a3b8;font-size:11px;margin-left:auto;">Tap Close to return to the app</span>
+        </div>
+        ${html}`;
+
+      printContainer.innerHTML = wrapper;
       printContainer.classList.remove('hidden');
-      printContainer.scrollIntoView({ behavior: 'smooth' });
+      printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
+      printContainer.scrollTop = 0;
       } catch (err) {
         console.error('previewPermit error:', err);
         printContainer.innerHTML = `<div style="padding:24px;font-family:Arial;color:#c00;background:#fff;"><strong>Could not render permit preview.</strong><br><span style="font-size:12px;">${err.message}</span></div>`;
         printContainer.classList.remove('hidden');
-        printContainer.scrollIntoView({ behavior: 'smooth' });
+        printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
         showToast('Preview error: ' + err.message, 'error');
       }
     }
 
     // Opens permit as blob URL in new tab — fast on all devices including iOS
-    async function printPermitBlob(id) {
-      const p = dbState.permits.find(x => x.id === id);
-      if (!p) return;
-
-      // Open window FIRST (synchronous user gesture — Safari allows it without pop-up permission)
-      const win = window.open('', '_blank');
-      if (!win) { showToast('Pop-ups are blocked. Please allow pop-ups in Settings → Safari → Block Pop-ups and try again.', 'error'); return; }
-      win.document.write('<html><body style="font-family:Arial;padding:30px;color:#555;"><p>⏳ Preparing permit PDF…</p></body></html>');
-
-      // Embed logo as base64 AFTER window is already open
-      const logoSrc = await new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const c = document.createElement('canvas');
-            c.width = img.naturalWidth||512; c.height = img.naturalHeight||210;
-            c.getContext('2d').drawImage(img,0,0);
-            resolve(c.toDataURL('image/png'));
-          } catch(e) { resolve(''); }
-        };
-        img.onerror = () => resolve('');
-        img.src = 'chettinad-logo.png?' + Date.now();
-      });
-
-      // Re-use the existing in-page preview HTML but replace relative logo + strip no-print buttons
-      const preview = document.getElementById('print-area');
-      let body = preview ? preview.innerHTML : '';
-      if (logoSrc) body = body.replace(/src="chettinad-logo\.png[^"]*"/g, `src="${logoSrc}"`);
-      body = body.replace(/<div class="no-print"[\s\S]*?<\/div>/, '');
-
-      const fullHTML = `<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Permit ${p.permitNo}</title>
-<style>
-  *{box-sizing:border-box;} body{margin:10mm;font-family:Arial,sans-serif;font-size:10px;background:#fff;color:#000;}
-  .pbtn{display:block;margin:0 auto 14px;padding:10px 28px;background:#ea580c;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;}
-  @media print{.pbtn{display:none!important;} body{margin:6mm;} @page{size:A4 portrait;margin:8mm 6mm;} *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
-</style>
-</head><body>
-<button class="pbtn" onclick="window.print()">🖨 Print / Save as PDF</button>
-${body}
-</body></html>`;
-
-      // Write final content into the already-open window
-      win.document.open();
-      win.document.write(fullHTML);
-      win.document.close();
-    }
+    // printPermitBlob — no longer opens a new tab; previewPermit now handles full-screen overlay
+    function printPermitBlob(id) { previewPermit(id); }
 
 
     function hidePrintArea() {
-      document.getElementById('print-area').classList.add('hidden');
+      const el = document.getElementById('print-area');
+      if (!el) return;
+      el.innerHTML   = '';
+      el.style.cssText = '';
+      el.classList.add('hidden');
     }
 
     // ADMIN PERSONNEL MANAGER (WITH PASSWORD RESET COMPACT INTERACTION)
