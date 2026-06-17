@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.8.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.8.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1826,6 +1826,14 @@ service cloud.firestore {
           <div>
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contact Number</label>
             <input id="edit-user-phone" type="tel" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+          <!-- Contractor company — shown only when editing a Contractor user -->
+          <div id="edit-contractor-wrap" class="hidden">
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contractor Company <span class="text-red-400">*</span></label>
+            <select id="edit-user-contractor-id" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <option value="">— Select company —</option>
+            </select>
+            <p class="text-[9px] text-slate-500 mt-1">This user will only see their own company's manpower data.</p>
           </div>
 
           <div class="flex justify-end gap-2 pt-4">
@@ -5751,27 +5759,48 @@ ${sec('Manpower &amp; Exposure Log')}
       const u = dbState.users.find(user => user.id === id);
       if (!u) return;
 
-      document.getElementById('edit-user-fullname').value = u.fullname;
+      document.getElementById('edit-user-fullname').value    = u.fullname;
       document.getElementById('edit-user-designation').value = u.designation;
-      document.getElementById('edit-user-phone').value = u.phone;
+      document.getElementById('edit-user-phone').value       = u.phone;
+
+      const wrap = document.getElementById('edit-contractor-wrap');
+      const sel  = document.getElementById('edit-user-contractor-id');
+      if (wrap && sel) {
+        if (u.role === 'Contractor') {
+          wrap.classList.remove('hidden');
+          sel.innerHTML = '<option value="">— Select company —</option>' +
+            (dbState.contractors || []).map(c =>
+              `<option value="${c.id}"${c.id === (u.contractorId||'') ? ' selected' : ''}>${c.name}</option>`
+            ).join('');
+        } else {
+          wrap.classList.add('hidden');
+        }
+      }
       openModal('modal-edit-profile');
     }
 
     function saveUserChanges() {
       const name = document.getElementById('edit-user-fullname').value;
-      const des = document.getElementById('edit-user-designation').value;
-      const ph = document.getElementById('edit-user-phone').value;
+      const des  = document.getElementById('edit-user-designation').value;
+      const ph   = document.getElementById('edit-user-phone').value;
 
       const idx = dbState.users.findIndex(u => u.id === editingUserId);
-      if (idx !== -1) {
-        dbState.users[idx].fullname = name;
-        dbState.users[idx].designation = des;
-        dbState.users[idx].phone = ph;
-        saveCurrentState();
-        showToast('User profile updated successfully.', 'success');
-        closeModal();
-        renderPersonnelTable();
+      if (idx === -1) return;
+
+      const u = dbState.users[idx];
+      if (u.role === 'Contractor') {
+        const cid = document.getElementById('edit-user-contractor-id')?.value || '';
+        if (!cid) { showToast('Please select the contractor company for this user.', 'error'); return; }
+        u.contractorId = cid;
       }
+
+      u.fullname    = name;
+      u.designation = des;
+      u.phone       = ph;
+      saveCurrentState();
+      showToast('User profile updated successfully.', 'success');
+      closeModal();
+      renderPersonnelTable();
     }
 
     // ADMIN — TODAY'S MANPOWER SNAPSHOT (contractor-wise)
