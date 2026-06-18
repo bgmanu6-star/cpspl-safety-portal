@@ -148,7 +148,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.0.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.0.2</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2716,6 +2716,7 @@ service cloud.firestore {
       } else if (tabId === 'admin') {
         renderPersonnelTable();
         renderContractorRegistry();
+        renderContractorScorecard();
         renderAdminManpower();
         renderSafetyMetricsAdmin();
         renderBaselineAdmin();
@@ -6631,62 +6632,62 @@ ${sec('Manpower &amp; Exposure Log')}
       if (!container) return;
       const contractors = dbState.contractors || [];
       if (!contractors.length) {
-        container.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No contractors in registry.</p>';
+        container.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No contractors in registry yet.</p>';
         return;
       }
 
-      container.innerHTML = contractors.map(c => {
-        const d = computeContractorScore(c.id, c.name);
-        const { score, rating, totPen, mthPen, totPerm, mthPerm, mthMH, totMH } = d;
+      try {
+        container.innerHTML = contractors.map(c => {
+          const d = computeContractorScore(c.id, c.name);
+          const { score, rating, totPen, mthPen, totPerm, mthMH } = d;
+          const scoreBar = Math.round(score);
+          const barColor = score >= 90 ? '#16a34a' : score >= 75 ? '#ca8a04' : score >= 60 ? '#ea580c' : '#dc2626';
+          const mhDisplay = mthMH >= 1000 ? `${(mthMH/1000).toFixed(1)}k` : `${mthMH}`;
 
-        const scoreBar = Math.round(score);
-        const barColor = score >= 90 ? '#16a34a' : score >= 75 ? '#ca8a04' : score >= 60 ? '#ea580c' : '#dc2626';
-
-        return `<div class="bg-slate-900 border border-construction-border rounded-xl p-4">
-          <!-- Header -->
-          <div class="flex items-start justify-between mb-3">
-            <div>
-              <p class="text-sm font-bold text-slate-200">${c.name}</p>
-              <p class="text-[10px] text-slate-500 mt-0.5">Contractor Safety Score</p>
+          return `<div class="bg-slate-900 border border-construction-border rounded-xl p-4">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-slate-200">${c.name}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">Safety Score</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-black" style="color:${barColor};">${scoreBar}</p>
+                <p class="text-[10px] font-bold" style="color:${barColor};">${rating.emoji} ${rating.label}</p>
+              </div>
             </div>
-            <div class="text-right">
-              <p class="text-2xl font-black" style="color:${barColor};">${scoreBar}</p>
-              <p class="text-[10px] font-bold" style="color:${barColor};">${rating.emoji} ${rating.label}</p>
+            <div class="w-full bg-slate-800 rounded-full h-2 mb-4">
+              <div class="h-2 rounded-full" style="width:${scoreBar}%;background:${barColor};"></div>
             </div>
-          </div>
-
-          <!-- Score bar -->
-          <div class="w-full bg-slate-800 rounded-full h-2 mb-4">
-            <div class="h-2 rounded-full transition-all" style="width:${scoreBar}%;background:${barColor};"></div>
-          </div>
-
-          <!-- Stats grid -->
-          <div class="grid grid-cols-3 gap-2 text-center mb-3">
-            <div class="bg-slate-800 rounded-lg p-2">
-              <p class="text-[9px] text-slate-500 uppercase">Penalties</p>
-              <p class="text-lg font-extrabold text-red-400">${totPen.total}</p>
-              <p class="text-[9px] text-slate-500">Mth: ${mthPen.total}</p>
+            <div class="grid grid-cols-3 gap-2 text-center mb-3">
+              <div class="bg-slate-800 rounded-lg p-2">
+                <p class="text-[9px] text-slate-500 uppercase">Penalties</p>
+                <p class="text-lg font-extrabold text-red-400">${totPen.total}</p>
+                <p class="text-[9px] text-slate-500">Mth: ${mthPen.total}</p>
+              </div>
+              <div class="bg-slate-800 rounded-lg p-2">
+                <p class="text-[9px] text-slate-500 uppercase">Permits</p>
+                <p class="text-lg font-extrabold text-construction-orange">${totPerm.total}</p>
+                <p class="text-[9px] text-slate-500">${totPerm.approved} approved</p>
+              </div>
+              <div class="bg-slate-800 rounded-lg p-2">
+                <p class="text-[9px] text-slate-500 uppercase">Man-hrs</p>
+                <p class="text-lg font-extrabold text-blue-400">${mhDisplay}</p>
+                <p class="text-[9px] text-slate-500">This month</p>
+              </div>
             </div>
-            <div class="bg-slate-800 rounded-lg p-2">
-              <p class="text-[9px] text-slate-500 uppercase">Permits</p>
-              <p class="text-lg font-extrabold text-construction-orange">${totPerm.total}</p>
-              <p class="text-[9px] text-slate-500">${totPerm.approved} approved</p>
-            </div>
-            <div class="bg-slate-800 rounded-lg p-2">
-              <p class="text-[9px] text-slate-500 uppercase">Manhours</p>
-              <p class="text-lg font-extrabold text-blue-400">${(mthMH/1000).toFixed(1)}k</p>
-              <p class="text-[9px] text-slate-500">This month</p>
-            </div>
-          </div>
-
-          <!-- Penalty breakdown -->
-          ${totPen.total ? `<div class="text-[10px] text-slate-400 border-t border-slate-800 pt-2">
-            <span class="text-red-400">⬤ High: ${totPen.high}</span>
-            <span class="ml-2 text-yellow-400">⬤ Med: ${totPen.medium}</span>
-            <span class="ml-2 text-slate-400">⬤ Low: ${totPen.low}</span>
-          </div>` : `<p class="text-[10px] text-emerald-400 border-t border-slate-800 pt-2">✅ No penalties issued</p>`}
-        </div>`;
-      }).join('');
+            ${totPen.total
+              ? `<div class="text-[10px] text-slate-400 border-t border-slate-800 pt-2 flex gap-3">
+                  <span class="text-red-400">● High: ${totPen.high}</span>
+                  <span class="text-yellow-400">● Med: ${totPen.medium}</span>
+                  <span class="text-slate-400">● Low: ${totPen.low}</span>
+                 </div>`
+              : `<p class="text-[10px] text-emerald-400 border-t border-slate-800 pt-2">✅ No penalties issued</p>`}
+          </div>`;
+        }).join('');
+      } catch(e) {
+        container.innerHTML = `<p class="text-red-400 text-xs p-4">Error rendering scorecard: ${e.message}</p>`;
+        console.error('Scorecard error:', e);
+      }
     }
 
     function renderContractorRegistry() {
