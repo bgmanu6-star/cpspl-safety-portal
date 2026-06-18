@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.8.3</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.9.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -356,7 +356,7 @@ service cloud.firestore {
 
             <!-- Quick Actions Header Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
+              <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-blue-500/50 transition-colors">
                 <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
                   <i data-lucide="hard-hat" class="w-5 h-5"></i>
                 </div>
@@ -365,7 +365,7 @@ service cloud.firestore {
                   <p id="kpi-staff" class="text-xl font-extrabold text-blue-400 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Personnel</span></p>
                 </div>
               </div>
-              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
+              <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-construction-orange/50 transition-colors">
                 <div class="w-10 h-10 rounded-lg bg-construction-orange/10 flex items-center justify-center text-construction-orange shrink-0">
                   <i data-lucide="users-2" class="w-5 h-5"></i>
                 </div>
@@ -374,7 +374,7 @@ service cloud.firestore {
                   <p id="kpi-labour" class="text-xl font-extrabold text-slate-100 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Workers</span></p>
                 </div>
               </div>
-              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
+              <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-purple-500/50 transition-colors">
                 <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
                   <i data-lucide="users" class="w-5 h-5"></i>
                 </div>
@@ -383,7 +383,7 @@ service cloud.firestore {
                   <p id="kpi-total-manpower" class="text-xl font-extrabold text-purple-400 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">On Site</span></p>
                 </div>
               </div>
-              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3">
+              <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-construction-green/50 transition-colors">
                 <div class="w-10 h-10 rounded-lg bg-construction-green/10 flex items-center justify-center text-construction-green shrink-0">
                   <i data-lucide="timer" class="w-5 h-5"></i>
                 </div>
@@ -394,7 +394,7 @@ service cloud.firestore {
               </div>
             </div>
             <!-- Monthly Safe Manhours + Project Total -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+            <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-emerald-500/50 transition-colors">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
@@ -419,7 +419,7 @@ service cloud.firestore {
             </div>
 
             <!-- TODAY'S CONTRACTOR-WISE WORKER BREAKDOWN (visible to all logged-in users) -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+            <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-construction-orange/50 transition-colors">
               <div class="flex items-center justify-between mb-3">
                 <h3 class="text-xs font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
                   <i data-lucide="building-2" class="w-4 h-4"></i>
@@ -432,28 +432,81 @@ service cloud.firestore {
               </div>
             </div>
 
-            <!-- PERMIT KPI COUNT BAR -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
-                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Work Permits</p>
-                <p id="kpi-permits-open" class="text-3xl font-extrabold text-construction-orange mt-1">0</p>
+            <!-- PERMIT + OBSERVATION + INCIDENT KPI CARDS -->
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+
+              <!-- Permits -->
+              <div onclick="dashboardNavTo('permits')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-construction-orange/50 transition-colors">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-7 h-7 rounded-lg bg-construction-orange/10 flex items-center justify-center text-construction-orange shrink-0">
+                    <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Permits</p>
+                </div>
+                <div class="flex items-end gap-4">
+                  <div>
+                    <p class="text-[9px] text-slate-500 uppercase">Open</p>
+                    <p id="kpi-permits-open" class="text-3xl font-extrabold text-construction-orange leading-none">0</p>
+                  </div>
+                  <div class="pb-0.5">
+                    <p class="text-[9px] text-slate-500 uppercase">Approved</p>
+                    <p id="kpi-permits-approved" class="text-xl font-extrabold text-construction-green leading-none">0</p>
+                  </div>
+                </div>
               </div>
-              <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
-                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Approved Permits</p>
-                <p id="kpi-permits-approved" class="text-3xl font-extrabold text-construction-green mt-1">0</p>
+
+              <!-- Observations: open + closed + monthly/total -->
+              <div onclick="dashboardNavTo('observe', 'view-observe')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-yellow-500/50 transition-colors">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-7 h-7 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500 shrink-0">
+                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Observations</p>
+                </div>
+                <div class="flex items-end gap-4 mb-2">
+                  <div>
+                    <p class="text-[9px] text-slate-500 uppercase">Open</p>
+                    <p id="kpi-hazards" class="text-3xl font-extrabold text-yellow-500 leading-none">0</p>
+                  </div>
+                  <div class="pb-0.5">
+                    <p class="text-[9px] text-slate-500 uppercase">Closed</p>
+                    <p id="kpi-obs-closed" class="text-xl font-extrabold text-emerald-400 leading-none">0</p>
+                  </div>
+                </div>
+                <div class="pt-2 border-t border-slate-800 flex justify-between text-[10px]">
+                  <span class="text-slate-500">Mth <span id="kpi-obs-month" class="text-slate-200 font-bold ml-1">0</span></span>
+                  <span class="text-slate-500">Total <span id="kpi-obs-total" class="text-slate-200 font-bold ml-1">0</span></span>
+                </div>
               </div>
-              <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
-                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Observations</p>
-                <p id="kpi-hazards" class="text-3xl font-extrabold text-yellow-500 mt-1">0</p>
+
+              <!-- Incidents: open + monthly/total -->
+              <div onclick="dashboardNavTo('observe', 'incidents-section')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-red-500/50 transition-colors">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+                    <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Incidents</p>
+                </div>
+                <div class="flex items-end gap-4 mb-2">
+                  <div>
+                    <p class="text-[9px] text-slate-500 uppercase">Open</p>
+                    <p id="kpi-incidents" class="text-3xl font-extrabold text-red-500 leading-none">0</p>
+                  </div>
+                  <div class="pb-0.5">
+                    <p class="text-[9px] text-slate-500 uppercase">Resolved</p>
+                    <p id="kpi-inc-resolved" class="text-xl font-extrabold text-slate-400 leading-none">0</p>
+                  </div>
+                </div>
+                <div class="pt-2 border-t border-slate-800 flex justify-between text-[10px]">
+                  <span class="text-slate-500">Mth <span id="kpi-inc-month" class="text-slate-200 font-bold ml-1">0</span></span>
+                  <span class="text-slate-500">Total <span id="kpi-inc-total" class="text-slate-200 font-bold ml-1">0</span></span>
+                </div>
               </div>
-              <div class="bg-construction-cardBg border border-construction-border p-4 rounded-xl text-center">
-                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Incidents</p>
-                <p id="kpi-incidents" class="text-3xl font-extrabold text-red-500 mt-1">0</p>
-              </div>
+
             </div>
 
             <!-- SAFETY ACTIVITY TRACKER (visible to everyone; entered by Admin) -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+            <div onclick="dashboardNavTo('admin', 'sm-field-date')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-construction-orange/50 transition-colors">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xs font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
                   <i data-lucide="clipboard-check" class="w-4 h-4"></i>
@@ -809,7 +862,7 @@ service cloud.firestore {
               </div>
 
               <!-- INCIDENTS LIST PANEL -->
-              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <div id="incidents-section" class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
                 <h3 class="text-sm font-bold text-red-500 uppercase tracking-wider flex items-center gap-2 mb-3">
                   <i data-lucide="alert-triangle" class="w-4 h-4"></i>
                   Recorded Accidents / Incidents
@@ -2353,7 +2406,16 @@ service cloud.firestore {
       return !!currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Staff');
     }
 
-    // Returns "Full Name (Designation)" — used in all alerts and documents
+    // Dashboard card navigation — switches tab and optionally scrolls to section
+    function dashboardNavTo(tab, sectionId) {
+      switchTab(tab);
+      if (sectionId) {
+        setTimeout(() => {
+          const el = document.getElementById(sectionId);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 320);
+      }
+    }
     function userLabel(u) {
       u = u || currentUser;
       if (!u) return 'Unknown';
@@ -2840,13 +2902,29 @@ service cloud.firestore {
       // Permit counts
       const openPermits = dbState.permits.filter(p => ['Submitted', 'Pending Staff Review', 'Pending Admin Approval'].includes(p.status)).length;
       const approvedPermits = dbState.permits.filter(p => p.status === 'Approved').length;
-      const unresolvedHazards = dbState.hazards.filter(h => h.status === 'Open').length;
-      const openIncidents = dbState.incidents.filter(i => i.status === 'Open').length;
+      const allObs     = dbState.hazards   || [];
+      const allInc     = dbState.incidents || [];
+      const monthPfx   = todayKey().slice(0, 7);
 
-      document.getElementById('kpi-permits-open').innerText = openPermits;
+      const obsOpen     = allObs.filter(h => h.status !== 'Closed').length;
+      const obsClosed   = allObs.filter(h => h.status === 'Closed').length;
+      const obsMonth    = allObs.filter(h => (h.date||'').slice(0,7) === monthPfx).length;
+      const incOpen     = allInc.filter(i => i.status !== 'Closed').length;
+      const incResolved = allInc.filter(i => i.status === 'Closed').length;
+      const incMonth    = allInc.filter(i => (i.date||'').slice(0,7) === monthPfx).length;
+
+      document.getElementById('kpi-permits-open').innerText     = openPermits;
       document.getElementById('kpi-permits-approved').innerText = approvedPermits;
-      document.getElementById('kpi-hazards').innerText = unresolvedHazards;
-      document.getElementById('kpi-incidents').innerText = openIncidents;
+
+      const s = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+      s('kpi-hazards',     obsOpen);
+      s('kpi-obs-closed',  obsClosed);
+      s('kpi-obs-month',   obsMonth);
+      s('kpi-obs-total',   allObs.length);
+      s('kpi-incidents',   incOpen);
+      s('kpi-inc-resolved', incResolved);
+      s('kpi-inc-month',   incMonth);
+      s('kpi-inc-total',   allInc.length);
 
       renderNotifications();
       renderDashboardSOSShortcuts();
