@@ -148,7 +148,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.0.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.0.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1202,6 +1202,17 @@ service cloud.firestore {
                     <!-- Dynamic generation -->
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            <!-- Contractor Safety Scorecard -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-construction-orange"></i> Contractor Safety Scorecard
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Auto-calculated from penalties, permits and manhours. Score starts at 100 — deducted per penalty (High −10, Medium −5, Low −2) and rejected permit (−5).</p>
+              <div id="contractor-scorecard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- rendered by renderContractorScorecard -->
               </div>
             </div>
 
@@ -2295,7 +2306,7 @@ service cloud.firestore {
       else if (activeTab === 'reports')   renderObservations();
       else if (activeTab === 'emergency') renderEmergencyGrid();
       else if (activeTab === 'documents') renderDocumentLibrary();
-      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderTelegramAlerts(); renderImgbbAdmin(); initHSEReportInputs(); }
+      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderContractorScorecard(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderTelegramAlerts(); renderImgbbAdmin(); initHSEReportInputs(); }
     }
 
     // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
@@ -3551,6 +3562,7 @@ service cloud.firestore {
       saveCurrentState();
       closeModal();
       renderObservations();
+      renderContractorScorecard();
       showToast(`Penalty notice issued for ${rec.personName}.`, 'success');
       sendTelegram(`⚠️ Penalty/Warning Notice\n👤 Person: ${rec.personName} (${rec.designation})\n🏗 Contractor: ${rec.contractor}\n📍 Location: ${rec.location}\n⚡ Risk: ${rec.riskLevel}\n📝 Violation: ${rec.observation}\n💰 Penalty: ₹${rec.penaltyAmount}\n👤 Issued by: ${userLabel()}`, [], 'obs_new');
 
@@ -3633,6 +3645,7 @@ service cloud.firestore {
       dbState.penaltyNotices = (dbState.penaltyNotices||[]).filter(p => p.id !== id);
       saveCurrentState();
       renderObservations();
+      renderContractorScorecard();
       showToast('Penalty notice deleted.', 'info');
     }
 
@@ -6553,6 +6566,128 @@ ${sec('Manpower &amp; Exposure Log')}
 
     // CONTRACTOR REGISTRY CRUD (Admin only)
     let editingContractorId = null;
+
+    // ============================================================
+    // CONTRACTOR SAFETY SCORECARD
+    // ============================================================
+    function computeContractorScore(contractorId, contractorName) {
+      const monthPfx = todayKey().slice(0, 7);
+
+      // Penalties
+      const allPenalties  = (dbState.penaltyNotices || []).filter(p => p.contractor === contractorName);
+      const mthPenalties  = allPenalties.filter(p => (p.date||'').slice(0,7) === monthPfx);
+      const penCounts = (list) => ({
+        high:   list.filter(p => p.riskLevel === 'High').length,
+        medium: list.filter(p => p.riskLevel === 'Medium').length,
+        low:    list.filter(p => p.riskLevel === 'Low').length,
+        total:  list.length
+      });
+
+      // Permits
+      const allPermits = (dbState.permits || []).filter(p => p.contractor === contractorName);
+      const mthPermits = allPermits.filter(p => (p.validityStart||'').slice(0,7) === monthPfx);
+      const permitSummary = (list) => ({
+        total:     list.length,
+        approved:  list.filter(p => ['Approved','Closed'].includes(p.status)).length,
+        rejected:  list.filter(p => p.status === 'Rejected').length,
+        open:      list.filter(p => !['Approved','Closed','Rejected','Cancelled'].includes(p.status)).length
+      });
+
+      // Manhours
+      const mpEntries = (dbState.manpower || []);
+      const mthMpEntries = mpEntries.filter(e => (e.date||'').slice(0,7) === monthPfx);
+      const workerHours = (entries) => entries.reduce((sum, e) => {
+        const cw = (e.contractorWorkers||[]).find(c => c.contractorId === contractorId);
+        const count = cw ? ((parseInt(cw.dayWorkers)||0) + (parseInt(cw.nightWorkers)||0)) : 0;
+        return sum + count * 8;
+      }, 0);
+
+      const totPen   = penCounts(allPenalties);
+      const mthPen   = penCounts(mthPenalties);
+      const totPerm  = permitSummary(allPermits);
+      const mthPerm  = permitSummary(mthPermits);
+      const totMH    = workerHours(mpEntries);
+      const mthMH    = workerHours(mthMpEntries);
+
+      // Score calculation
+      let score = 100;
+      score -= totPen.high   * 10;
+      score -= totPen.medium * 5;
+      score -= totPen.low    * 2;
+      score -= totPerm.rejected * 5;
+      score += Math.min(totPerm.approved * 2, 10);
+      score = Math.max(0, Math.min(100, score));
+
+      const rating = score >= 90 ? { label: 'Excellent', color: '#16a34a', emoji: '🟢' }
+                   : score >= 75 ? { label: 'Good',      color: '#ca8a04', emoji: '🟡' }
+                   : score >= 60 ? { label: 'Fair',      color: '#ea580c', emoji: '🟠' }
+                   :               { label: 'Poor',       color: '#dc2626', emoji: '🔴' };
+
+      return { score, rating, totPen, mthPen, totPerm, mthPerm, totMH, mthMH };
+    }
+
+    function renderContractorScorecard() {
+      const container = document.getElementById('contractor-scorecard-grid');
+      if (!container) return;
+      const contractors = dbState.contractors || [];
+      if (!contractors.length) {
+        container.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No contractors in registry.</p>';
+        return;
+      }
+
+      container.innerHTML = contractors.map(c => {
+        const d = computeContractorScore(c.id, c.name);
+        const { score, rating, totPen, mthPen, totPerm, mthPerm, mthMH, totMH } = d;
+
+        const scoreBar = Math.round(score);
+        const barColor = score >= 90 ? '#16a34a' : score >= 75 ? '#ca8a04' : score >= 60 ? '#ea580c' : '#dc2626';
+
+        return `<div class="bg-slate-900 border border-construction-border rounded-xl p-4">
+          <!-- Header -->
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <p class="text-sm font-bold text-slate-200">${c.name}</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">Contractor Safety Score</p>
+            </div>
+            <div class="text-right">
+              <p class="text-2xl font-black" style="color:${barColor};">${scoreBar}</p>
+              <p class="text-[10px] font-bold" style="color:${barColor};">${rating.emoji} ${rating.label}</p>
+            </div>
+          </div>
+
+          <!-- Score bar -->
+          <div class="w-full bg-slate-800 rounded-full h-2 mb-4">
+            <div class="h-2 rounded-full transition-all" style="width:${scoreBar}%;background:${barColor};"></div>
+          </div>
+
+          <!-- Stats grid -->
+          <div class="grid grid-cols-3 gap-2 text-center mb-3">
+            <div class="bg-slate-800 rounded-lg p-2">
+              <p class="text-[9px] text-slate-500 uppercase">Penalties</p>
+              <p class="text-lg font-extrabold text-red-400">${totPen.total}</p>
+              <p class="text-[9px] text-slate-500">Mth: ${mthPen.total}</p>
+            </div>
+            <div class="bg-slate-800 rounded-lg p-2">
+              <p class="text-[9px] text-slate-500 uppercase">Permits</p>
+              <p class="text-lg font-extrabold text-construction-orange">${totPerm.total}</p>
+              <p class="text-[9px] text-slate-500">${totPerm.approved} approved</p>
+            </div>
+            <div class="bg-slate-800 rounded-lg p-2">
+              <p class="text-[9px] text-slate-500 uppercase">Manhours</p>
+              <p class="text-lg font-extrabold text-blue-400">${(mthMH/1000).toFixed(1)}k</p>
+              <p class="text-[9px] text-slate-500">This month</p>
+            </div>
+          </div>
+
+          <!-- Penalty breakdown -->
+          ${totPen.total ? `<div class="text-[10px] text-slate-400 border-t border-slate-800 pt-2">
+            <span class="text-red-400">⬤ High: ${totPen.high}</span>
+            <span class="ml-2 text-yellow-400">⬤ Med: ${totPen.medium}</span>
+            <span class="ml-2 text-slate-400">⬤ Low: ${totPen.low}</span>
+          </div>` : `<p class="text-[10px] text-emerald-400 border-t border-slate-800 pt-2">✅ No penalties issued</p>`}
+        </div>`;
+      }).join('');
+    }
 
     function renderContractorRegistry() {
       const tbody = document.getElementById('admin-contractor-table-body');
