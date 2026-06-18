@@ -151,7 +151,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.8.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v1.8.3</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -3212,11 +3212,9 @@ service cloud.firestore {
         if (!cfg.token || !cfg.chatId) { console.warn('Telegram not configured'); return; }
         if (alertType && !isTgAlertOn(alertType)) return;
 
-        // Strip HTML tags so message works as plain text on all content
         const plainMsg = String(message || '').replace(/<[^>]+>/g, '');
-
-        const targets = [cfg.chatId, cfg.groupChatId].filter(Boolean);
         const photoUrls = Array.isArray(photos) ? photos.filter(u => u && !u.startsWith('data:')) : [];
+        const targets = [cfg.chatId, cfg.groupChatId].filter(Boolean);
 
         targets.forEach(chatId => {
           fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
@@ -3227,6 +3225,7 @@ service cloud.firestore {
             if (!d.ok) { showToast('Telegram: ' + (d.description || 'error'), 'error'); console.error('TG:', d); }
           }).catch(e => console.error('TG fetch:', e));
 
+          // Send actual photos to Telegram
           photoUrls.forEach(url => {
             fetch(`https://api.telegram.org/bot${cfg.token}/sendPhoto`, {
               method: 'POST',
@@ -3262,7 +3261,10 @@ service cloud.firestore {
 
       feed.innerHTML = list.map(a => {
         const canDelete = currentUser && (currentUser.role === 'Admin' || a.authorId === currentUser.id);
-        const photo = a.photo ? `<img src="${a.photo}" alt="attachment" class="mt-2 max-h-56 rounded-lg border border-construction-border">` : '';
+        const photo = a.photo
+          ? `<a href="${a.photo}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 mt-2 bg-slate-800 hover:bg-slate-700 border border-construction-border rounded-lg text-[10px] text-slate-300 font-medium">
+              <i data-lucide="image" class="w-3.5 h-3.5 text-construction-orange"></i> View Attached Photo</a>`
+          : '';
         const text = a.text ? `<p class="text-xs text-slate-200 whitespace-pre-wrap mt-1">${escapeHtml(a.text)}</p>` : '';
         const del = canDelete ? `<button onclick="deleteAnnouncement('${a.id}')" class="text-[10px] text-red-400 hover:underline shrink-0">Delete</button>` : '';
         return `
@@ -3915,9 +3917,13 @@ ${editCtrLines}
             ? '<span class="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Open</span>'
             : '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] uppercase font-bold">Closed</span>';
 
-          const photos = (h.photos || []).filter(Boolean).map(src =>
-            `<img src="${src}" onclick="viewPhoto('${src}')" class="h-16 w-16 object-cover rounded border border-construction-border cursor-pointer">`).join('');
-          const photoRow = photos ? `<div class="flex gap-2 flex-wrap">${photos}</div>` : '';
+          const photos = (h.photos || []).filter(Boolean);
+          const photoRow = photos.length
+            ? `<div class="flex gap-2 flex-wrap">${photos.map((src, i) =>
+                `<a href="${src}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-construction-border rounded text-[10px] text-slate-300 font-medium">
+                  <i data-lucide="image" class="w-3 h-3 text-construction-orange"></i> Photo ${photos.length > 1 ? i+1 : ''}</a>`
+              ).join('')}</div>`
+            : '';
 
           let capaBlock;
           if (h.correctiveAction || h.preventiveAction || h.responsiblePerson) {
@@ -3934,13 +3940,18 @@ ${editCtrLines}
 
           let closeBlock = '';
           if (!open && h.closure) {
-            const cphotos = (h.closure.photos || []).filter(Boolean).map(src =>
-              `<img src="${src}" onclick="viewPhoto('${src}')" class="h-16 w-16 object-cover rounded border border-emerald-800 cursor-pointer">`).join('');
+            const cphotos = (h.closure.photos || []).filter(Boolean);
+            const cphotosHtml = cphotos.length
+              ? `<div class="flex gap-2 flex-wrap">${cphotos.map((src, i) =>
+                  `<a href="${src}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-800/40 rounded text-[10px] text-emerald-300 font-medium">
+                    <i data-lucide="image" class="w-3 h-3"></i> Closure Photo ${cphotos.length > 1 ? i+1 : ''}</a>`
+                ).join('')}</div>`
+              : '';
             closeBlock = `
               <div class="bg-emerald-950/20 border border-emerald-900/40 rounded p-2 space-y-1 text-[10px]">
                 <p class="text-emerald-400 font-bold uppercase">Closed — ${escapeHtml(h.closure.status || 'Completed')}</p>
                 ${h.closure.note ? `<p class="text-slate-300">${escapeHtml(h.closure.note)}</p>` : ''}
-                ${cphotos ? `<div class="flex gap-2 flex-wrap">${cphotos}</div>` : ''}
+                ${cphotosHtml}
                 <p class="text-slate-500">By ${escapeHtml(h.closure.closedBy || '')}${h.closure.closedAt ? ' · ' + escapeHtml(h.closure.closedAt) : ''}</p>
               </div>`;
           }
