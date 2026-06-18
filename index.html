@@ -43,46 +43,43 @@
     }
   </script>
   <style>
+    /* ── Light Mode ──────────────────────────────────────── */
+    body.light-mode { background: #f1f5f9; color: #0f172a; }
+    body.light-mode .bg-construction-darkBg { background-color: #f1f5f9 !important; }
+    body.light-mode [class*="bg-construction-cardBg"],
+    body.light-mode .bg-construction-cardBg { background-color: #ffffff !important; }
+    body.light-mode [class*="bg-slate-900"],
+    body.light-mode .bg-slate-900 { background-color: #f8fafc !important; }
+    body.light-mode [class*="bg-slate-800"],
+    body.light-mode .bg-slate-800 { background-color: #e2e8f0 !important; }
+    body.light-mode [class*="border-construction-border"],
+    body.light-mode .border-construction-border { border-color: #cbd5e1 !important; }
+    body.light-mode .text-slate-100,body.light-mode .text-slate-200 { color: #0f172a !important; }
+    body.light-mode .text-slate-300 { color: #1e293b !important; }
+    body.light-mode .text-slate-400 { color: #475569 !important; }
+    body.light-mode .text-slate-500 { color: #64748b !important; }
+    body.light-mode input,body.light-mode select,body.light-mode textarea {
+      background-color: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important;
+    }
+    body.light-mode .bg-slate-950\/40,.light-mode [class*="bg-slate-950"] { background-color: #f8fafc !important; }
+    body.light-mode [class*="bg-slate-800\/"] { background-color: rgba(226,232,240,0.6) !important; }
+    body.light-mode [class*="divide-slate-"] > * + * { border-color: #e2e8f0 !important; }
+    body.light-mode ::-webkit-scrollbar-track { background: #f1f5f9; }
+    body.light-mode ::-webkit-scrollbar-thumb { background: #94a3b8; }
+
     /* Premium touch target improvements */
-    input, button, select, textarea {
-      min-height: 44px;
-    }
+    input, button, select, textarea { min-height: 44px; }
     /* Hide scrollbar for clean app design */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0b0f19;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #2e3a50;
-      border-radius: 3px;
-    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #2e3a50; border-radius: 3px; }
     /* Print Specific Styles to replicate master forms exactly */
     @media print {
-      body * {
-        visibility: hidden;
-      }
-      #print-area, #print-area * {
-        visibility: visible;
-      }
-      #print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        color: #000 !important;
-        background: #fff !important;
-      }
-      .no-print {
-        display: none !important;
-      }
-      /* Keep checkmarks and inputs visible on print */
-      input[type="checkbox"] {
-        -webkit-appearance: checkbox !important;
-        appearance: checkbox !important;
-      }
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
+      .no-print { display: none !important; }
+      input[type="checkbox"] { -webkit-appearance: checkbox !important; appearance: checkbox !important; }
     }
   </style>
 </head>
@@ -151,7 +148,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v1.9.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.0.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -186,6 +183,9 @@ service cloud.firestore {
               <p id="user-display-name" class="text-xs font-bold text-slate-200">Engineer Name</p>
               <p id="user-display-role" class="text-[10px] text-construction-orange uppercase tracking-wider font-semibold">Admin</p>
             </div>
+            <button onclick="toggleLightMode()" id="theme-toggle-btn" class="p-2 text-slate-400 hover:text-yellow-400 hover:bg-slate-800 rounded-lg transition-colors" title="Toggle Light/Dark Mode">
+              <i data-lucide="sun" class="w-5 h-5"></i>
+            </button>
             <button onclick="handleLogout()" class="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors" title="Log Out">
               <i data-lucide="log-out" class="w-5 h-5"></i>
             </button>
@@ -356,7 +356,7 @@ service cloud.firestore {
 
             <!-- Quick Actions Header Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-blue-500/50 transition-colors">
+              <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-blue-500/50 transition-colors">
                 <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
                   <i data-lucide="hard-hat" class="w-5 h-5"></i>
                 </div>
@@ -365,7 +365,7 @@ service cloud.firestore {
                   <p id="kpi-staff" class="text-xl font-extrabold text-blue-400 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Personnel</span></p>
                 </div>
               </div>
-              <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-construction-orange/50 transition-colors">
+              <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-construction-orange/50 transition-colors">
                 <div class="w-10 h-10 rounded-lg bg-construction-orange/10 flex items-center justify-center text-construction-orange shrink-0">
                   <i data-lucide="users-2" class="w-5 h-5"></i>
                 </div>
@@ -374,7 +374,7 @@ service cloud.firestore {
                   <p id="kpi-labour" class="text-xl font-extrabold text-slate-100 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Workers</span></p>
                 </div>
               </div>
-              <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-purple-500/50 transition-colors">
+              <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-purple-500/50 transition-colors">
                 <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
                   <i data-lucide="users" class="w-5 h-5"></i>
                 </div>
@@ -383,7 +383,7 @@ service cloud.firestore {
                   <p id="kpi-total-manpower" class="text-xl font-extrabold text-purple-400 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">On Site</span></p>
                 </div>
               </div>
-              <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-construction-green/50 transition-colors">
+              <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-construction-green/50 transition-colors">
                 <div class="w-10 h-10 rounded-lg bg-construction-green/10 flex items-center justify-center text-construction-green shrink-0">
                   <i data-lucide="timer" class="w-5 h-5"></i>
                 </div>
@@ -394,7 +394,7 @@ service cloud.firestore {
               </div>
             </div>
             <!-- Monthly Safe Manhours + Project Total -->
-            <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-emerald-500/50 transition-colors">
+            <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-emerald-500/50 transition-colors">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
@@ -419,7 +419,7 @@ service cloud.firestore {
             </div>
 
             <!-- TODAY'S CONTRACTOR-WISE WORKER BREAKDOWN (visible to all logged-in users) -->
-            <div onclick="dashboardNavTo('manpower')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-construction-orange/50 transition-colors">
+            <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-construction-orange/50 transition-colors">
               <div class="flex items-center justify-between mb-3">
                 <h3 class="text-xs font-bold uppercase tracking-widest text-construction-orange flex items-center gap-2">
                   <i data-lucide="building-2" class="w-4 h-4"></i>
@@ -456,7 +456,7 @@ service cloud.firestore {
               </div>
 
               <!-- Observations: open + closed + monthly/total -->
-              <div onclick="dashboardNavTo('observe', 'view-observe')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-yellow-500/50 transition-colors">
+              <div onclick="dashboardNavTo('reports', 'view-reports')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-yellow-500/50 transition-colors">
                 <div class="flex items-center gap-2 mb-3">
                   <div class="w-7 h-7 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500 shrink-0">
                     <i data-lucide="eye" class="w-3.5 h-3.5"></i>
@@ -480,7 +480,7 @@ service cloud.firestore {
               </div>
 
               <!-- Incidents: open + monthly/total -->
-              <div onclick="dashboardNavTo('observe', 'incidents-section')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-red-500/50 transition-colors">
+              <div onclick="dashboardNavTo('reports', 'incidents-section')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-red-500/50 transition-colors">
                 <div class="flex items-center gap-2 mb-3">
                   <div class="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
                     <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i>
@@ -835,14 +835,23 @@ service cloud.firestore {
                   <i data-lucide="alert-octagon" class="w-5 h-5 text-yellow-500"></i>
                   Site Observation &amp; Incident Tracker
                 </h2>
-                <p class="text-xs text-slate-400">Record safety observations on detection or document accidents to maintain project compliance audits.</p>
+                <p class="text-xs text-slate-400">Record safety observations, incidents, inspections and penalty notices.</p>
               </div>
-              <div class="flex gap-2 w-full sm:w-auto">
+              <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                 <button onclick="openReportModal('observation')" class="flex-grow sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
-                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Observation
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Observation
                 </button>
                 <button onclick="openReportModal('incident')" class="flex-grow sm:flex-none bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
-                  <i data-lucide="alert-triangle" class="w-4 h-4"></i> Log Incident
+                  <i data-lucide="alert-triangle" class="w-4 h-4"></i> Incident
+                </button>
+                <button onclick="openInspectionModal('scaffolding')" class="flex-grow sm:flex-none bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="clipboard-list" class="w-4 h-4"></i> Scaffold Check
+                </button>
+                <button onclick="openInspectionModal('safety_harness')" class="flex-grow sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i> Harness Check
+                </button>
+                <button onclick="openPenaltyModal()" class="flex-grow sm:flex-none bg-orange-700 hover:bg-orange-800 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="ban" class="w-4 h-4"></i> Issue Warning
                 </button>
               </div>
             </div>
@@ -868,6 +877,28 @@ service cloud.firestore {
                   Recorded Accidents / Incidents
                 </h3>
                 <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="incidents-list-panel">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- INSPECTIONS PANEL -->
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+                <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                  Inspection Records
+                </h3>
+                <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="inspections-list-panel">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- PENALTY NOTICES PANEL -->
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+                <h3 class="text-sm font-bold text-orange-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <i data-lucide="ban" class="w-4 h-4"></i>
+                  Penalty / Warning Notices
+                </h3>
+                <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="penalties-list-panel">
                   <!-- Rendered dynamically -->
                 </div>
               </div>
@@ -1534,7 +1565,9 @@ service cloud.firestore {
             </div>
             <div>
               <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Responsible Person</label>
-              <input id="report-responsible" type="text" placeholder="Name of person responsible" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <select id="report-responsible" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+                <option value="">— Select person —</option>
+              </select>
             </div>
           </div>
 
@@ -1623,6 +1656,116 @@ service cloud.firestore {
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
             <button type="submit" id="report-submit-btn" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- INSPECTION CHECKLIST MODAL -->
+      <div id="modal-inspection" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-lg w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 id="inspection-modal-title" class="text-sm font-bold uppercase tracking-widest text-slate-200">Scaffolding Checklist</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form id="inspection-form" onsubmit="event.preventDefault(); submitInspection();" class="space-y-4 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Date</label>
+              <input id="insp-date" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Location</label>
+              <input id="insp-location" type="text" required placeholder="e.g. Block B" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+          </div>
+          <div id="insp-items-container" class="space-y-2 border-t border-construction-border pt-3">
+            <!-- Checklist items rendered here -->
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">General Remarks</label>
+            <textarea id="insp-remarks" rows="2" placeholder="Overall observations or instructions…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg">Save Inspection</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PENALTY / WARNING NOTICE MODAL -->
+      <div id="modal-penalty" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-lg w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-orange-400">On Spot Penalty / Warning Notice</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form id="penalty-form" onsubmit="event.preventDefault(); submitPenaltyNotice();" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Date</label>
+              <input id="pen-date" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Area / Location</label>
+              <input id="pen-location" type="text" required placeholder="e.g. Gate 3, Block B" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Name of Person</label>
+              <input id="pen-person-name" type="text" required placeholder="Person's full name" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Designation</label>
+              <input id="pen-designation" type="text" required placeholder="e.g. Welder, Mason" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contractor / Agency</label>
+            <select id="pen-contractor" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <option value="">— Select contractor —</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Observation / Safety Violation</label>
+            <textarea id="pen-observation" required rows="2" placeholder="Describe the safety violation observed…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">What mistake was done</label>
+            <textarea id="pen-mistake" rows="2" placeholder="Detail what was done incorrectly…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Risk Level</label>
+              <select id="pen-risk-level" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Penalty Amount (₹)</label>
+              <input id="pen-amount" type="number" min="0" placeholder="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-2">Risk Factor (check all that apply)</label>
+            <div class="grid grid-cols-2 gap-1.5">
+              <label class="flex items-center gap-2 text-slate-300 bg-slate-900 px-2 py-1.5 rounded border border-construction-border cursor-pointer">
+                <input type="checkbox" id="pen-rf-injury" class="accent-red-500"> Serious Injury</label>
+              <label class="flex items-center gap-2 text-slate-300 bg-slate-900 px-2 py-1.5 rounded border border-construction-border cursor-pointer">
+                <input type="checkbox" id="pen-rf-disability"> Temp/Perm Disability</label>
+              <label class="flex items-center gap-2 text-slate-300 bg-slate-900 px-2 py-1.5 rounded border border-construction-border cursor-pointer">
+                <input type="checkbox" id="pen-rf-fatal"> Fatal</label>
+              <label class="flex items-center gap-2 text-slate-300 bg-slate-900 px-2 py-1.5 rounded border border-construction-border cursor-pointer">
+                <input type="checkbox" id="pen-rf-electric"> Electric Burn/Shock</label>
+              <label class="flex items-center gap-2 text-slate-300 bg-slate-900 px-2 py-1.5 rounded border border-construction-border cursor-pointer">
+                <input type="checkbox" id="pen-rf-fire"> Fire &amp; Explosion</label>
+              <label class="flex items-center gap-2 text-slate-300 bg-slate-900 px-2 py-1.5 rounded border border-construction-border cursor-pointer">
+                <input type="checkbox" id="pen-rf-property"> Property Damage</label>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-orange-700 hover:bg-orange-800 text-white font-bold rounded-lg">Issue Notice &amp; Print</button>
           </div>
         </form>
       </div>
@@ -2057,6 +2200,8 @@ service cloud.firestore {
       if (!dbState.telegramConfig)  dbState.telegramConfig  = {};
       if (!dbState.imgbbConfig)     dbState.imgbbConfig     = {};
       if (!dbState.telegramAlerts)  dbState.telegramAlerts  = {};
+      if (!dbState.inspections)     dbState.inspections     = [];
+      if (!dbState.penaltyNotices)  dbState.penaltyNotices  = [];
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -2416,6 +2561,27 @@ service cloud.firestore {
         }, 320);
       }
     }
+
+    // Light / Dark mode toggle
+    function toggleLightMode() {
+      const isLight = document.body.classList.toggle('light-mode');
+      localStorage.setItem('cto-theme', isLight ? 'light' : 'dark');
+      const btn = document.getElementById('theme-toggle-btn');
+      const icon = btn?.querySelector('i');
+      if (icon) { icon.setAttribute('data-lucide', isLight ? 'moon' : 'sun'); lucide.createIcons(); }
+    }
+    // Apply saved theme on load
+    (function() {
+      if (localStorage.getItem('cto-theme') === 'light') {
+        document.body.classList.add('light-mode');
+        const applyIcon = () => {
+          const btn = document.getElementById('theme-toggle-btn');
+          const icon = btn?.querySelector('i');
+          if (icon) { icon.setAttribute('data-lucide', 'moon'); lucide.createIcons(); }
+        };
+        setTimeout(applyIcon, 500);
+      }
+    })();
     function userLabel(u) {
       u = u || currentUser;
       if (!u) return 'Unknown';
@@ -3127,8 +3293,411 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // TELEGRAM ALERT TOGGLE SETTINGS
+    // INSPECTION CHECKLISTS
     // ============================================================
+    const INSPECTION_CHECKLISTS = {
+      scaffolding: {
+        title: 'Scaffolding Checklist',
+        ref: 'CPSPL/02/F23/R0',
+        responseType: 'YNN', // YES / NO / N/A
+        items: [
+          'Is the footing of scaffold sound, rigid and ensure no loose stone and wood pieces used for scaffold base support?',
+          'Is the sufficient and suitable scaffolds have been provided so that the work could be safely done at a height?',
+          'Is the properly trained experienced workmen engaged for constructing, dismantling scaffolding works?',
+          'Is the scaffold constructed and designed as per safety norms/requirements?',
+          'Is there a safe means of access to the working platform?',
+          'Are scaffold structures having a solid base avoiding pavements & manhole covers etc.?',
+          'Is the scaffolding structure free from excavation pit and proper distance is maintained?',
+          'Is verticality of the structure properly maintained?',
+          'Are ties for scaffold structure properly maintained and adequate cross bracing provided?',
+          'All good condition couplers are used and tied with pipes properly.',
+          'Is there a provision of toe boards, guard rails and proper platform provided while people are working?',
+          'Is the scaffold erected under the supervision of a competent person?',
+          'Is the planks/gratings used for working platforms wooden/metallic?',
+          'Is the width of a working platform properly maintained as per requirement? (Min 600mm/800mm/1050mm)',
+          'Is there a system of inspecting scaffolds by a competent person on a regular basis (weekly/15days)?',
+          'Is there a system of inspecting scaffold materials before erection?',
+          'Is there a system of inspecting scaffolds at every spell of bad weather/heavy wind condition?',
+          'Is the scaffold erected free from power line or safe distance is maintained?',
+          'Is awareness given to all workmen for safe work operation?',
+          'Is there a check for the condition and correct usage of fittings for scaffolds?',
+          'Are all the materials stored on the platforms properly secured?',
+          'Whether grating is tied using proper binding wires?',
+          'Is the scaffolding tag provided? (RED/GREEN — SAFE USE/DON\'T USE)',
+          'Are openings in working platform kept safely covered/fenced?',
+          'Do wheels used for scaffold tower have appropriate SWL with locking arrangements?',
+          'Are mobile scaffolds used on a firm and level surface?',
+          'Does the height of mobile scaffolds not exceed four times the smaller base dimension?',
+          'Are all materials stacked on platform properly secured while in motion?',
+          'Is the safety rule (not to ride on a scaffold while in motion) observed?',
+          'Is there a system of checking for obstructions before the tower is moved?',
+          'Is there an access tower exceeding 9.6m free standing without support?',
+          'Are all the suspension gears correctly spaced and connected?',
+          'Is there a provision of guardrails and toe boards?'
+        ]
+      },
+      safety_harness: {
+        title: 'Safety Harness Inspection',
+        ref: 'CPSPL/02/F32/R0',
+        responseType: 'ONN', // OK / NOT OK / N/A
+        items: [
+          'Full body safety harness with double lanyard has been used.',
+          'Clip lock at the chest and leg are in good condition.',
+          'D-Ring doesn\'t have rust and bend.',
+          'Condition of lanyard (free from cut, burn, rust).',
+          'Shock absorber is in condition and covered.',
+          'Hook is in good condition. Easy to anchoring and latch functioning properly.',
+          'Full body should be ISI marked and approved standard.',
+          'Condition of rope link to D-Ring (free from rust, damage).',
+          'Availability of test certificate of safety belt.',
+          'Safety harness free from paint, burn, cut, corrosion.',
+          'Safety belt stored in a dry place.'
+        ]
+      }
+    };
+
+    let currentInspectionType = null;
+
+    function openInspectionModal(type) {
+      currentInspectionType = type;
+      const cfg = INSPECTION_CHECKLISTS[type];
+      document.getElementById('inspection-modal-title').innerText = cfg.title;
+      document.getElementById('insp-date').value = todayKey();
+      document.getElementById('insp-location').value = '';
+      document.getElementById('insp-remarks').value = '';
+
+      const options = cfg.responseType === 'YNN'
+        ? ['YES', 'NO', 'N/A']
+        : ['OK', 'NOT OK', 'N/A'];
+
+      const container = document.getElementById('insp-items-container');
+      container.innerHTML = cfg.items.map((item, i) => `
+        <div class="border border-construction-border rounded-lg p-2.5 bg-slate-900/50">
+          <p class="text-[11px] text-slate-300 mb-2">${i+1}. ${item}</p>
+          <div class="flex gap-2 flex-wrap">
+            ${options.map(opt => `
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="insp-item-${i}" value="${opt}" class="accent-construction-orange"
+                  ${opt === options[0] ? 'checked' : ''}>
+                <span class="text-[10px] font-bold ${opt==='YES'||opt==='OK'?'text-emerald-400':opt==='NO'||opt==='NOT OK'?'text-red-400':'text-slate-400'}">${opt}</span>
+              </label>`).join('')}
+            <input type="text" name="insp-remark-${i}" placeholder="Remark (optional)"
+              class="ml-auto text-[10px] px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-300 w-40 min-h-0" style="min-height:28px;">
+          </div>
+        </div>`).join('');
+
+      openModal('modal-inspection');
+    }
+
+    function submitInspection() {
+      const cfg = INSPECTION_CHECKLISTS[currentInspectionType];
+      const date = document.getElementById('insp-date').value;
+      const location = document.getElementById('insp-location').value.trim();
+      const remarks = document.getElementById('insp-remarks').value.trim();
+
+      const responses = cfg.items.map((item, i) => {
+        const checked = document.querySelector(`input[name="insp-item-${i}"]:checked`);
+        const remarkEl = document.querySelector(`input[name="insp-remark-${i}"]`);
+        return {
+          item,
+          response: checked ? checked.value : 'N/A',
+          remark: remarkEl ? remarkEl.value.trim() : ''
+        };
+      });
+
+      const rec = {
+        id: `insp-${Date.now()}`,
+        type: currentInspectionType,
+        title: cfg.title,
+        ref: cfg.ref,
+        date, location, remarks,
+        responses,
+        inspector: currentUser.fullname,
+        inspectorDesig: currentUser.designation || currentUser.role,
+        createdAt: new Date().toLocaleString()
+      };
+
+      dbState.inspections = dbState.inspections || [];
+      dbState.inspections.unshift(rec);
+      saveCurrentState();
+      closeModal();
+      renderObservations();
+      showToast(`${cfg.title} saved.`, 'success');
+      sendTelegram(`📋 ${cfg.title}\n📍 Location: ${location}\n📅 Date: ${date}\n👤 Inspector: ${userLabel()}`, [], 'obs_capa');
+    }
+
+    function previewInspection(id) {
+      const rec = (dbState.inspections || []).find(r => r.id === id);
+      if (!rec) return;
+      const cfg = INSPECTION_CHECKLISTS[rec.type] || {};
+      const options = (cfg.responseType === 'ONN') ? ['OK','NOT OK','N/A'] : ['YES','NO','N/A'];
+
+      const rows = rec.responses.map((r, i) => {
+        const color = (r.response==='YES'||r.response==='OK') ? '#16a34a' : (r.response==='NO'||r.response==='NOT OK') ? '#dc2626' : '#64748b';
+        return `<tr style="border-bottom:1px solid #eee;">
+          <td style="padding:3px 5px;font-size:9px;text-align:center;">${i+1}</td>
+          <td style="padding:3px 5px;font-size:9px;">${r.item}</td>
+          <td style="padding:3px 5px;font-size:9px;font-weight:bold;text-align:center;color:${color};">${r.response}</td>
+          <td style="padding:3px 5px;font-size:9px;color:#555;">${r.remark||''}</td>
+        </tr>`;
+      }).join('');
+
+      const html = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <img src="chettinad-logo.png" style="height:40px;">
+            <div>
+              <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
+              <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
+            </div>
+          </div>
+          <p style="font-size:9px;color:#555;">${rec.ref}</p>
+        </div>
+        <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">${rec.title.toUpperCase()}</p>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
+          <tr><td style="width:50%;font-size:10px;padding:2px;">Name of Project: <strong>CTO, Chennai</strong></td>
+              <td style="font-size:10px;padding:2px;">Date: <strong>${rec.date}</strong></td></tr>
+          <tr><td style="font-size:10px;padding:2px;">Location: <strong>${rec.location}</strong></td>
+              <td style="font-size:10px;padding:2px;">Inspector: <strong>${rec.inspector} (${rec.inspectorDesig})</strong></td></tr>
+        </table>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #ccc;margin-top:8px;">
+          <thead><tr style="background:#f1f1f1;">
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:5%;">SL</th>
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;text-align:left;">Description</th>
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:12%;">Response</th>
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:20%;">Remarks</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        ${rec.remarks ? `<p style="margin-top:8px;font-size:10px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
+        <div style="display:flex;justify-content:space-between;margin-top:24px;font-size:10px;">
+          <div>Checked by (Safety Officer):<br><br>____________________<br><small>${rec.inspector} · ${rec.inspectorDesig}</small></div>
+          <div>Signature of Project In-charge:<br><br>____________________</div>
+        </div>
+      </div>`;
+
+      const pa = document.getElementById('print-area');
+      const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
+        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+        <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+      </div>`;
+      pa.innerHTML = bar + html;
+      pa.classList.remove('hidden');
+      pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
+      pa.scrollTop = 0;
+    }
+
+    function deleteInspection(id) {
+      if (!confirm('Delete this inspection record?')) return;
+      dbState.inspections = (dbState.inspections||[]).filter(r => r.id !== id);
+      saveCurrentState();
+      renderObservations();
+      showToast('Inspection deleted.', 'info');
+    }
+
+    // ============================================================
+    // PENALTY / WARNING NOTICES
+    // ============================================================
+    function openPenaltyModal() {
+      document.getElementById('pen-date').value = todayKey();
+      document.getElementById('pen-location').value = '';
+      document.getElementById('pen-person-name').value = '';
+      document.getElementById('pen-designation').value = '';
+      document.getElementById('pen-observation').value = '';
+      document.getElementById('pen-mistake').value = '';
+      document.getElementById('pen-amount').value = '';
+      document.getElementById('pen-risk-level').value = 'High';
+      ['pen-rf-injury','pen-rf-disability','pen-rf-fatal','pen-rf-electric','pen-rf-fire','pen-rf-property']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+
+      const ctrSel = document.getElementById('pen-contractor');
+      if (ctrSel) {
+        ctrSel.innerHTML = '<option value="">— Select contractor —</option>' +
+          (dbState.contractors||[]).map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+      }
+      openModal('modal-penalty');
+    }
+
+    function submitPenaltyNotice() {
+      const riskFactors = [];
+      if (document.getElementById('pen-rf-injury')?.checked)     riskFactors.push('Serious Injury');
+      if (document.getElementById('pen-rf-disability')?.checked) riskFactors.push('Temp/Perm Disability');
+      if (document.getElementById('pen-rf-fatal')?.checked)      riskFactors.push('Fatal');
+      if (document.getElementById('pen-rf-electric')?.checked)   riskFactors.push('Electric Burn/Shock');
+      if (document.getElementById('pen-rf-fire')?.checked)       riskFactors.push('Fire & Explosion');
+      if (document.getElementById('pen-rf-property')?.checked)   riskFactors.push('Property Damage');
+
+      const rec = {
+        id: `pen-${Date.now()}`,
+        date:        document.getElementById('pen-date').value,
+        location:    document.getElementById('pen-location').value.trim(),
+        personName:  document.getElementById('pen-person-name').value.trim(),
+        designation: document.getElementById('pen-designation').value.trim(),
+        contractor:  document.getElementById('pen-contractor').value,
+        observation: document.getElementById('pen-observation').value.trim(),
+        mistake:     document.getElementById('pen-mistake').value.trim(),
+        riskLevel:   document.getElementById('pen-risk-level').value,
+        riskFactors,
+        penaltyAmount: parseFloat(document.getElementById('pen-amount').value)||0,
+        issuedBy:    currentUser.fullname,
+        issuedDesig: currentUser.designation || currentUser.role,
+        createdAt:   new Date().toLocaleString()
+      };
+
+      if (!rec.personName || !rec.observation) { showToast('Person name and violation are required.', 'error'); return; }
+
+      dbState.penaltyNotices = dbState.penaltyNotices || [];
+      dbState.penaltyNotices.unshift(rec);
+      saveCurrentState();
+      closeModal();
+      renderObservations();
+      showToast(`Penalty notice issued for ${rec.personName}.`, 'success');
+      sendTelegram(`⚠️ Penalty/Warning Notice\n👤 Person: ${rec.personName} (${rec.designation})\n🏗 Contractor: ${rec.contractor}\n📍 Location: ${rec.location}\n⚡ Risk: ${rec.riskLevel}\n📝 Violation: ${rec.observation}\n💰 Penalty: ₹${rec.penaltyAmount}\n👤 Issued by: ${userLabel()}`, [], 'obs_new');
+
+      // Generate printable PDF
+      setTimeout(() => previewPenaltyNotice(rec.id), 300);
+    }
+
+    function previewPenaltyNotice(id) {
+      const rec = (dbState.penaltyNotices||[]).find(p => p.id === id);
+      if (!rec) return;
+
+      const rfText = rec.riskFactors && rec.riskFactors.length ? rec.riskFactors.join(' / ') : '—';
+      const html = `<div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:8px;">
+          <img src="chettinad-logo.png" style="height:40px;">
+          <p style="font-size:9px;color:#555;">CPSPL/02/F24/R0</p>
+        </div>
+        <p style="text-align:center;font-size:15px;font-weight:900;margin:8px 0 4px;">ON SPOT PENALTY / WARNING NOTICE</p>
+        <p style="text-align:center;font-size:13px;font-weight:bold;margin:0 0 12px;">FOR SAFETY VIOLATION</p>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+          <tr>
+            <td style="padding:3px 0;font-size:10px;width:50%;">PROJECT: <strong>CTO, Chennai</strong></td>
+            <td style="padding:3px 0;font-size:10px;">Date: <strong>${rec.date}</strong></td>
+          </tr>
+          <tr>
+            <td style="padding:3px 0;font-size:10px;">Area/Location: <strong>${rec.location}</strong></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td style="padding:3px 0;font-size:10px;">Name of person: <strong>${rec.personName}</strong></td>
+            <td style="padding:3px 0;font-size:10px;">Designation: <strong>${rec.designation}</strong></td>
+          </tr>
+          <tr>
+            <td colspan="2" style="padding:3px 0;font-size:10px;">Name of Contractor/Agency: <strong>${rec.contractor||'—'}</strong></td>
+          </tr>
+        </table>
+        <p style="font-size:10px;margin:6px 0 3px;"><strong>Observation / Safety Violation:</strong></p>
+        <p style="font-size:10px;border-bottom:1px solid #999;padding-bottom:4px;margin:0 0 4px;">${rec.observation}</p>
+        <p style="font-size:10px;border-bottom:1px solid #999;padding-bottom:16px;margin:0 0 8px;">&nbsp;</p>
+        <p style="font-size:10px;margin:6px 0 3px;"><strong>What mistake has been done:</strong></p>
+        <p style="font-size:10px;border-bottom:1px solid #999;padding-bottom:4px;margin:0 0 4px;">${rec.mistake}</p>
+        <p style="font-size:10px;border-bottom:1px solid #999;padding-bottom:16px;margin:0 0 8px;">&nbsp;</p>
+        <p style="font-size:11px;margin:8px 0;"><strong>Risk level: High / Medium / Low</strong> → <strong>${rec.riskLevel}</strong></p>
+        <p style="font-size:11px;margin:8px 0;"><strong>Risk Factor:</strong> Serious Injury / Temporary or Permanent disabilities / Fatal / Electric burn / shock / fire &amp; Explosion / Property damage → <strong>${rfText}</strong></p>
+        <div style="text-align:right;margin:8px 0 12px;">
+          <span style="border:1px solid #000;padding:4px 16px;font-size:11px;"><strong>Penalty Amount - ₹ ${rec.penaltyAmount || '________'}</strong></span>
+        </div>
+        <div style="border:1px solid #666;padding:8px;font-size:10px;margin-bottom:16px;background:#f9f9f9;">
+          <p>Declaration by offender: I <strong>${rec.personName}</strong> working as designation <strong>${rec.designation}</strong> under contractor <strong>${rec.contractor||'_______'}</strong>. I have done safety violation and agree to pay the penalty charge imposed by the engineer / safety officer / manager.</p>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:20px;">
+          <div style="text-align:center;">
+            <p>Observed by:</p><p style="margin-top:24px;">____________________</p>
+            <p><small>${rec.issuedBy} · ${rec.issuedDesig}</small></p>
+          </div>
+          <div style="text-align:center;">
+            <p>Offender / Subcontractor:</p><p style="margin-top:24px;">____________________</p>
+            <p><small>Signature</small></p>
+          </div>
+          <div style="text-align:center;">
+            <p>Project Manager:</p><p style="margin-top:24px;">____________________</p>
+            <p><small>Name &amp; Signature</small></p>
+          </div>
+        </div>
+      </div>`;
+
+      const pa = document.getElementById('print-area');
+      const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
+        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+        <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+      </div>`;
+      pa.innerHTML = bar + html;
+      pa.classList.remove('hidden');
+      pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
+      pa.scrollTop = 0;
+    }
+
+    function deletePenaltyNotice(id) {
+      if (!confirm('Delete this penalty notice?')) return;
+      dbState.penaltyNotices = (dbState.penaltyNotices||[]).filter(p => p.id !== id);
+      saveCurrentState();
+      renderObservations();
+      showToast('Penalty notice deleted.', 'info');
+    }
+
+    function renderInspectionsAndPenalties() {
+      // Inspections
+      const inspPanel = document.getElementById('inspections-list-panel');
+      if (inspPanel) {
+        const inspections = dbState.inspections || [];
+        if (!inspections.length) {
+          inspPanel.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-4">No inspections recorded yet.</p>';
+        } else {
+          inspPanel.innerHTML = inspections.map(r => {
+            const badgeColor = r.type === 'scaffolding' ? 'bg-blue-600/20 text-blue-400' : 'bg-indigo-600/20 text-indigo-400';
+            const fails = r.responses.filter(x => x.response==='NO'||x.response==='NOT OK').length;
+            const isAdmin = currentUser && currentUser.role === 'Admin';
+            return `<div class="bg-slate-900 border border-construction-border p-3 rounded-lg space-y-1.5">
+              <div class="flex items-center justify-between flex-wrap gap-1">
+                <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded ${badgeColor}">${r.title}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${r.date}</span>
+              </div>
+              <p class="text-xs font-semibold text-slate-300">📍 ${r.location}</p>
+              ${fails ? `<p class="text-[10px] text-red-400">⚠️ ${fails} item${fails>1?'s':''} failed</p>` : '<p class="text-[10px] text-emerald-400">✅ All items satisfactory</p>'}
+              <div class="flex items-center justify-between pt-1.5 border-t border-slate-800">
+                <span class="text-[9px] text-slate-500">By: ${r.inspector}</span>
+                <div class="flex gap-2">
+                  <button onclick="previewInspection('${r.id}')" class="text-[10px] text-blue-400 hover:underline">View/Print</button>
+                  ${isAdmin ? `<button onclick="deleteInspection('${r.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>` : ''}
+                </div>
+              </div>
+            </div>`;
+          }).join('');
+        }
+      }
+
+      // Penalties
+      const penPanel = document.getElementById('penalties-list-panel');
+      if (penPanel) {
+        const penalties = dbState.penaltyNotices || [];
+        if (!penalties.length) {
+          penPanel.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-4">No penalty notices issued yet.</p>';
+        } else {
+          penPanel.innerHTML = penalties.map(p => {
+            const riskColor = p.riskLevel==='High' ? 'text-red-400' : p.riskLevel==='Medium' ? 'text-yellow-400' : 'text-emerald-400';
+            const isAdmin = currentUser && currentUser.role === 'Admin';
+            return `<div class="bg-slate-900 border border-orange-900/40 p-3 rounded-lg space-y-1.5">
+              <div class="flex items-center justify-between flex-wrap gap-1">
+                <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-orange-700/20 text-orange-400">⚠️ ${p.riskLevel} Risk</span>
+                <span class="text-[10px] text-slate-500 font-mono">${p.date}</span>
+              </div>
+              <p class="text-xs font-semibold text-slate-300">👤 ${p.personName} <span class="text-slate-500 font-normal">(${p.designation})</span></p>
+              <p class="text-[10px] text-slate-400">🏗 ${p.contractor||'—'} · 📍 ${p.location}</p>
+              <p class="text-[10px] text-slate-400 leading-relaxed">${p.observation}</p>
+              ${p.penaltyAmount ? `<p class="text-[10px] text-orange-400 font-bold">💰 Penalty: ₹${p.penaltyAmount}</p>` : ''}
+              <div class="flex items-center justify-between pt-1.5 border-t border-slate-800">
+                <span class="text-[9px] text-slate-500">By: ${p.issuedBy}</span>
+                <div class="flex gap-2">
+                  <button onclick="previewPenaltyNotice('${p.id}')" class="text-[10px] text-orange-400 hover:underline">View/Print</button>
+                  ${isAdmin ? `<button onclick="deletePenaltyNotice('${p.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>` : ''}
+                </div>
+              </div>
+            </div>`;
+          }).join('');
+        }
+      }
+    }
     const TG_ALERT_TYPES = [
       { key: 'permit_submit',    label: 'Permit Submitted',        desc: 'When anyone submits a new permit',            group: 'Permits' },
       { key: 'permit_review',    label: 'Permit Reviewed',         desc: 'Approved, rejected or returned to contractor', group: 'Permits' },
@@ -4142,6 +4711,7 @@ ${editCtrLines}
       }
 
       lucide.createIcons();
+      renderInspectionsAndPenalties();
     }
 
     // ── Helper: show/hide incident sub-fields based on category + checkboxes ──
@@ -4192,6 +4762,19 @@ ${editCtrLines}
       const obsCapaWrap   = document.getElementById('obs-capa-wrap');
       const incFieldsWrap = document.getElementById('inc-fields-wrap');
       const submitBtn     = document.getElementById('report-submit-btn');
+
+      // Populate responsible person dropdown from users list
+      const respSel = document.getElementById('report-responsible');
+      if (respSel) {
+        respSel.innerHTML = '<option value="">— Select person —</option>' +
+          (dbState.users || []).filter(u => u.role !== 'Contractor').map(u =>
+            `<option value="${u.fullname}">${u.fullname} (${u.designation || u.role})</option>`
+          ).join('') +
+          '<optgroup label="Contractors">' +
+          (dbState.contractors || []).map(c =>
+            `<option value="${c.name}">${c.name}</option>`
+          ).join('') + '</optgroup>';
+      }
 
       if (type === 'incident') {
         document.getElementById('report-modal-title').innerText = 'Record Site Incident';
