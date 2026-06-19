@@ -43,29 +43,112 @@
     }
   </script>
   <style>
-    /* ── Light Mode ──────────────────────────────────────── */
-    body.light-mode { background: #f1f5f9; color: #0f172a; }
-    body.light-mode .bg-construction-darkBg { background-color: #f1f5f9 !important; }
-    body.light-mode [class*="bg-construction-cardBg"],
-    body.light-mode .bg-construction-cardBg { background-color: #ffffff !important; }
-    body.light-mode [class*="bg-slate-900"],
-    body.light-mode .bg-slate-900 { background-color: #f8fafc !important; }
-    body.light-mode [class*="bg-slate-800"],
-    body.light-mode .bg-slate-800 { background-color: #e2e8f0 !important; }
-    body.light-mode [class*="border-construction-border"],
-    body.light-mode .border-construction-border { border-color: #cbd5e1 !important; }
-    body.light-mode .text-slate-100,body.light-mode .text-slate-200 { color: #0f172a !important; }
-    body.light-mode .text-slate-300 { color: #1e293b !important; }
-    body.light-mode .text-slate-400 { color: #475569 !important; }
-    body.light-mode .text-slate-500 { color: #64748b !important; }
-    body.light-mode input,body.light-mode select,body.light-mode textarea {
-      background-color: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important;
+    /* ══════════════════════════════════════════════════════════
+       LIGHT MODE — "Daylight Site" theme
+       Warm paper background, crisp white cards with soft shadow,
+       construction-orange accents retained as the brand anchor,
+       and corrected status-chip contrast for white backgrounds.
+       ══════════════════════════════════════════════════════════ */
+    body.light-mode {
+      background: #f6f3ee;            /* warm paper, not cold gray */
+      color: #1c2433;
     }
-    body.light-mode .bg-slate-950\/40,.light-mode [class*="bg-slate-950"] { background-color: #f8fafc !important; }
-    body.light-mode [class*="bg-slate-800\/"] { background-color: rgba(226,232,240,0.6) !important; }
-    body.light-mode [class*="divide-slate-"] > * + * { border-color: #e2e8f0 !important; }
-    body.light-mode ::-webkit-scrollbar-track { background: #f1f5f9; }
-    body.light-mode ::-webkit-scrollbar-thumb { background: #94a3b8; }
+    body.light-mode .bg-construction-darkBg { background-color: #f6f3ee !important; }
+
+    /* Cards — clean white, soft shadow, faint warm border */
+    body.light-mode [class*="bg-construction-cardBg"],
+    body.light-mode .bg-construction-cardBg {
+      background-color: #ffffff !important;
+      box-shadow: 0 1px 3px rgba(28,36,51,0.06), 0 1px 2px rgba(28,36,51,0.04);
+    }
+    body.light-mode header.bg-construction-cardBg {
+      background-color: #fffdfb !important;
+      border-bottom: 1px solid #f1d9bf !important;
+    }
+    body.light-mode nav#mobile-nav {
+      background-color: #fffdfb !important;
+      box-shadow: 0 -2px 10px rgba(28,36,51,0.08);
+    }
+
+    /* Inputs/panels nested inside cards */
+    body.light-mode [class*="bg-slate-900"],
+    body.light-mode .bg-slate-900 { background-color: #faf8f5 !important; }
+    body.light-mode [class*="bg-slate-800"],
+    body.light-mode .bg-slate-800 { background-color: #eee9e1 !important; }
+    body.light-mode [class*="bg-slate-950"] { background-color: #faf8f5 !important; }
+    body.light-mode [class*="bg-slate-800\/"] { background-color: rgba(238,233,225,0.7) !important; }
+
+    body.light-mode [class*="border-construction-border"],
+    body.light-mode .border-construction-border { border-color: #e7ddd0 !important; }
+    body.light-mode [class*="divide-slate-"] > * + * { border-color: #ece6db !important; }
+
+    /* Text hierarchy — warm near-black instead of flat gray */
+    body.light-mode .text-slate-100,
+    body.light-mode .text-slate-200 { color: #1c2433 !important; }
+    body.light-mode .text-slate-300 { color: #2f3a4d !important; }
+    body.light-mode .text-slate-400 { color: #5b6678 !important; }
+    body.light-mode .text-slate-500 { color: #7c8698 !important; }
+
+    body.light-mode input,
+    body.light-mode select,
+    body.light-mode textarea {
+      background-color: #ffffff !important;
+      color: #1c2433 !important;
+      border-color: #ddd4c4 !important;
+    }
+    body.light-mode input::placeholder,
+    body.light-mode textarea::placeholder { color: #9aa3b2 !important; }
+
+    body.light-mode ::-webkit-scrollbar-track { background: #f6f3ee; }
+    body.light-mode ::-webkit-scrollbar-thumb { background: #d8cdb8; }
+
+    /* Buttons that were dark-slate filled now read as light neutral chips */
+    body.light-mode button.bg-slate-800,
+    body.light-mode [class*="bg-slate-800"]:is(button) { color: #1c2433 !important; }
+
+    /* ── Status chip contrast fixes — semi-transparent dark-mode tints
+       look washed out on a white card, so swap to solid accessible
+       light-mode chip pairs (light fill + darker, saturated text) ── */
+    body.light-mode [class*="bg-yellow-500\/10"],
+    body.light-mode [class*="bg-yellow-600\/20"],
+    body.light-mode [class*="bg-yellow-500\/20"] { background-color: #fef3c7 !important; }
+    body.light-mode .text-yellow-500,
+    body.light-mode .text-yellow-400 { color: #92400e !important; }
+
+    body.light-mode [class*="bg-red-500\/10"],
+    body.light-mode [class*="bg-red-600\/20"],
+    body.light-mode [class*="bg-red-500\/20"] { background-color: #fee2e2 !important; }
+    body.light-mode .text-red-500,
+    body.light-mode .text-red-400 { color: #b91c1c !important; }
+
+    body.light-mode [class*="bg-emerald-500\/10"],
+    body.light-mode [class*="bg-emerald-600\/20"],
+    body.light-mode [class*="bg-emerald-500\/20"],
+    body.light-mode [class*="bg-emerald-950"] { background-color: #d1fae5 !important; }
+    body.light-mode .text-emerald-500,
+    body.light-mode .text-emerald-400 { color: #047857 !important; }
+
+    body.light-mode [class*="bg-blue-500\/10"],
+    body.light-mode [class*="bg-blue-600\/20"] { background-color: #dbeafe !important; }
+    body.light-mode .text-blue-500,
+    body.light-mode .text-blue-400 { color: #1d4ed8 !important; }
+
+    body.light-mode [class*="bg-construction-orange\/10"],
+    body.light-mode [class*="bg-construction-orange\/20"] { background-color: #ffedd5 !important; }
+    body.light-mode .text-construction-orange { color: #c2410c !important; }
+
+    body.light-mode [class*="bg-purple-500\/10"],
+    body.light-mode [class*="bg-purple-600\/20"] { background-color: #ede9fe !important; }
+    body.light-mode .text-purple-400 { color: #6d28d9 !important; }
+
+    body.light-mode [class*="bg-indigo-500\/10"],
+    body.light-mode [class*="bg-indigo-600\/20"] { background-color: #e0e7ff !important; }
+    body.light-mode .text-indigo-400 { color: #4338ca !important; }
+
+    body.light-mode [class*="bg-orange-700\/20"],
+    body.light-mode [class*="bg-orange-600\/20"] { background-color: #ffedd5 !important; }
+    body.light-mode .text-orange-400,
+    body.light-mode .text-orange-500 { color: #c2410c !important; }
 
     /* Premium touch target improvements */
     input, button, select, textarea { min-height: 44px; }
@@ -148,7 +231,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.2.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.3.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -350,9 +433,12 @@ service cloud.firestore {
                     <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Add Photo
                     <input id="announce-photo-input" type="file" accept="image/*" class="hidden" onchange="previewAnnouncementPhoto(this)">
                   </label>
-                  <button onclick="postAnnouncement()" class="bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-1.5 px-4 rounded-lg flex items-center gap-1.5">
-                    <i data-lucide="send" class="w-3.5 h-3.5"></i> Post
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button id="announce-cancel-edit-btn" onclick="cancelEditAnnouncement()" class="hidden text-[11px] text-slate-400 hover:text-slate-200 px-2">Cancel</button>
+                    <button id="announce-post-btn" onclick="postAnnouncement()" class="bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-1.5 px-4 rounded-lg flex items-center gap-1.5">
+                      <i data-lucide="send" class="w-3.5 h-3.5"></i> <span>Post</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -905,6 +991,18 @@ service cloud.firestore {
                 <button onclick="openPPEModal()" class="flex-grow sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
                   <i data-lucide="hard-hat" class="w-4 h-4"></i> PPE Check
                 </button>
+              </div>
+            </div>
+
+            <!-- CONTRACTOR SAFETY SCORECARD — Staff & Admin see all; Contractors see only their own -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-construction-orange"></i>
+                Contractor Safety Scorecard
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-4">Auto-calculated from penalties, permits and manhours.</p>
+              <div id="observe-scorecard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- rendered by renderObserveScorecard -->
               </div>
             </div>
 
@@ -1773,6 +1871,14 @@ service cloud.firestore {
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">General Remarks</label>
             <textarea id="insp-remarks" rows="2" placeholder="Overall observations or instructions…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
           </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[10px] font-bold uppercase text-slate-400">Inspector Signature <span class="text-red-400">*</span></label>
+              <button type="button" onclick="clearInspectionSignature()" class="text-[10px] text-blue-400 hover:underline">Clear</button>
+            </div>
+            <canvas id="insp-sig-canvas" class="w-full h-28 bg-white rounded-lg border border-construction-border cursor-crosshair"></canvas>
+            <p class="text-[9px] text-slate-500 mt-1">Sign with finger or mouse to confirm this inspection.</p>
+          </div>
           <div class="flex justify-end gap-2 pt-2">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
             <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg">Save Inspection</button>
@@ -1897,6 +2003,14 @@ service cloud.firestore {
           <div>
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">General Remarks</label>
             <textarea id="ppe-remarks" rows="2" placeholder="Overall observations or corrective instructions…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[10px] font-bold uppercase text-slate-400">Checked By — Signature <span class="text-red-400">*</span></label>
+              <button type="button" onclick="clearPPESignature()" class="text-[10px] text-emerald-400 hover:underline">Clear</button>
+            </div>
+            <canvas id="ppe-sig-canvas" class="w-full h-28 bg-white rounded-lg border border-construction-border cursor-crosshair"></canvas>
+            <p class="text-[9px] text-slate-500 mt-1">Sign with finger or mouse to confirm this checklist.</p>
           </div>
           <div class="flex justify-end gap-2 pt-2">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
@@ -3141,6 +3255,46 @@ service cloud.firestore {
     function mpManpower(e){ return mpWorkers(e) + mpStaff(e); }
     function mpManhours(e){ return mpManpower(e) * 8; }
     function getTodayStr(){ return new Date().toISOString().split('T')[0]; }
+
+    // ============================================================
+    // DATE & TIME FORMATTING — dd/mm/yyyy + 24-hour time, used everywhere
+    // Internal storage always stays ISO (YYYY-MM-DD / YYYY-MM-DDTHH:MM) so
+    // sorting, filtering and month-prefix logic are untouched. These
+    // helpers are for DISPLAY ONLY.
+    // ============================================================
+    function pad2(n) { return String(n).padStart(2, '0'); }
+
+    // "YYYY-MM-DD" -> "DD/MM/YYYY"
+    function fmtDate(isoDate) {
+      if (!isoDate) return '';
+      const datePart = String(isoDate).split('T')[0];
+      const parts = datePart.split('-');
+      if (parts.length !== 3) return isoDate;
+      const [y, m, d] = parts;
+      return `${d}/${m}/${y}`;
+    }
+
+    // "YYYY-MM-DDTHH:MM" -> "DD/MM/YYYY HH:MM" (24-hour, already native to datetime-local)
+    function fmtDateTimeLocal(isoStr) {
+      if (!isoStr) return '';
+      const [datePart, timePart] = String(isoStr).split('T');
+      const dateOut = fmtDate(datePart);
+      return timePart ? `${dateOut} ${timePart}` : dateOut;
+    }
+
+    // Any Date object / parseable date string -> "DD/MM/YYYY HH:MM" in 24-hour time
+    function fmtDT(d) {
+      const dt = (d instanceof Date) ? d : new Date(d);
+      if (isNaN(dt)) return String(d);
+      return `${pad2(dt.getDate())}/${pad2(dt.getMonth()+1)}/${dt.getFullYear()} ${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
+    }
+
+    // Any Date object / parseable date string -> "DD/MM/YYYY" (no time)
+    function fmtDateOnly(d) {
+      const dt = (d instanceof Date) ? d : new Date(d);
+      if (isNaN(dt)) return String(d);
+      return `${pad2(dt.getDate())}/${pad2(dt.getMonth()+1)}/${dt.getFullYear()}`;
+    }
     function getManpowerForDate(d){ return (dbState.manpower || []).find(e => e.date === d) || null; }
 
     // ============================================================
@@ -3279,7 +3433,7 @@ service cloud.firestore {
 
       // Render contractor-wise breakdown for today on dashboard
       const dateEl = document.getElementById('dashboard-ctr-date');
-      if (dateEl) dateEl.innerText = today;
+      if (dateEl) dateEl.innerText = fmtDate(today);
       const ctrTable = document.getElementById('dashboard-contractor-table');
       if (ctrTable) {
         const contractors = dbState.contractors || [];
@@ -3333,9 +3487,14 @@ service cloud.firestore {
         }
       }
 
-      // Permit counts
-      const openPermits = dbState.permits.filter(p => ['Submitted', 'Pending Staff Review', 'Pending Admin Approval'].includes(p.status)).length;
-      const approvedPermits = dbState.permits.filter(p => p.status === 'Approved').length;
+      // Permit counts — contractors only ever see counts for their OWN permits
+      const permitsScope = (currentUser && currentUser.role === 'Contractor')
+        ? dbState.permits.filter(p => p.contractorId
+            ? p.contractorId === currentUser.contractorId
+            : p.contractor === getContractorName(currentUser.contractorId))
+        : dbState.permits;
+      const openPermits = permitsScope.filter(p => ['Submitted', 'Pending Staff Review', 'Pending Admin Approval'].includes(p.status)).length;
+      const approvedPermits = permitsScope.filter(p => p.status === 'Approved').length;
       const allObs     = dbState.hazards   || [];
       const allInc     = dbState.incidents || [];
       const monthPfx   = todayKey().slice(0, 7);
@@ -3386,7 +3545,7 @@ service cloud.firestore {
         firstAid:     num('sm-field-firstaid'),
         penalties:    num('sm-field-penalty'),
         recordedBy:   currentUser.fullname,
-        recordedAt:   new Date().toLocaleString()
+        recordedAt:   fmtDT(new Date())
       };
       if (!rec.toolboxTalks && !rec.attendance && !rec.inductions && !rec.firstAid && !rec.penalties) {
         showToast('Enter at least one figure before saving.', 'error'); return;
@@ -3498,7 +3657,7 @@ service cloud.firestore {
         firstAid: num('bl-field-firstaid'),
         penalties: num('bl-field-penalty'),
         savedBy: currentUser.fullname,
-        savedAt: new Date().toLocaleString()
+        savedAt: fmtDT(new Date())
       };
       saveCurrentState();
       renderBaselineAdmin();
@@ -3655,9 +3814,15 @@ service cloud.firestore {
         </div>`).join('');
 
       openModal('modal-inspection');
+      setTimeout(setupInspectionSignaturePad, 200);
     }
 
     function submitInspection() {
+      if (!inspectionSigPad || inspectionSigPad.isEmpty()) {
+        showToast('Please sign before saving this inspection.', 'error');
+        return;
+      }
+
       const cfg = INSPECTION_CHECKLISTS[currentInspectionType];
       const date = document.getElementById('insp-date').value;
       const location = document.getElementById('insp-location').value.trim();
@@ -3682,7 +3847,8 @@ service cloud.firestore {
         responses,
         inspector: currentUser.fullname,
         inspectorDesig: currentUser.designation || currentUser.role,
-        createdAt: new Date().toLocaleString()
+        inspectorSignature: inspectionSigPad.toDataURL(),
+        createdAt: fmtDT(new Date())
       };
 
       dbState.inspections = dbState.inspections || [];
@@ -3724,7 +3890,7 @@ service cloud.firestore {
         <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">${rec.title.toUpperCase()}</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
           <tr><td style="width:50%;font-size:10px;padding:2px;">Name of Project: <strong>CTO, Chennai</strong></td>
-              <td style="font-size:10px;padding:2px;">Date: <strong>${rec.date}</strong></td></tr>
+              <td style="font-size:10px;padding:2px;">Date: <strong>${fmtDate(rec.date)}</strong></td></tr>
           <tr><td style="font-size:10px;padding:2px;">Location: <strong>${rec.location}</strong></td>
               <td style="font-size:10px;padding:2px;">Inspector: <strong>${rec.inspector} (${rec.inspectorDesig})</strong></td></tr>
         </table>
@@ -3739,7 +3905,9 @@ service cloud.firestore {
         </table>
         ${rec.remarks ? `<p style="margin-top:8px;font-size:10px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
         <div style="display:flex;justify-content:space-between;margin-top:24px;font-size:10px;">
-          <div>Checked by (Safety Officer):<br><br>____________________<br><small>${rec.inspector} · ${rec.inspectorDesig}</small></div>
+          <div>Checked by (Safety Officer):<br>
+            ${rec.inspectorSignature ? `<img src="${rec.inspectorSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
+            <small>${rec.inspector} · ${rec.inspectorDesig}</small></div>
           <div>Signature of Project In-charge:<br><br>____________________</div>
         </div>
       </div>`;
@@ -3809,7 +3977,7 @@ service cloud.firestore {
         penaltyAmount: parseFloat(document.getElementById('pen-amount').value)||0,
         issuedBy:    currentUser.fullname,
         issuedDesig: currentUser.designation || currentUser.role,
-        createdAt:   new Date().toLocaleString()
+        createdAt:   fmtDT(new Date())
       };
 
       if (!rec.personName || !rec.observation) { showToast('Person name and violation are required.', 'error'); return; }
@@ -3842,7 +4010,7 @@ service cloud.firestore {
         <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
           <tr>
             <td style="padding:3px 0;font-size:10px;width:50%;">PROJECT: <strong>CTO, Chennai</strong></td>
-            <td style="padding:3px 0;font-size:10px;">Date: <strong>${rec.date}</strong></td>
+            <td style="padding:3px 0;font-size:10px;">Date: <strong>${fmtDate(rec.date)}</strong></td>
           </tr>
           <tr>
             <td style="padding:3px 0;font-size:10px;">Area/Location: <strong>${rec.location}</strong></td>
@@ -3921,7 +4089,7 @@ service cloud.firestore {
             return `<div class="bg-slate-900 border border-construction-border p-3 rounded-lg space-y-1.5">
               <div class="flex items-center justify-between flex-wrap gap-1">
                 <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded ${badgeColor}">${r.title}</span>
-                <span class="text-[10px] text-slate-500 font-mono">${r.date}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${fmtDate(r.date)}</span>
               </div>
               <p class="text-xs font-semibold text-slate-300">📍 ${r.location}</p>
               ${fails ? `<p class="text-[10px] text-red-400">⚠️ ${fails} item${fails>1?'s':''} failed</p>` : '<p class="text-[10px] text-emerald-400">✅ All items satisfactory</p>'}
@@ -3950,7 +4118,7 @@ service cloud.firestore {
             return `<div class="bg-slate-900 border border-orange-900/40 p-3 rounded-lg space-y-1.5">
               <div class="flex items-center justify-between flex-wrap gap-1">
                 <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-orange-700/20 text-orange-400">⚠️ ${p.riskLevel} Risk</span>
-                <span class="text-[10px] text-slate-500 font-mono">${p.date}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${fmtDate(p.date)}</span>
               </div>
               <p class="text-xs font-semibold text-slate-300">👤 ${p.personName} <span class="text-slate-500 font-normal">(${p.designation})</span></p>
               <p class="text-[10px] text-slate-400">🏗 ${p.contractor||'—'} · 📍 ${p.location}</p>
@@ -4021,9 +4189,15 @@ service cloud.firestore {
         </div>`).join('');
 
       openModal('modal-ppe');
+      setTimeout(setupPPESignaturePad, 200);
     }
 
     function submitPPECheck() {
+      if (!ppeSigPad || ppeSigPad.isEmpty()) {
+        showToast('Please sign before saving this checklist.', 'error');
+        return;
+      }
+
       const date = document.getElementById('ppe-date').value;
       const location = document.getElementById('ppe-location').value.trim();
       const contractor = document.getElementById('ppe-contractor').value;
@@ -4051,7 +4225,8 @@ service cloud.firestore {
         items, compliancePct,
         checkedBy: currentUser.fullname,
         checkedByDesig: currentUser.designation || currentUser.role,
-        createdAt: new Date().toLocaleString()
+        checkerSignature: ppeSigPad.toDataURL(),
+        createdAt: fmtDT(new Date())
       };
 
       dbState.ppeChecks = dbState.ppeChecks || [];
@@ -4095,7 +4270,7 @@ service cloud.firestore {
         </div>
         <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">PPE COMPLIANCE CHECKLIST</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
-          <tr><td style="width:50%;font-size:10px;padding:2px;">Date: <strong>${rec.date}</strong></td>
+          <tr><td style="width:50%;font-size:10px;padding:2px;">Date: <strong>${fmtDate(rec.date)}</strong></td>
               <td style="font-size:10px;padding:2px;">Location: <strong>${rec.location}</strong></td></tr>
           <tr><td style="font-size:10px;padding:2px;">Contractor: <strong>${rec.contractor||'—'}</strong></td>
               <td style="font-size:10px;padding:2px;">Total Workers Checked: <strong>${rec.totalWorkers}</strong></td></tr>
@@ -4114,7 +4289,9 @@ service cloud.firestore {
         <p style="margin-top:10px;font-size:12px;"><strong>Overall Compliance: ${rec.compliancePct}%</strong></p>
         ${rec.remarks ? `<p style="margin-top:6px;font-size:10px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
         <div style="display:flex;justify-content:space-between;margin-top:24px;font-size:10px;">
-          <div>Checked by:<br><br>____________________<br><small>${rec.checkedBy} · ${rec.checkedByDesig}</small></div>
+          <div>Checked by:<br>
+            ${rec.checkerSignature ? `<img src="${rec.checkerSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
+            <small>${rec.checkedBy} · ${rec.checkedByDesig}</small></div>
           <div>Signature of Project In-charge:<br><br>____________________</div>
         </div>
       </div>`;
@@ -4153,7 +4330,7 @@ service cloud.firestore {
         return `<div class="bg-slate-900 border border-construction-border p-3 rounded-lg space-y-1.5">
           <div class="flex items-center justify-between flex-wrap gap-1">
             <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded ${badge} ${color}">${r.compliancePct}% Compliant</span>
-            <span class="text-[10px] text-slate-500 font-mono">${r.date}</span>
+            <span class="text-[10px] text-slate-500 font-mono">${fmtDate(r.date)}</span>
           </div>
           <p class="text-xs font-semibold text-slate-300">📍 ${r.location}</p>
           <p class="text-[10px] text-slate-400">🏗 ${r.contractor || '—'} · 👥 ${r.totalWorkers} workers</p>
@@ -4247,7 +4424,7 @@ service cloud.firestore {
       const chatId  = document.getElementById('tg-field-chatid').value.trim();
       const groupId = document.getElementById('tg-field-groupid').value.trim();
       if (!token || !chatId) { showToast('Enter at least the bot token and your personal chat ID.', 'error'); return; }
-      dbState.telegramConfig = { token, chatId, groupChatId: groupId, savedBy: currentUser.fullname, savedAt: new Date().toLocaleString() };
+      dbState.telegramConfig = { token, chatId, groupChatId: groupId, savedBy: currentUser.fullname, savedAt: fmtDT(new Date()) };
       saveCurrentState();
       renderTelegramAdmin();
       showToast('Telegram settings saved to Firebase.', 'success');
@@ -4288,7 +4465,7 @@ service cloud.firestore {
       if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can save ImgBB settings.', 'error'); return; }
       const apiKey = document.getElementById('imgbb-field-key').value.trim();
       if (!apiKey) { showToast('Enter your ImgBB API key.', 'error'); return; }
-      dbState.imgbbConfig = { apiKey, savedBy: currentUser.fullname, savedAt: new Date().toLocaleString() };
+      dbState.imgbbConfig = { apiKey, savedBy: currentUser.fullname, savedAt: fmtDT(new Date()) };
       saveCurrentState();
       renderImgbbAdmin();
       showToast('ImgBB API key saved to Firebase.', 'success');
@@ -4354,7 +4531,8 @@ service cloud.firestore {
         });
       } catch (e) { console.error('TG exception:', e); }
     }
-    let _pendingAnnouncementPhoto = null; // compressed dataURL awaiting post
+    let _pendingAnnouncementPhoto = null;
+    let editingAnnouncementId = null; // compressed dataURL awaiting post
 
     // Admin or authorised permit reviewers (Staff with canApprove) may post.
     function canPostAnnouncement() {
@@ -4385,14 +4563,18 @@ service cloud.firestore {
           : '';
         const text = a.text ? `<p class="text-xs text-slate-200 whitespace-pre-wrap mt-1">${escapeHtml(a.text)}</p>` : '';
         const del = canDelete ? `<button onclick="deleteAnnouncement('${a.id}')" class="text-[10px] text-red-400 hover:underline shrink-0">Delete</button>` : '';
+        const edit = canDelete ? `<button onclick="editAnnouncement('${a.id}')" class="text-[10px] text-blue-400 hover:underline shrink-0">Edit</button>` : '';
         return `
           <div class="bg-slate-900/60 border border-construction-border rounded-lg p-3">
             <div class="flex items-start justify-between gap-2">
               <div>
                 <p class="text-[11px] font-bold text-construction-orange">${escapeHtml(a.author || 'Site Team')} <span class="text-slate-500 font-normal">· ${escapeHtml(a.role || '')}</span></p>
-                <p class="text-[9px] text-slate-500">${escapeHtml(a.timestamp || '')}</p>
+                <p class="text-[9px] text-slate-500">${escapeHtml(a.timestamp || '')}${a.editedAt ? ' · <span class="italic">edited</span>' : ''}</p>
               </div>
-              ${del}
+              <div class="flex items-center gap-2 shrink-0">
+                ${edit}
+                ${del}
+              </div>
             </div>
             ${text}
             ${photo}
@@ -4449,6 +4631,41 @@ service cloud.firestore {
       document.getElementById('announce-photo-img').src = '';
     }
 
+    function editAnnouncement(id) {
+      const a = (dbState.announcements || []).find(x => x.id === id);
+      if (!a) return;
+      const canEdit = currentUser && (currentUser.role === 'Admin' || a.authorId === currentUser.id);
+      if (!canEdit) { showToast('You can only edit your own notices.', 'error'); return; }
+
+      editingAnnouncementId = id;
+      document.getElementById('announce-text').value = a.text || '';
+      if (a.photo) {
+        _pendingAnnouncementPhoto = a.photo;
+        document.getElementById('announce-photo-img').src = a.photo;
+        document.getElementById('announce-photo-preview').classList.remove('hidden');
+      } else {
+        clearAnnouncementPhoto();
+      }
+
+      const btn = document.getElementById('announce-post-btn');
+      if (btn) btn.querySelector('span').innerText = 'Update';
+      const cancelBtn = document.getElementById('announce-cancel-edit-btn');
+      if (cancelBtn) cancelBtn.classList.remove('hidden');
+
+      document.getElementById('announce-compose').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('announce-text').focus();
+    }
+
+    function cancelEditAnnouncement() {
+      editingAnnouncementId = null;
+      document.getElementById('announce-text').value = '';
+      clearAnnouncementPhoto();
+      const btn = document.getElementById('announce-post-btn');
+      if (btn) btn.querySelector('span').innerText = 'Post';
+      const cancelBtn = document.getElementById('announce-cancel-edit-btn');
+      if (cancelBtn) cancelBtn.classList.add('hidden');
+    }
+
     function postAnnouncement() {
       if (!canPostAnnouncement()) { showToast('You are not authorised to post announcements.', 'error'); return; }
       const text = document.getElementById('announce-text').value.trim();
@@ -4457,6 +4674,24 @@ service cloud.firestore {
         return;
       }
       if (!Array.isArray(dbState.announcements)) dbState.announcements = [];
+
+      // ---- EDIT MODE: update the existing notice in place ----
+      if (editingAnnouncementId) {
+        const idx = dbState.announcements.findIndex(a => a.id === editingAnnouncementId);
+        if (idx === -1) { showToast('That notice no longer exists.', 'error'); cancelEditAnnouncement(); return; }
+        dbState.announcements[idx].text = text;
+        dbState.announcements[idx].photo = _pendingAnnouncementPhoto || null;
+        dbState.announcements[idx].editedAt = fmtDT(new Date());
+        dbState.announcements[idx].editedBy = currentUser.fullname;
+
+        cancelEditAnnouncement();
+        saveCurrentState();
+        renderAnnouncements();
+        showToast('Notice updated.', 'success');
+        return;
+      }
+
+      // ---- NEW NOTICE ----
       const candidate = {
         id: `ann-${Date.now()}`,
         authorId: currentUser.id,
@@ -4464,7 +4699,7 @@ service cloud.firestore {
         role: currentUser.role,
         text,
         photo: _pendingAnnouncementPhoto || null,
-        timestamp: new Date().toLocaleString()
+        timestamp: fmtDT(new Date())
       };
 
       // Protect the shared database from exceeding Firebase's ~1MB document limit.
@@ -4489,7 +4724,7 @@ service cloud.firestore {
       sendTelegram(
 `📢 <b>Site Notice Board</b>
 👤 Posted by: ${userLabel()}
-🕐 ${new Date().toLocaleString()}${candidate.text ? '\n📝 ' + escapeHtml(candidate.text) : ''}`,
+🕐 ${fmtDT(new Date())}${candidate.text ? '\n📝 ' + escapeHtml(candidate.text) : ''}`,
         candidate.photo && !candidate.photo.startsWith('data:') ? [candidate.photo] : [],
         'notice_board'
       );
@@ -4732,7 +4967,7 @@ service cloud.firestore {
           container.insertAdjacentHTML('beforeend', `
             <div class="bg-slate-900 border border-construction-border rounded-lg overflow-hidden">
               <div class="flex items-center justify-between px-4 py-2.5 border-b border-construction-border bg-slate-800/60">
-                <span class="text-xs font-bold text-slate-200">${entry.date}</span>
+                <span class="text-xs font-bold text-slate-200">${fmtDate(entry.date)}</span>
                 <div class="flex items-center gap-4 text-[10px]">
                   <span class="text-amber-400 font-bold">Your workers: ${myTotal}</span>
                   <span class="text-purple-400 font-bold">Site total: ${manpower} on site</span>
@@ -4782,7 +5017,7 @@ service cloud.firestore {
           <div class="bg-slate-900 border border-construction-border rounded-lg overflow-hidden">
             <!-- Date header -->
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-construction-border bg-slate-800/60">
-              <span class="text-xs font-bold text-slate-200">${entry.date}</span>
+              <span class="text-xs font-bold text-slate-200">${fmtDate(entry.date)}</span>
               <div class="flex items-center gap-4 text-[10px]">
                 <span class="text-purple-400 font-bold">${manpower} on site</span>
                 <span class="text-emerald-400 font-bold">${manhours} Manhours</span>
@@ -4975,8 +5210,10 @@ ${editCtrLines}
     }
     function formatObsDate(d) {
       if (!d) return '';
+      // datetime-local strings ("YYYY-MM-DDTHH:MM") format directly without timezone drift
+      if (typeof d === 'string' && d.includes('T') && !d.includes('Z')) return fmtDateTimeLocal(d);
       const dt = new Date(d);
-      return isNaN(dt) ? String(d) : dt.toLocaleString();
+      return isNaN(dt) ? String(d) : fmtDT(dt);
     }
 
     // Full-screen photo viewer
@@ -5208,6 +5445,7 @@ ${editCtrLines}
 
       lucide.createIcons();
       renderInspectionsAndPenalties();
+      renderObserveScorecard();
     }
 
     // ── Helper: show/hide incident sub-fields based on category + checkboxes ──
@@ -5380,7 +5618,7 @@ ${editCtrLines}
           let tgMsg = `${categoryEmoji} <b>[${category.toUpperCase()}] SITE INCIDENT</b>
 📍 Location: ${location}
 👤 Reported by: ${userLabel()}
-🕐 Date/Time: ${date.replace('T',' ')}
+🕐 Date/Time: ${fmtDateTimeLocal(date)}
 📝 ${description}`;
           if (incTypes.length) tgMsg += `\n🏷 Type: ${incTypes.join(', ')}`;
           if (injuryData)      tgMsg += `\n🤕 Injured: ${injuryData.affectedPerson || '—'} | ${injuryData.injuryType} | ${injuryData.severity}`;
@@ -5410,7 +5648,7 @@ ${editCtrLines}
           h.date = date; h.location = location; h.description = description; h.photos = photos;
           if (capaVisible) {
             h.correctiveAction = corrective; h.preventiveAction = preventive; h.responsiblePerson = responsible;
-            if (corrective || preventive || responsible) { h.capaBy = h.capaBy || currentUser.fullname; h.capaAt = new Date().toLocaleString(); }
+            if (corrective || preventive || responsible) { h.capaBy = h.capaBy || currentUser.fullname; h.capaAt = fmtDT(new Date()); }
           }
           showToast('Observation updated.', 'success');
         }
@@ -5422,7 +5660,7 @@ ${editCtrLines}
         };
         if (capaVisible && (corrective || preventive || responsible)) {
           rec.correctiveAction = corrective; rec.preventiveAction = preventive; rec.responsiblePerson = responsible;
-          rec.capaBy = currentUser.fullname; rec.capaAt = new Date().toLocaleString();
+          rec.capaBy = currentUser.fullname; rec.capaAt = fmtDT(new Date());
         }
         dbState.hazards.unshift(rec);
         showToast('Observation saved.', 'success');
@@ -5431,7 +5669,7 @@ ${editCtrLines}
 `🔶 <b>New Safety Observation</b>
 📍 Location: ${location}
 👤 Reported by: ${userLabel()}
-🕐 Date/Time: ${date.replace('T',' ')}
+🕐 Date/Time: ${fmtDateTimeLocal(date)}
 📝 ${description}${rec.correctiveAction ? '\n✅ Corrective: ' + rec.correctiveAction : ''}${rec.responsiblePerson ? '\n👷 Responsible: ' + rec.responsiblePerson : ''}`,
           rec.photos || [], 'obs_new'
         );
@@ -5458,7 +5696,7 @@ ${editCtrLines}
       h.correctiveAction = document.getElementById('capa-corrective').value.trim();
       h.preventiveAction = document.getElementById('capa-preventive').value.trim();
       h.responsiblePerson = document.getElementById('capa-responsible').value.trim();
-      h.capaBy = currentUser.fullname; h.capaAt = new Date().toLocaleString();
+      h.capaBy = currentUser.fullname; h.capaAt = fmtDT(new Date());
       saveCurrentState(); closeModal(); renderObservations();
       showToast('Action plan saved.', 'success');
       pushNotification(`Action plan updated for observation at ${h.location} by ${currentUser.fullname}`);
@@ -5492,7 +5730,7 @@ ${editCtrLines}
       const status = document.getElementById('close-obs-status').value;
       const note   = document.getElementById('close-obs-note').value.trim();
       const photos = _closePhotos.filter(Boolean);
-      h.closure = { status, note, photos, closedBy: currentUser.fullname, closedAt: new Date().toLocaleString() };
+      h.closure = { status, note, photos, closedBy: currentUser.fullname, closedAt: fmtDT(new Date()) };
       h.status = (status === 'Completed') ? 'Closed' : 'Open';
       try { if (JSON.stringify(dbState).length > 950000) { showToast('Storage nearly full — delete some old observation photos first.', 'error'); return; } } catch (e) {}
       saveCurrentState(); closeModal(); renderObservations();
@@ -5504,7 +5742,7 @@ ${editCtrLines}
 📍 Location: ${escapeHtml(h.location || '')}
 📝 Original: ${escapeHtml((h.description || '').substring(0, 80))}${(h.description||'').length > 80 ? '…' : ''}
 👤 Closed by: ${userLabel()}
-🕐 At: ${new Date().toLocaleString()}${note ? '\n💬 ' + escapeHtml(note) : ''}`,
+🕐 At: ${fmtDT(new Date())}${note ? '\n💬 ' + escapeHtml(note) : ''}`,
         photos,
         'obs_close'
       );
@@ -5710,7 +5948,16 @@ ${editCtrLines}
 
       // Reset static fields
       document.getElementById('permit-field-project').value = "CTO Project";
-      document.getElementById('permit-field-contractor').value = currentUser.fullname;
+      const ctrField = document.getElementById('permit-field-contractor');
+      if (currentUser.role === 'Contractor') {
+        ctrField.value = getContractorName(currentUser.contractorId) || '';
+        ctrField.readOnly = true;
+        ctrField.classList.add('opacity-70', 'cursor-not-allowed');
+      } else {
+        ctrField.value = "";
+        ctrField.readOnly = false;
+        ctrField.classList.remove('opacity-70', 'cursor-not-allowed');
+      }
       document.getElementById('permit-field-location').value = "";
       document.getElementById('permit-field-workers').value = "";
       document.getElementById('permit-field-description').value = "";
@@ -5786,7 +6033,7 @@ ${editCtrLines}
       const applicantSignature = {
         name: currentUser.fullname,
         designation: currentUser.designation || currentUser.role,
-        timestamp: new Date().toLocaleString(),
+        timestamp: fmtDT(new Date()),
         signatureImage: applicantSigPad.toDataURL()
       };
 
@@ -5821,6 +6068,7 @@ ${editCtrLines}
         type: selectedPermitType,
         project,
         contractor,
+        contractorId: currentUser.role === 'Contractor' ? (currentUser.contractorId || null) : (currentEditPermit ? currentEditPermit.contractorId || null : null),
         location,
         workers,
         description,
@@ -5831,7 +6079,7 @@ ${editCtrLines}
         status: 'Submitted',
         comments: [],
         signatures: { Applicant: applicantSignature },
-        updatedAt: new Date().toLocaleString()
+        updatedAt: fmtDT(new Date())
       };
 
       if (currentEditPermit) {
@@ -5862,7 +6110,7 @@ ${editCtrLines}
 👷 Contractor: ${escapeHtml(contractor)}
 📍 Location: ${escapeHtml(location)}
 👤 Submitted by: ${userLabel()}
-🕐 Valid: ${validityStart.replace('T',' ')} → ${validityEnd.replace('T',' ')}`,
+🕐 Valid: ${fmtDateTimeLocal(validityStart)} → ${fmtDateTimeLocal(validityEnd)}`,
         [], 'permit_submit'
       );
     }
@@ -5889,6 +6137,16 @@ ${editCtrLines}
       }
 
       let list = [...dbState.permits];
+
+      // Contractors must only ever see their own company's permits —
+      // never another contractor's name, location, or details.
+      if (currentUser.role === 'Contractor') {
+        const myName = getContractorName(currentUser.contractorId) || '';
+        list = list.filter(p => p.contractorId
+          ? p.contractorId === currentUser.contractorId
+          : p.contractor === myName); // fallback for permits created before contractorId existed
+      }
+
       if (activePermitFilter !== 'all') {
         list = list.filter(p => p.status === activePermitFilter);
       }
@@ -5972,8 +6230,8 @@ ${editCtrLines}
               ${expiryBadge}
             </td>
             <td class="p-3">
-              <p class="text-[11px] text-slate-400">Start: ${p.validityStart.replace('T',' ')}</p>
-              <p class="text-[11px] ${isExpired ? 'text-orange-400 font-bold' : 'text-slate-500'}">End: ${p.validityEnd.replace('T',' ')}</p>
+              <p class="text-[11px] text-slate-400">Start: ${fmtDateTimeLocal(p.validityStart)}</p>
+              <p class="text-[11px] ${isExpired ? 'text-orange-400 font-bold' : 'text-slate-500'}">End: ${fmtDateTimeLocal(p.validityEnd)}</p>
             </td>
             <td class="p-3 text-right space-x-1 space-y-1">
               ${actions}
@@ -6089,6 +6347,16 @@ ${editCtrLines}
     function setupApplicantSignaturePad() { applicantSigPad = createSignaturePad('applicant-sig-canvas'); }
     function clearApplicantSignature() { if (applicantSigPad) applicantSigPad.clear(); }
 
+    // Inspection checklist (Scaffold / Harness) signature pad
+    let inspectionSigPad = null;
+    function setupInspectionSignaturePad() { inspectionSigPad = createSignaturePad('insp-sig-canvas'); }
+    function clearInspectionSignature() { if (inspectionSigPad) inspectionSigPad.clear(); }
+
+    // PPE Compliance checklist signature pad
+    let ppeSigPad = null;
+    function setupPPESignaturePad() { ppeSigPad = createSignaturePad('ppe-sig-canvas'); }
+    function clearPPESignature() { if (ppeSigPad) ppeSigPad.clear(); }
+
     function openReviewModal(permitId) {
       currentEditPermit = dbState.permits.find(p => p.id === permitId);
       if (!currentEditPermit) return;
@@ -6147,13 +6415,13 @@ ${editCtrLines}
         role: currentUser.role,
         designation: currentUser.designation || currentUser.role,
         text: comment,
-        timestamp: new Date().toLocaleString()
+        timestamp: fmtDT(new Date())
       });
 
       permit.signatures[sigKey] = {
         name: currentUser.fullname,
         designation: currentUser.designation,
-        timestamp: new Date().toLocaleString(),
+        timestamp: fmtDT(new Date()),
         signatureImage: sigData
       };
 
@@ -6169,7 +6437,7 @@ ${editCtrLines}
 👷 Contractor: ${permit.contractor}
 📍 Location: ${permit.location}
 👤 Reviewed by: ${userLabel()}
-🕐 Valid: ${permit.validityStart.replace('T',' ')} → ${permit.validityEnd.replace('T',' ')}${comment ? '\n💬 ' + comment : ''}`,
+🕐 Valid: ${fmtDateTimeLocal(permit.validityStart)} → ${fmtDateTimeLocal(permit.validityEnd)}${comment ? '\n💬 ' + comment : ''}`,
         [], 'permit_review'
       );
       renderPermitsTable();
@@ -6218,7 +6486,7 @@ ${editCtrLines}
         <p class="font-bold text-slate-200">${p.permitNo} — ${p.type} Permit</p>
         <p>Contractor: <span class="text-slate-300">${escapeHtml(p.contractor)}</span></p>
         <p>Location: <span class="text-slate-300">${escapeHtml(p.location)}</span></p>
-        <p>Valid Until: <span class="${expired ? 'text-orange-400 font-bold' : 'text-slate-300'}">${p.validityEnd ? p.validityEnd.replace('T',' ') : '—'}${expired ? '  ⚠ Expired' : ''}</span></p>
+        <p>Valid Until: <span class="${expired ? 'text-orange-400 font-bold' : 'text-slate-300'}">${p.validityEnd ? fmtDateTimeLocal(p.validityEnd) : '—'}${expired ? '  ⚠ Expired' : ''}</span></p>
         <p>Current Status: <span class="text-emerald-400 font-bold">${p.status}</span></p>`;
 
       document.getElementById('permit-close-comment').value = '';
@@ -6265,18 +6533,18 @@ ${editCtrLines}
         role: currentUser.role,
         designation: currentUser.designation || currentUser.role,
         text: `[${newStatus.toUpperCase()}] ${comment}`,
-        timestamp: new Date().toLocaleString()
+        timestamp: fmtDT(new Date())
       });
 
       if (newStatus === 'Closed') {
         p.closedBy        = currentUser.fullname;
-        p.closedAt        = closeAt.replace('T', ' ');
+        p.closedAt        = fmtDateTimeLocal(closeAt);
         p.closureSignature = closeSig;
         p.closureComment  = comment;
       }
       if (newStatus === 'Cancelled') {
         p.cancelledBy      = currentUser.fullname;
-        p.cancelledAt      = closeAt.replace('T', ' ');
+        p.cancelledAt      = fmtDateTimeLocal(closeAt);
         p.cancellationComment = comment;
       }
 
@@ -6293,7 +6561,7 @@ ${editCtrLines}
 👷 Contractor: ${p.contractor}
 📍 Location: ${p.location}
 👤 By: ${userLabel()}
-🕐 Closed at: ${closeAt.replace('T',' ')}
+🕐 Closed at: ${fmtDateTimeLocal(closeAt)}
 💬 ${comment}`,
         [], 'permit_close'
       );
@@ -6317,16 +6585,16 @@ ${editCtrLines}
         if (end < now) {
           expiredCount++;
           if (!log.expiredSent) {
-            pushNotification(`⚠ Permit ${p.permitNo} (${p.type}) expired on ${p.validityEnd.replace('T',' ')} — please close it.`);
-            sendTelegram(`⏰ Permit Expired\n📋 Permit No: ${p.permitNo} (${p.type})\n👷 Contractor: ${p.contractor}\n📍 Location: ${p.location}\n🕐 Expired: ${p.validityEnd.replace('T',' ')}\n⚠ Please close this permit now.`, [], 'permit_expiry');
+            pushNotification(`⚠ Permit ${p.permitNo} (${p.type}) expired on ${fmtDateTimeLocal(p.validityEnd)} — please close it.`);
+            sendTelegram(`⏰ Permit Expired\n📋 Permit No: ${p.permitNo} (${p.type})\n👷 Contractor: ${p.contractor}\n📍 Location: ${p.location}\n🕐 Expired: ${fmtDateTimeLocal(p.validityEnd)}\n⚠ Please close this permit now.`, [], 'permit_expiry');
             log.expiredSent = true;
             dbState.permitAlertLog[p.id] = log;
             changed = true;
           }
         } else if ((end - now) <= 24 * 60 * 60 * 1000) {
           if (!log.expiringSent) {
-            pushNotification(`⏳ Permit ${p.permitNo} (${p.type}) expires within 24 hours — ${p.validityEnd.replace('T',' ')}.`);
-            sendTelegram(`⏳ Permit Expiring Soon\n📋 Permit No: ${p.permitNo} (${p.type})\n👷 Contractor: ${p.contractor}\n📍 Location: ${p.location}\n🕐 Expires: ${p.validityEnd.replace('T',' ')}\n⚠ Renew or close before expiry.`, [], 'permit_expiry');
+            pushNotification(`⏳ Permit ${p.permitNo} (${p.type}) expires within 24 hours — ${fmtDateTimeLocal(p.validityEnd)}.`);
+            sendTelegram(`⏳ Permit Expiring Soon\n📋 Permit No: ${p.permitNo} (${p.type})\n👷 Contractor: ${p.contractor}\n📍 Location: ${p.location}\n🕐 Expires: ${fmtDateTimeLocal(p.validityEnd)}\n⚠ Renew or close before expiry.`, [], 'permit_expiry');
             log.expiringSent = true;
             dbState.permitAlertLog[p.id] = log;
             changed = true;
@@ -6385,7 +6653,7 @@ ${editCtrLines}
       for (let d = 1; d <= days; d++) {
         const key   = `${monthPfx}-${String(d).padStart(2,'0')}`;
         const entry = mpMap[key];
-        const label = `${String(d).padStart(2,'0')}-${String(month).padStart(2,'0')}-${String(year).slice(2)}`;
+        const label = `${String(d).padStart(2,'0')}/${String(month).padStart(2,'0')}/${year}`;
         if (entry) {
           const wkr = ctrWorkers(entry.contractorWorkers);
           const stf = (entry.dayStaff||0) + (entry.nightStaff||0);
@@ -6409,7 +6677,7 @@ ${editCtrLines}
       const sec  = t => `<div style="background:#1e293b;color:#fff;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:5px 12px;border-radius:3px;margin:12px 0 7px;">${t}</div>`;
 
       const preparedBy = `${currentUser.fullname} (Senior Safety Officer)`;
-      const printDate  = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+      const printDate  = fmtDateOnly(new Date());
 
       const fullHTML = `<!DOCTYPE html>
 <html lang="en"><head>
@@ -6668,9 +6936,9 @@ ${sec('Manpower &amp; Exposure Log')}
             </tr>
             <tr>
               <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;"><strong>Valid From:</strong></td>
-              <td style="padding:3px 6px;border:1px solid #ccc;">${p.validityStart.replace('T',' ')}</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;">${fmtDateTimeLocal(p.validityStart)}</td>
               <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;"><strong>Valid To:</strong></td>
-              <td style="padding:3px 6px;border:1px solid #ccc;">${p.validityEnd.replace('T',' ')}</td>
+              <td style="padding:3px 6px;border:1px solid #ccc;">${fmtDateTimeLocal(p.validityEnd)}</td>
             </tr>
             <tr>
               <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;"><strong>Description:</strong></td>
@@ -7010,7 +7278,7 @@ ${sec('Manpower &amp; Exposure Log')}
       const contractors = dbState.contractors || [];
 
       const dateEl = document.getElementById('admin-manpower-date');
-      if (dateEl) dateEl.innerText = today;
+      if (dateEl) dateEl.innerText = fmtDate(today);
 
       const cws = entry ? (entry.contractorWorkers || []) : [];
       const totalWorkers = entry ? mpWorkers(entry) : 0;
@@ -7141,6 +7409,58 @@ ${sec('Manpower &amp; Exposure Log')}
       return { score, rating, totPen, mthPen, totPerm, mthPerm, totMH, mthMH };
     }
 
+    // Builds the HTML for a single contractor's scorecard card — shared by
+    // the Admin panel (sees everyone) and the Observe tab (Staff see
+    // everyone too; Contractors see only their own card).
+    function buildScorecardCardHtml(c) {
+      const d = computeContractorScore(c.id, c.name);
+      const { score, rating, totPen, totPerm, mthMH } = d;
+      const scoreBar = Math.round(score);
+      const barColor = score >= 90 ? '#16a34a' : score >= 75 ? '#ca8a04' : score >= 60 ? '#ea580c' : '#dc2626';
+      const mhDisplay = mthMH >= 1000 ? `${(mthMH/1000).toFixed(1)}k` : `${mthMH}`;
+
+      return `<div class="bg-slate-900 border border-construction-border rounded-xl p-4">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <p class="text-sm font-bold text-slate-200">${c.name}</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">Safety Score</p>
+          </div>
+          <div class="text-right">
+            <p class="text-2xl font-black" style="color:${barColor};">${scoreBar}</p>
+            <p class="text-[10px] font-bold" style="color:${barColor};">${rating.emoji} ${rating.label}</p>
+          </div>
+        </div>
+        <div class="w-full bg-slate-800 rounded-full h-2 mb-4">
+          <div class="h-2 rounded-full" style="width:${scoreBar}%;background:${barColor};"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center mb-3">
+          <div class="bg-slate-800 rounded-lg p-2">
+            <p class="text-[9px] text-slate-500 uppercase">Penalties</p>
+            <p class="text-lg font-extrabold text-red-400">${totPen.total}</p>
+            <p class="text-[9px] text-slate-500">Mth: ${d.mthPen.total}</p>
+          </div>
+          <div class="bg-slate-800 rounded-lg p-2">
+            <p class="text-[9px] text-slate-500 uppercase">Permits</p>
+            <p class="text-lg font-extrabold text-construction-orange">${totPerm.total}</p>
+            <p class="text-[9px] text-slate-500">${totPerm.approved} approved</p>
+          </div>
+          <div class="bg-slate-800 rounded-lg p-2">
+            <p class="text-[9px] text-slate-500 uppercase">Man-hrs</p>
+            <p class="text-lg font-extrabold text-blue-400">${mhDisplay}</p>
+            <p class="text-[9px] text-slate-500">This month</p>
+          </div>
+        </div>
+        ${totPen.total
+          ? `<div class="text-[10px] text-slate-400 border-t border-slate-800 pt-2 flex gap-3">
+              <span class="text-red-400">● High: ${totPen.high}</span>
+              <span class="text-yellow-400">● Med: ${totPen.medium}</span>
+              <span class="text-slate-400">● Low: ${totPen.low}</span>
+             </div>`
+          : `<p class="text-[10px] text-emerald-400 border-t border-slate-800 pt-2">✅ No penalties issued</p>`}
+      </div>`;
+    }
+
+    // Admin panel — full grid, every contractor
     function renderContractorScorecard() {
       const container = document.getElementById('contractor-scorecard-grid');
       if (!container) return;
@@ -7149,55 +7469,35 @@ ${sec('Manpower &amp; Exposure Log')}
         container.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No contractors in registry yet.</p>';
         return;
       }
-
       try {
-        container.innerHTML = contractors.map(c => {
-          const d = computeContractorScore(c.id, c.name);
-          const { score, rating, totPen, mthPen, totPerm, mthMH } = d;
-          const scoreBar = Math.round(score);
-          const barColor = score >= 90 ? '#16a34a' : score >= 75 ? '#ca8a04' : score >= 60 ? '#ea580c' : '#dc2626';
-          const mhDisplay = mthMH >= 1000 ? `${(mthMH/1000).toFixed(1)}k` : `${mthMH}`;
+        container.innerHTML = contractors.map(buildScorecardCardHtml).join('');
+      } catch(e) {
+        container.innerHTML = `<p class="text-red-400 text-xs p-4">Error rendering scorecard: ${e.message}</p>`;
+        console.error('Scorecard error:', e);
+      }
+    }
 
-          return `<div class="bg-slate-900 border border-construction-border rounded-xl p-4">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <p class="text-sm font-bold text-slate-200">${c.name}</p>
-                <p class="text-[10px] text-slate-500 mt-0.5">Safety Score</p>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-black" style="color:${barColor};">${scoreBar}</p>
-                <p class="text-[10px] font-bold" style="color:${barColor};">${rating.emoji} ${rating.label}</p>
-              </div>
-            </div>
-            <div class="w-full bg-slate-800 rounded-full h-2 mb-4">
-              <div class="h-2 rounded-full" style="width:${scoreBar}%;background:${barColor};"></div>
-            </div>
-            <div class="grid grid-cols-3 gap-2 text-center mb-3">
-              <div class="bg-slate-800 rounded-lg p-2">
-                <p class="text-[9px] text-slate-500 uppercase">Penalties</p>
-                <p class="text-lg font-extrabold text-red-400">${totPen.total}</p>
-                <p class="text-[9px] text-slate-500">Mth: ${mthPen.total}</p>
-              </div>
-              <div class="bg-slate-800 rounded-lg p-2">
-                <p class="text-[9px] text-slate-500 uppercase">Permits</p>
-                <p class="text-lg font-extrabold text-construction-orange">${totPerm.total}</p>
-                <p class="text-[9px] text-slate-500">${totPerm.approved} approved</p>
-              </div>
-              <div class="bg-slate-800 rounded-lg p-2">
-                <p class="text-[9px] text-slate-500 uppercase">Man-hrs</p>
-                <p class="text-lg font-extrabold text-blue-400">${mhDisplay}</p>
-                <p class="text-[9px] text-slate-500">This month</p>
-              </div>
-            </div>
-            ${totPen.total
-              ? `<div class="text-[10px] text-slate-400 border-t border-slate-800 pt-2 flex gap-3">
-                  <span class="text-red-400">● High: ${totPen.high}</span>
-                  <span class="text-yellow-400">● Med: ${totPen.medium}</span>
-                  <span class="text-slate-400">● Low: ${totPen.low}</span>
-                 </div>`
-              : `<p class="text-[10px] text-emerald-400 border-t border-slate-800 pt-2">✅ No penalties issued</p>`}
-          </div>`;
-        }).join('');
+    // Observe tab — visible to Staff & Admin (everyone); Contractors see
+    // ONLY their own company's card, never another contractor's score.
+    function renderObserveScorecard() {
+      const container = document.getElementById('observe-scorecard-grid');
+      if (!container) return;
+      let contractors = dbState.contractors || [];
+
+      if (currentUser && currentUser.role === 'Contractor') {
+        contractors = contractors.filter(c => c.id === currentUser.contractorId);
+      }
+
+      if (!contractors.length) {
+        container.innerHTML = `<p class="text-slate-500 text-xs italic text-center py-6">${
+          currentUser && currentUser.role === 'Contractor'
+            ? 'Your company is not yet linked to the contractor registry — contact your Admin.'
+            : 'No contractors in registry yet.'
+        }</p>`;
+        return;
+      }
+      try {
+        container.innerHTML = contractors.map(buildScorecardCardHtml).join('');
       } catch(e) {
         container.innerHTML = `<p class="text-red-400 text-xs p-4">Error rendering scorecard: ${e.message}</p>`;
         console.error('Scorecard error:', e);
