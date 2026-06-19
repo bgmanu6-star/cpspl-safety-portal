@@ -148,7 +148,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.1.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.2.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -224,6 +224,15 @@ service cloud.firestore {
 
         <!-- APP WORKSPACE (TAB-VIEWS DISPLAY AREA) -->
         <section class="flex-grow w-full space-y-6">
+
+          <!-- GLOBAL OFFLINE BANNER — shown whenever the device has no network connection -->
+          <div id="global-offline-banner" class="hidden no-print bg-slate-800 border border-yellow-600/40 rounded-xl px-4 py-2.5 flex items-center gap-3">
+            <i data-lucide="wifi-off" class="w-4 h-4 text-yellow-400 shrink-0"></i>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-yellow-300">You're offline</p>
+              <p class="text-[10px] text-slate-400">Working locally — everything you do is saved on this device and will sync automatically once you're back online.</p>
+            </div>
+          </div>
 
           <!-- ==============================================
                1. LOGIN / CREDENTIALS ENTRY SCREEN (DEFAULT VIEW)
@@ -419,6 +428,32 @@ service cloud.firestore {
                     <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Safe Manhours — Project Total</p>
                     <p id="kpi-safehours-total" class="text-2xl font-extrabold text-yellow-400 mt-0.5">0 <span class="text-xs font-normal text-yellow-500">hrs</span></p>
                     <p class="text-[9px] text-slate-500 font-mono">(Staff+Workers)×8 + Baseline</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- LTIFR — Lost Time Injury Frequency Rate -->
+            <div onclick="dashboardNavTo('reports', 'incidents-section')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 cursor-pointer hover:border-red-500/50 transition-colors">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 shrink-0">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">LTIFR — This Month</p>
+                    <p id="kpi-ltifr-month" class="text-2xl font-extrabold text-red-400 mt-0.5">0.00</p>
+                    <p id="kpi-ltifr-month-sub" class="text-[9px] text-slate-500 font-mono">0 LTI / 0 manhours</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 sm:border-l sm:border-construction-border sm:pl-4">
+                  <div class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-construction-orange shrink-0">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">LTIFR — Project To Date</p>
+                    <p id="kpi-ltifr-total" class="text-2xl font-extrabold text-construction-orange mt-0.5">0.00</p>
+                    <p class="text-[9px] text-slate-500 font-mono">LTIs × 1,000,000 ÷ Manhours</p>
                   </div>
                 </div>
               </div>
@@ -718,16 +753,24 @@ service cloud.firestore {
             </div>
 
             <!-- Filters Bar -->
-            <div class="bg-construction-cardBg border border-construction-border p-3 rounded-xl flex flex-wrap gap-2 items-center justify-between">
-              <span class="text-xs font-semibold text-slate-400 uppercase">Filters:</span>
-              <div class="flex flex-wrap gap-2">
-                <button onclick="filterPermits('all')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md active-filter" data-filter="all">All</button>
-                <button onclick="filterPermits('Submitted')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Submitted">Submitted</button>
-                <button onclick="filterPermits('Pending Staff Review')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Staff Review">Pending Staff</button>
-                <button onclick="filterPermits('Pending Admin Approval')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Admin Approval">Pending Admin</button>
-                <button onclick="filterPermits('Approved')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Approved">Approved</button>
-                <button onclick="filterPermits('Closed')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Closed">Closed</button>
-                <button onclick="filterPermits('Cancelled')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Cancelled">Cancelled</button>
+            <div class="bg-construction-cardBg border border-construction-border p-3 rounded-xl flex flex-col gap-3">
+              <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input id="permit-search-input" type="text" placeholder="Search by permit no., contractor, location or type…"
+                  oninput="searchPermits(this.value)"
+                  class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+              </div>
+              <div class="flex flex-wrap gap-2 items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase">Filters:</span>
+                <div class="flex flex-wrap gap-2">
+                  <button onclick="filterPermits('all')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md active-filter" data-filter="all">All</button>
+                  <button onclick="filterPermits('Submitted')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Submitted">Submitted</button>
+                  <button onclick="filterPermits('Pending Staff Review')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Staff Review">Pending Staff</button>
+                  <button onclick="filterPermits('Pending Admin Approval')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Admin Approval">Pending Admin</button>
+                  <button onclick="filterPermits('Approved')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Approved">Approved</button>
+                  <button onclick="filterPermits('Closed')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Closed">Closed</button>
+                  <button onclick="filterPermits('Cancelled')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Cancelled">Cancelled</button>
+                </div>
               </div>
             </div>
 
@@ -859,7 +902,25 @@ service cloud.firestore {
                 <button onclick="openPenaltyModal()" class="flex-grow sm:flex-none bg-orange-700 hover:bg-orange-800 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
                   <i data-lucide="ban" class="w-4 h-4"></i> Issue Warning
                 </button>
+                <button onclick="openPPEModal()" class="flex-grow sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="hard-hat" class="w-4 h-4"></i> PPE Check
+                </button>
               </div>
+            </div>
+
+            <!-- SEARCH & FILTER BAR — filters Observations + Incidents lists below -->
+            <div class="bg-construction-cardBg border border-construction-border p-3 rounded-xl flex flex-col sm:flex-row gap-2 sm:items-center">
+              <div class="relative flex-grow">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input id="obs-search-input" type="text" placeholder="Search by location, description or contractor…"
+                  oninput="searchObservations(this.value)"
+                  class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+              </div>
+              <select id="obs-status-filter" onchange="filterObservationsByStatus(this.value)" class="px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-300 text-xs">
+                <option value="all">All Statuses</option>
+                <option value="open">Open / Unresolved Only</option>
+                <option value="closed">Closed / Resolved Only</option>
+              </select>
             </div>
 
             <!-- GRID FOR HAZARD & INCIDENT LISTS -->
@@ -905,6 +966,17 @@ service cloud.firestore {
                   Penalty / Warning Notices
                 </h3>
                 <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="penalties-list-panel">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- PPE COMPLIANCE PANEL -->
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5 lg:col-span-2">
+                <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <i data-lucide="hard-hat" class="w-4 h-4"></i>
+                  PPE Compliance Checks
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1" id="ppe-list-panel">
                   <!-- Rendered dynamically -->
                 </div>
               </div>
@@ -1787,6 +1859,52 @@ service cloud.firestore {
         </form>
       </div>
 
+      <!-- PPE COMPLIANCE CHECKLIST MODAL -->
+      <div id="modal-ppe" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-lg w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-emerald-400">PPE Compliance Checklist</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <form id="ppe-form" onsubmit="event.preventDefault(); submitPPECheck();" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Date</label>
+              <input id="ppe-date" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Location</label>
+              <input id="ppe-location" type="text" required placeholder="e.g. Block B, Level 3" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contractor</label>
+            <select id="ppe-contractor" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+              <option value="">— Select contractor —</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Total Workers Checked</label>
+            <input id="ppe-total-workers" type="number" min="0" placeholder="e.g. 25" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+          </div>
+
+          <div class="border-t border-construction-border pt-3">
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">PPE Item-wise Compliance</p>
+            <div id="ppe-items-container" class="space-y-2">
+              <!-- Rendered by openPPEModal -->
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">General Remarks</label>
+            <textarea id="ppe-remarks" rows="2" placeholder="Overall observations or corrective instructions…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg">Save Checklist</button>
+          </div>
+        </form>
+      </div>
+
       <!-- ADD / UPDATE ACTION PLAN (CAPA) MODAL -->
       <div id="modal-capa" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
@@ -2207,6 +2325,50 @@ service cloud.firestore {
       text.innerText = s.label;
     }
 
+    // ============================================================
+    // OFFLINE MODE — real device-network detection, banner & auto-resync
+    // ============================================================
+    let isOnline = (typeof navigator !== 'undefined') ? navigator.onLine : true;
+    let _hasPendingOfflineChanges = false;
+
+    function setOfflineBannerVisible(show) {
+      const banner = document.getElementById('global-offline-banner');
+      if (!banner) return;
+      banner.classList.toggle('hidden', !show);
+    }
+
+    function handleNetworkOffline() {
+      isOnline = false;
+      setOfflineBannerVisible(true);
+      setFirebaseStatus('offline');
+    }
+
+    function handleNetworkOnline() {
+      isOnline = true;
+      setOfflineBannerVisible(false);
+      if (_hasPendingOfflineChanges && _firebaseMode && db && _serverLoaded) {
+        showToast('Back online — syncing your changes…', 'info');
+        setFirebaseStatus('syncing');
+        db.collection(FS_COL).doc(FS_DOC).set(dbState)
+          .then(() => {
+            _hasPendingOfflineChanges = false;
+            saveBackupSnapshot();
+            setFirebaseStatus('online');
+            showToast('All changes synced to the cloud.', 'success');
+          })
+          .catch(err => {
+            console.error('Resync failed:', err);
+            setFirebaseStatus('offline');
+            showToast('Sync failed — will retry automatically.', 'error');
+          });
+      } else {
+        setFirebaseStatus(_firebaseMode ? 'online' : 'offline');
+      }
+    }
+
+    window.addEventListener('online', handleNetworkOnline);
+    window.addEventListener('offline', handleNetworkOffline);
+
     // ------ data migrations (run after any load) ------
     function runMigrations() {
       if (!dbState.contractors)  dbState.contractors = [];
@@ -2219,6 +2381,8 @@ service cloud.firestore {
       if (!dbState.telegramAlerts)  dbState.telegramAlerts  = {};
       if (!dbState.inspections)     dbState.inspections     = [];
       if (!dbState.penaltyNotices)  dbState.penaltyNotices  = [];
+      if (!dbState.ppeChecks)       dbState.ppeChecks       = [];
+      if (!dbState.permitAlertLog) dbState.permitAlertLog   = {};
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -2481,6 +2645,15 @@ service cloud.firestore {
     function saveCurrentState() {
       if (_saveDebounce) clearTimeout(_saveDebounce);
       _saveDebounce = setTimeout(async () => {
+        // Known offline (device has no network) — skip the network attempt
+        // entirely and go straight to local storage. Marks a pending-sync
+        // flag so we push to Firestore the moment connectivity returns.
+        if (!isOnline) {
+          saveToLocalStorage();
+          _hasPendingOfflineChanges = true;
+          setFirebaseStatus('offline');
+          return;
+        }
         // Firestore write is allowed ONLY after the server's data was confirmed.
         // This guarantees a seed/blank state can never overwrite real cloud data.
         if (_firebaseMode && db && _serverLoaded) {
@@ -2488,11 +2661,13 @@ service cloud.firestore {
           try {
             await db.collection(FS_COL).doc(FS_DOC).set(dbState);
             saveBackupSnapshot();
+            _hasPendingOfflineChanges = false;
             setFirebaseStatus('online');
           } catch (err) {
             console.error('Firestore save error:', err);
             showToast('Save to cloud failed — kept a local copy. Will retry when online.', 'error');
             saveToLocalStorage();
+            _hasPendingOfflineChanges = true;
             setFirebaseStatus('offline');
           }
         } else if (_firebaseMode && db && !_serverLoaded) {
@@ -2541,6 +2716,11 @@ service cloud.firestore {
     let currentUser = null;
     let activeTab = 'dashboard';
     let activePermitFilter = 'all';
+    let permitSearchQuery = '';
+    function searchPermits(value) {
+      permitSearchQuery = (value || '').trim().toLowerCase();
+      renderPermitsTable();
+    }
     let reviewSigPad = null;     // signature pad in the review modal
     let applicantSigPad = null;  // signature pad in the create-permit modal
     let selectedPermitType = null;
@@ -2962,6 +3142,28 @@ service cloud.firestore {
     function mpManhours(e){ return mpManpower(e) * 8; }
     function getTodayStr(){ return new Date().toISOString().split('T')[0]; }
     function getManpowerForDate(d){ return (dbState.manpower || []).find(e => e.date === d) || null; }
+
+    // ============================================================
+    // LTIFR — Lost Time Injury Frequency Rate
+    // Standard formula (IS 3786 / commonly used in Indian EHS reporting):
+    //   LTIFR = (No. of Lost Time Injuries × 1,000,000) / Total man-hours worked
+    // monthPfx: optional "YYYY-MM" string to scope to one month; omit for project-to-date.
+    // ============================================================
+    function computeLTIFR(monthPfx) {
+      const incidents = (dbState.incidents || []).filter(i =>
+        i.injuryData && i.injuryData.severity === 'Lost Time Injury (LTI)' &&
+        (!monthPfx || (i.date || '').slice(0, 7) === monthPfx)
+      );
+      const ltiCount = incidents.length;
+
+      const mpEntries = (dbState.manpower || []).filter(e => !monthPfx || (e.date || '').slice(0, 7) === monthPfx);
+      let manhours = mpEntries.reduce((s, e) => s + mpManhours(e), 0);
+      // Project-to-date figure also includes any historical baseline manhours
+      if (!monthPfx) manhours += (dbState.projectBaseline || {}).manhours || 0;
+
+      const ltifr = manhours > 0 ? (ltiCount * 1000000) / manhours : 0;
+      return { ltiCount, manhours, ltifr: Math.round(ltifr * 100) / 100 };
+    }
     function getContractorName(id) {
       const c = (dbState.contractors || []).find(x => x.id === id);
       return c ? c.name : (id === 'ctr-migrated' ? 'Migrated Contractor' : id);
@@ -3064,6 +3266,16 @@ service cloud.firestore {
       if (labMonthEl) labMonthEl.innerText = monthlyTotalWorkers.toLocaleString();
       const labWeekAvgEl = document.getElementById('kpi-labour-weekavg');
       if (labWeekAvgEl) labWeekAvgEl.innerText = weeklyAvgWorkers.toLocaleString();
+
+      // LTIFR — month + project-to-date
+      const ltifrMonth = computeLTIFR(ym);
+      const ltifrTotal = computeLTIFR(null);
+      const lm = document.getElementById('kpi-ltifr-month');
+      if (lm) lm.innerText = ltifrMonth.ltifr.toFixed(2);
+      const lmSub = document.getElementById('kpi-ltifr-month-sub');
+      if (lmSub) lmSub.innerText = `${ltifrMonth.ltiCount} LTI / ${ltifrMonth.manhours.toLocaleString()} manhours`;
+      const lt = document.getElementById('kpi-ltifr-total');
+      if (lt) lt.innerText = ltifrTotal.ltifr.toFixed(2);
 
       // Render contractor-wise breakdown for today on dashboard
       const dateEl = document.getElementById('dashboard-ctr-date');
@@ -3755,11 +3967,211 @@ service cloud.firestore {
           }).join('');
         }
       }
+
+      renderPPEChecks();
+    }
+
+    // ============================================================
+    // PPE COMPLIANCE CHECKLIST
+    // ============================================================
+    const PPE_ITEMS = [
+      'Safety Helmet',
+      'Safety Shoes',
+      'Hand Gloves',
+      'Safety Goggles / Face Shield',
+      'High-Visibility Vest / Jacket',
+      'Ear Protection (where required)',
+      'Safety Harness (height work)',
+      'Dust Mask / Respirator (where required)',
+    ];
+
+    function openPPEModal() {
+      document.getElementById('ppe-date').value = todayKey();
+      document.getElementById('ppe-location').value = '';
+      document.getElementById('ppe-total-workers').value = '';
+      document.getElementById('ppe-remarks').value = '';
+
+      const ctrSel = document.getElementById('ppe-contractor');
+      if (ctrSel) {
+        ctrSel.innerHTML = '<option value="">— Select contractor —</option>' +
+          (dbState.contractors||[]).map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+      }
+
+      const container = document.getElementById('ppe-items-container');
+      container.innerHTML = PPE_ITEMS.map((item, i) => `
+        <div class="border border-construction-border rounded-lg p-2.5 bg-slate-900/50">
+          <p class="text-[11px] text-slate-300 mb-1.5">${item}</p>
+          <div class="flex gap-2 items-center">
+            <div class="flex-1">
+              <label class="text-[8px] text-emerald-400 uppercase font-bold">Compliant</label>
+              <input type="number" min="0" name="ppe-compliant-${i}" value="0"
+                class="w-full px-2 py-1.5 bg-slate-800 border border-emerald-800/40 rounded text-slate-100 text-xs">
+            </div>
+            <div class="flex-1">
+              <label class="text-[8px] text-red-400 uppercase font-bold">Non-Compliant</label>
+              <input type="number" min="0" name="ppe-noncompliant-${i}" value="0"
+                class="w-full px-2 py-1.5 bg-slate-800 border border-red-800/40 rounded text-slate-100 text-xs">
+            </div>
+            <div class="flex-[1.4]">
+              <label class="text-[8px] text-slate-500 uppercase font-bold">Remark</label>
+              <input type="text" name="ppe-remark-${i}" placeholder="Optional"
+                class="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-300 text-xs">
+            </div>
+          </div>
+        </div>`).join('');
+
+      openModal('modal-ppe');
+    }
+
+    function submitPPECheck() {
+      const date = document.getElementById('ppe-date').value;
+      const location = document.getElementById('ppe-location').value.trim();
+      const contractor = document.getElementById('ppe-contractor').value;
+      const totalWorkers = parseInt(document.getElementById('ppe-total-workers').value) || 0;
+      const remarks = document.getElementById('ppe-remarks').value.trim();
+
+      if (!location) { showToast('Location is required.', 'error'); return; }
+
+      let totalCompliant = 0, totalNonCompliant = 0;
+      const items = PPE_ITEMS.map((item, i) => {
+        const compliant = parseInt(document.querySelector(`input[name="ppe-compliant-${i}"]`)?.value) || 0;
+        const nonCompliant = parseInt(document.querySelector(`input[name="ppe-noncompliant-${i}"]`)?.value) || 0;
+        const remark = document.querySelector(`input[name="ppe-remark-${i}"]`)?.value.trim() || '';
+        totalCompliant += compliant;
+        totalNonCompliant += nonCompliant;
+        return { item, compliant, nonCompliant, remark };
+      });
+
+      const totalChecked = totalCompliant + totalNonCompliant;
+      const compliancePct = totalChecked > 0 ? Math.round((totalCompliant / totalChecked) * 100) : 100;
+
+      const rec = {
+        id: `ppe-${Date.now()}`,
+        date, location, contractor, totalWorkers, remarks,
+        items, compliancePct,
+        checkedBy: currentUser.fullname,
+        checkedByDesig: currentUser.designation || currentUser.role,
+        createdAt: new Date().toLocaleString()
+      };
+
+      dbState.ppeChecks = dbState.ppeChecks || [];
+      dbState.ppeChecks.unshift(rec);
+      saveCurrentState();
+      closeModal();
+      renderObservations();
+      showToast(`PPE check saved — ${compliancePct}% compliance.`, compliancePct >= 80 ? 'success' : 'info');
+
+      const emoji = compliancePct >= 90 ? '✅' : compliancePct >= 70 ? '⚠️' : '🚨';
+      sendTelegram(`${emoji} PPE Compliance Check\n📍 Location: ${location}\n🏗 Contractor: ${contractor || '—'}\n📊 Compliance: ${compliancePct}%\n👥 Workers Checked: ${totalWorkers || totalChecked}\n👤 Checked by: ${userLabel()}`, [], 'ppe_check');
+    }
+
+    function previewPPECheck(id) {
+      const rec = (dbState.ppeChecks || []).find(r => r.id === id);
+      if (!rec) return;
+
+      const rows = rec.items.map((it, i) => {
+        const total = it.compliant + it.nonCompliant;
+        const pct = total > 0 ? Math.round((it.compliant / total) * 100) : 100;
+        const color = pct >= 90 ? '#16a34a' : pct >= 70 ? '#ca8a04' : '#dc2626';
+        return `<tr style="border-bottom:1px solid #eee;">
+          <td style="padding:3px 5px;font-size:9px;text-align:center;">${i+1}</td>
+          <td style="padding:3px 5px;font-size:9px;">${it.item}</td>
+          <td style="padding:3px 5px;font-size:9px;text-align:center;color:#16a34a;">${it.compliant}</td>
+          <td style="padding:3px 5px;font-size:9px;text-align:center;color:#dc2626;">${it.nonCompliant}</td>
+          <td style="padding:3px 5px;font-size:9px;text-align:center;font-weight:bold;color:${color};">${pct}%</td>
+          <td style="padding:3px 5px;font-size:9px;color:#555;">${it.remark||''}</td>
+        </tr>`;
+      }).join('');
+
+      const html = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <img src="chettinad-logo.png" style="height:40px;">
+            <div>
+              <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
+              <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
+            </div>
+          </div>
+        </div>
+        <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">PPE COMPLIANCE CHECKLIST</p>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
+          <tr><td style="width:50%;font-size:10px;padding:2px;">Date: <strong>${rec.date}</strong></td>
+              <td style="font-size:10px;padding:2px;">Location: <strong>${rec.location}</strong></td></tr>
+          <tr><td style="font-size:10px;padding:2px;">Contractor: <strong>${rec.contractor||'—'}</strong></td>
+              <td style="font-size:10px;padding:2px;">Total Workers Checked: <strong>${rec.totalWorkers}</strong></td></tr>
+        </table>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #ccc;margin-top:8px;">
+          <thead><tr style="background:#f1f1f1;">
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:5%;">SL</th>
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;text-align:left;">PPE Item</th>
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:10%;">Compliant</th>
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:11%;">Non-Compliant</th>
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:9%;">%</th>
+            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:20%;">Remarks</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <p style="margin-top:10px;font-size:12px;"><strong>Overall Compliance: ${rec.compliancePct}%</strong></p>
+        ${rec.remarks ? `<p style="margin-top:6px;font-size:10px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
+        <div style="display:flex;justify-content:space-between;margin-top:24px;font-size:10px;">
+          <div>Checked by:<br><br>____________________<br><small>${rec.checkedBy} · ${rec.checkedByDesig}</small></div>
+          <div>Signature of Project In-charge:<br><br>____________________</div>
+        </div>
+      </div>`;
+
+      const pa = document.getElementById('print-area');
+      const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
+        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+        <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+      </div>`;
+      pa.innerHTML = bar + html;
+      pa.classList.remove('hidden');
+      pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
+      pa.scrollTop = 0;
+    }
+
+    function deletePPECheck(id) {
+      if (!confirm('Delete this PPE compliance check?')) return;
+      dbState.ppeChecks = (dbState.ppeChecks||[]).filter(r => r.id !== id);
+      saveCurrentState();
+      renderObservations();
+      showToast('PPE check deleted.', 'info');
+    }
+
+    function renderPPEChecks() {
+      const panel = document.getElementById('ppe-list-panel');
+      if (!panel) return;
+      const checks = dbState.ppeChecks || [];
+      if (!checks.length) {
+        panel.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-4 sm:col-span-2">No PPE compliance checks recorded yet.</p>';
+        return;
+      }
+      const isAdmin = currentUser && currentUser.role === 'Admin';
+      panel.innerHTML = checks.map(r => {
+        const color = r.compliancePct >= 90 ? 'text-emerald-400' : r.compliancePct >= 70 ? 'text-yellow-400' : 'text-red-400';
+        const badge = r.compliancePct >= 90 ? 'bg-emerald-600/20' : r.compliancePct >= 70 ? 'bg-yellow-600/20' : 'bg-red-600/20';
+        return `<div class="bg-slate-900 border border-construction-border p-3 rounded-lg space-y-1.5">
+          <div class="flex items-center justify-between flex-wrap gap-1">
+            <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded ${badge} ${color}">${r.compliancePct}% Compliant</span>
+            <span class="text-[10px] text-slate-500 font-mono">${r.date}</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-300">📍 ${r.location}</p>
+          <p class="text-[10px] text-slate-400">🏗 ${r.contractor || '—'} · 👥 ${r.totalWorkers} workers</p>
+          <div class="flex items-center justify-between pt-1.5 border-t border-slate-800">
+            <span class="text-[9px] text-slate-500">By: ${r.checkedBy}</span>
+            <div class="flex gap-2">
+              <button onclick="previewPPECheck('${r.id}')" class="text-[10px] text-emerald-400 hover:underline">View/Print</button>
+              ${isAdmin ? `<button onclick="deletePPECheck('${r.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
     }
     const TG_ALERT_TYPES = [
       { key: 'permit_submit',    label: 'Permit Submitted',        desc: 'When anyone submits a new permit',            group: 'Permits' },
       { key: 'permit_review',    label: 'Permit Reviewed',         desc: 'Approved, rejected or returned to contractor', group: 'Permits' },
       { key: 'permit_close',     label: 'Permit Closed / Cancelled', desc: 'When a permit is closed or cancelled',       group: 'Permits' },
+      { key: 'permit_expiry',    label: 'Permit Expiry Reminder',   desc: 'Expiring within 24h or already expired',     group: 'Permits' },
       { key: 'obs_new',          label: 'New Observation',         desc: 'When an observation is submitted',            group: 'Observations' },
       { key: 'obs_close',        label: 'Observation Closed',      desc: 'When an observation is marked closed',        group: 'Observations' },
       { key: 'obs_capa',         label: 'Action Plan Updated',     desc: 'Corrective / preventive action added',        group: 'Observations' },
@@ -3768,6 +4180,7 @@ service cloud.firestore {
       { key: 'incident_resolve', label: 'Incident Resolved',       desc: 'When an incident is marked resolved',         group: 'Incidents' },
       { key: 'incident_delete',  label: 'Incident Deleted',        desc: 'When admin deletes an incident',              group: 'Incidents' },
       { key: 'notice_board',     label: 'Notice Board Post',       desc: 'When a new site notice is posted',            group: 'Other' },
+      { key: 'ppe_check',        label: 'PPE Compliance Check',    desc: 'When a PPE compliance checklist is logged',   group: 'Other' },
       { key: 'safety_activity',  label: 'Safety Activity Logged',  desc: 'Toolbox talks, inductions, etc.',             group: 'Other' },
       { key: 'document',         label: 'Document Uploaded',       desc: 'When a document is added to the vault',       group: 'Other' },
     ];
@@ -4605,6 +5018,29 @@ ${editCtrLines}
       } catch (e) { showToast('Could not read that image.', 'error'); }
     }
 
+    // Search & filter state for the Observe tab (Observations + Incidents)
+    let obsSearchQuery = '';
+    let obsStatusFilterValue = 'all';
+
+    function searchObservations(value) {
+      obsSearchQuery = (value || '').trim().toLowerCase();
+      renderObservations();
+    }
+    function filterObservationsByStatus(value) {
+      obsStatusFilterValue = value || 'all';
+      renderObservations();
+    }
+    function matchesObsFilters(obj, isOpen) {
+      if (obsStatusFilterValue === 'open' && !isOpen) return false;
+      if (obsStatusFilterValue === 'closed' && isOpen) return false;
+      if (!obsSearchQuery) return true;
+      const haystack = [
+        obj.location, obj.description, obj.contractor, obj.reporter,
+        obj.responsiblePerson, Array.isArray(obj.incTypes) ? obj.incTypes.join(' ') : ''
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(obsSearchQuery);
+    }
+
     function renderObservations() {
       const obsList = document.getElementById('hazards-list-panel');
       const incidentsList = document.getElementById('incidents-list-panel');
@@ -4612,9 +5048,10 @@ ${editCtrLines}
       const isAdmin = currentUser && currentUser.role === 'Admin';
 
       // ---------- Observations ----------
-      const observations = dbState.hazards || [];
+      const observations = (dbState.hazards || []).filter(h => matchesObsFilters(h, h.status !== 'Closed'));
+      const obsTotalCount = (dbState.hazards || []).length;
       if (!observations.length) {
-        obsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">No observations recorded.</p>';
+        obsList.innerHTML = `<p class="text-slate-500 text-xs italic text-center py-6">${obsTotalCount === 0 ? 'No observations recorded.' : 'No observations match your search/filter.'}</p>`;
       } else {
         obsList.innerHTML = observations.map(h => {
           const open = h.status !== 'Closed';
@@ -4687,9 +5124,10 @@ ${editCtrLines}
       }
 
       // ── INCIDENTS ──────────────────────────────────────────────────────────
-      const incidents = dbState.incidents || [];
+      const incTotalCount = (dbState.incidents || []).length;
+      const incidents = (dbState.incidents || []).filter(i => matchesObsFilters(i, i.status !== 'Closed'));
       if (!incidents.length) {
-        incidentsList.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-6">All clear. No site incidents reported.</p>';
+        incidentsList.innerHTML = `<p class="text-slate-500 text-xs italic text-center py-6">${incTotalCount === 0 ? 'All clear. No site incidents reported.' : 'No incidents match your search/filter.'}</p>`;
       } else {
         incidentsList.innerHTML = incidents.map(i => {
           const open = i.status !== 'Closed';
@@ -5031,9 +5469,7 @@ ${editCtrLines}
 ✅ Corrective: ${h.correctiveAction || '—'}
 🛡 Preventive: ${h.preventiveAction || '—'}
 👷 Responsible: ${h.responsiblePerson || '—'}`,
-        'obs_new',
-        'incident_new',
-        'obs_capa'
+        [], 'obs_capa'
       );
     }
 
@@ -5409,6 +5845,11 @@ ${editCtrLines}
         showToast('Work Permit submitted successfully.', 'success');
       }
 
+      // A resubmit may change the validity window, so clear any previous
+      // expiry-alert flags for this permit — otherwise the new dates would
+      // never trigger a fresh expiry/expiring-soon alert.
+      if (dbState.permitAlertLog) delete dbState.permitAlertLog[permitObject.id];
+
       saveCurrentState();
       closeModal();
       pushNotification(`New ${selectedPermitType} Permit submitted: ${permitNo} by ${contractor}`);
@@ -5422,11 +5863,7 @@ ${editCtrLines}
 📍 Location: ${escapeHtml(location)}
 👤 Submitted by: ${userLabel()}
 🕐 Valid: ${validityStart.replace('T',' ')} → ${validityEnd.replace('T',' ')}`,
-        'permit_submit',
-        'obs_delete',
-        'incident_resolve',
-        'incident_delete',
-        'document'
+        [], 'permit_submit'
       );
     }
 
@@ -5454,6 +5891,10 @@ ${editCtrLines}
       let list = [...dbState.permits];
       if (activePermitFilter !== 'all') {
         list = list.filter(p => p.status === activePermitFilter);
+      }
+      if (permitSearchQuery) {
+        list = list.filter(p => [p.permitNo, p.contractor, p.location, p.type]
+          .filter(Boolean).join(' ').toLowerCase().includes(permitSearchQuery));
       }
 
       if (list.length === 0) {
@@ -5729,7 +6170,7 @@ ${editCtrLines}
 📍 Location: ${permit.location}
 👤 Reviewed by: ${userLabel()}
 🕐 Valid: ${permit.validityStart.replace('T',' ')} → ${permit.validityEnd.replace('T',' ')}${comment ? '\n💬 ' + comment : ''}`,
-        'permit_review'
+        [], 'permit_review'
       );
       renderPermitsTable();
     }
@@ -5854,20 +6295,47 @@ ${editCtrLines}
 👤 By: ${userLabel()}
 🕐 Closed at: ${closeAt.replace('T',' ')}
 💬 ${comment}`,
-        'permit_close'
+        [], 'permit_close'
       );
     }
 
-    // Check for expired Approved permits and push a reminder notification
+    // Check Approved permits for: (a) expiring within 24h — warn once,
+    // (b) already expired — alert once. Both push an in-app notification
+    // AND a Telegram alert, deduplicated via dbState.permitAlertLog so the
+    // same permit never spams on every login / periodic check.
     function checkPermitExpiry() {
       const now = new Date();
-      const expired = (dbState.permits || []).filter(p =>
-        p.status === 'Approved' && p.validityEnd && new Date(p.validityEnd) < now
-      );
-      expired.forEach(p => {
-        pushNotification(`⚠ Permit ${p.permitNo} (${p.type}) expired on ${p.validityEnd.replace('T',' ')} — please close it.`);
+      dbState.permitAlertLog = dbState.permitAlertLog || {};
+      let changed = false;
+      let expiredCount = 0;
+
+      (dbState.permits || []).forEach(p => {
+        if (p.status !== 'Approved' || !p.validityEnd) return;
+        const end = new Date(p.validityEnd);
+        const log = dbState.permitAlertLog[p.id] || {};
+
+        if (end < now) {
+          expiredCount++;
+          if (!log.expiredSent) {
+            pushNotification(`⚠ Permit ${p.permitNo} (${p.type}) expired on ${p.validityEnd.replace('T',' ')} — please close it.`);
+            sendTelegram(`⏰ Permit Expired\n📋 Permit No: ${p.permitNo} (${p.type})\n👷 Contractor: ${p.contractor}\n📍 Location: ${p.location}\n🕐 Expired: ${p.validityEnd.replace('T',' ')}\n⚠ Please close this permit now.`, [], 'permit_expiry');
+            log.expiredSent = true;
+            dbState.permitAlertLog[p.id] = log;
+            changed = true;
+          }
+        } else if ((end - now) <= 24 * 60 * 60 * 1000) {
+          if (!log.expiringSent) {
+            pushNotification(`⏳ Permit ${p.permitNo} (${p.type}) expires within 24 hours — ${p.validityEnd.replace('T',' ')}.`);
+            sendTelegram(`⏳ Permit Expiring Soon\n📋 Permit No: ${p.permitNo} (${p.type})\n👷 Contractor: ${p.contractor}\n📍 Location: ${p.location}\n🕐 Expires: ${p.validityEnd.replace('T',' ')}\n⚠ Renew or close before expiry.`, [], 'permit_expiry');
+            log.expiringSent = true;
+            dbState.permitAlertLog[p.id] = log;
+            changed = true;
+          }
+        }
       });
-      return expired.length;
+
+      if (changed) saveCurrentState();
+      return expiredCount;
     }
     // ============================================================
     // MONTHLY HSE REPORT GENERATOR
@@ -5909,6 +6377,7 @@ ${editCtrLines}
       const obsClosed = allObs.filter(h => (h.date||'').startsWith(monthPfx) && h.status === 'Closed').length;
       const obsOpen   = allObs.filter(h => h.status !== 'Closed').length;
       const incCount  = (dbState.incidents||[]).filter(i => (i.date||'').startsWith(monthPfx)).length;
+      const ltifrData = computeLTIFR(monthPfx);
 
       const days = new Date(year, month, 0).getDate();
       let cumHours = 0;
@@ -5967,6 +6436,7 @@ ${sec('Safety Performance Indicators')}
   ${kpi(incCount,'Near Miss / Incidents','#dc2626')}
   ${kpi(smTotals.penalties,'Warnings / Penalties','#d97706')}
   ${kpi(smTotals.firstAid,'First Aid Cases','#2563eb')}
+  ${kpi(ltifrData.ltifr.toFixed(2),'LTIFR (per 10\u2076 hrs)','#7c2d12')}
 </div>
 ${sec('HSE Activities &amp; Observations')}
 <div style="display:flex;gap:7px;margin-bottom:10px;">
@@ -6812,6 +7282,9 @@ ${sec('Manpower &amp; Exposure Log')}
       loader.classList.remove('hidden');
       setLoadingText('Initializing Safety Portal…');
 
+      // Show offline banner immediately if device already has no connection
+      if (!navigator.onLine) { isOnline = false; setOfflineBannerVisible(true); }
+
       // Firebase init (loads data, sets up real-time sync, falls back to localStorage)
       await initFirebase();
 
@@ -6824,6 +7297,11 @@ ${sec('Manpower &amp; Exposure Log')}
       setInterval(() => {
         if (currentUser && activeTab === 'dashboard') renderDashboardStats();
       }, 60000);
+
+      // Periodic permit expiry check (every 15 min) while the app stays open
+      setInterval(() => {
+        if (currentUser) checkPermitExpiry();
+      }, 15 * 60 * 1000);
     };
   </script>
 
