@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CTO-ConNect</title>
   <meta name="description" content="Chettinad Products & Services – Site Safety Management Portal">
-  <meta name="theme-color" content="#f97316">
+  <meta name="theme-color" content="#105BA8">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,11 +31,16 @@
         extend: {
           colors: {
             construction: {
-              orange: '#f97316',   /* Alert & Primary highlight */
-              green: '#22c55e',    /* Safe & Active */
-              darkBg: '#0b0f19',   /* Professional dark background */
-              cardBg: '#161e2f',   /* High-contrast dark cards */
-              border: '#2e3a50'
+              /* ── Brand palette sampled directly from the CTO-ConNect &
+                 Chettinad logos — navy blue + gold + green, replacing the
+                 previous generic construction-orange theme. ── */
+              orange: '#105BA8',      /* Brand Blue — primary accent (was orange) */
+              orangeDeep: '#0B3D7A',  /* Darker blue — hover/active state for the line above */
+              gold: '#F4BE42',        /* Brand Gold/Amber — from the CTO hard-hat icon */
+              green: '#78BD46',       /* Brand Green — from the Chettinad triangle mark */
+              darkBg: '#0A1A30',      /* Deep navy background, matching the logo's navy */
+              cardBg: '#15294A',      /* Navy card surface */
+              border: '#2A4566'       /* Navy-blue border tone */
             }
           }
         }
@@ -134,8 +139,12 @@
     body.light-mode .text-blue-400 { color: #1d4ed8 !important; }
 
     body.light-mode [class*="bg-construction-orange\/10"],
-    body.light-mode [class*="bg-construction-orange\/20"] { background-color: #ffedd5 !important; }
-    body.light-mode .text-construction-orange { color: #c2410c !important; }
+    body.light-mode [class*="bg-construction-orange\/20"] { background-color: #dbe9fb !important; }
+    body.light-mode .text-construction-orange { color: #0b3d7a !important; }
+    body.light-mode .text-construction-gold,
+    body.light-mode [class*="text-construction-gold"] { color: #92660d !important; }
+    body.light-mode [class*="bg-construction-gold\/10"],
+    body.light-mode [class*="bg-construction-gold\/20"] { background-color: #fdf0d1 !important; }
 
     body.light-mode [class*="bg-purple-500\/10"],
     body.light-mode [class*="bg-purple-600\/20"] { background-color: #ede9fe !important; }
@@ -158,11 +167,36 @@
     ::-webkit-scrollbar-thumb { background: #2e3a50; border-radius: 3px; }
     /* Print Specific Styles to replicate master forms exactly */
     @media print {
+      html, body {
+        background: #ffffff !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
-      #print-area { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
+      #print-area {
+        /* The on-screen overlay uses an inline position:fixed + overflow-y:auto
+           style (set via JS) so it scrolls inside the viewport. That inline
+           style outranks a plain print rule, so without !important here the
+           browser tries to print a clipped, scrollable one-screen-tall box —
+           cutting content off and leaving the rest of the page black. Forcing
+           it back to normal flow lets the browser paginate the full content
+           across as many pages as it actually needs. */
+        position: static !important;
+        inset: auto !important;
+        top: auto !important; left: auto !important; right: auto !important; bottom: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        z-index: auto !important;
+        color: #000 !important;
+        background: #fff !important;
+      }
       .no-print { display: none !important; }
       input[type="checkbox"] { -webkit-appearance: checkbox !important; appearance: checkbox !important; }
+      @page { size: A4 portrait; margin: 10mm; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
@@ -230,8 +264,8 @@ service cloud.firestore {
           </div>
           <div>
             <div class="flex items-center gap-1.5">
-              <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.3.0</span>
+              <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.5.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -362,7 +396,7 @@ service cloud.firestore {
                 </div>
               </div>
 
-              <button type="submit" class="w-full py-2.5 px-4 bg-gradient-to-r from-construction-orange to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-bold rounded-lg shadow-lg hover:shadow-orange-500/20 active:translate-y-px transition-all">
+              <button type="submit" class="w-full py-2.5 px-4 bg-gradient-to-r from-construction-orange to-construction-orangeDeep hover:from-construction-orangeDeep hover:to-blue-950 text-white text-sm font-bold rounded-lg shadow-lg hover:shadow-blue-500/20 active:translate-y-px transition-all">
                 Access Safety Terminal
               </button>
             </form>
@@ -401,7 +435,7 @@ service cloud.firestore {
                   </button>
                 </div>
               </div>
-              <button type="submit" class="w-full py-2.5 px-4 bg-construction-orange hover:bg-orange-600 text-white font-bold text-sm rounded-lg shadow-lg">
+              <button type="submit" class="w-full py-2.5 px-4 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-sm rounded-lg shadow-lg">
                 Save Password &amp; Log In
               </button>
             </form>
@@ -435,7 +469,7 @@ service cloud.firestore {
                   </label>
                   <div class="flex items-center gap-2">
                     <button id="announce-cancel-edit-btn" onclick="cancelEditAnnouncement()" class="hidden text-[11px] text-slate-400 hover:text-slate-200 px-2">Cancel</button>
-                    <button id="announce-post-btn" onclick="postAnnouncement()" class="bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-1.5 px-4 rounded-lg flex items-center gap-1.5">
+                    <button id="announce-post-btn" onclick="postAnnouncement()" class="bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs py-1.5 px-4 rounded-lg flex items-center gap-1.5">
                       <i data-lucide="send" class="w-3.5 h-3.5"></i> <span>Post</span>
                     </button>
                   </div>
@@ -823,7 +857,7 @@ service cloud.firestore {
                 </h2>
                 <p class="text-xs text-slate-400">Create, review, and issue critical site safety operation clearance forms.</p>
               </div>
-              <button id="btn-create-permit" onclick="openCreatePermitModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-sm py-2 px-4 rounded-lg shadow flex items-center justify-center gap-2">
+              <button id="btn-create-permit" onclick="openCreatePermitModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-sm py-2 px-4 rounded-lg shadow flex items-center justify-center gap-2">
                 <i data-lucide="file-plus" class="w-4 h-4"></i>
                 Create New Safety Permit
               </button>
@@ -940,7 +974,7 @@ service cloud.firestore {
                     <button id="manpower-tg-btn" type="button" class="hidden py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 uppercase tracking-wider">
                       <i data-lucide="send" class="w-3.5 h-3.5"></i> Send to Telegram
                     </button>
-                    <button type="submit" class="py-2.5 px-6 bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider">
+                    <button type="submit" class="py-2.5 px-6 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider">
                       Save Day's Manpower
                     </button>
                   </div>
@@ -1117,7 +1151,7 @@ service cloud.firestore {
                 </h2>
                 <p class="text-xs text-slate-400">Download and view essential site safety manuals, training sheets, and blank templates.</p>
               </div>
-              <button id="admin-upload-doc-btn" onclick="openUploadDocModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center justify-center gap-1.5 hidden">
+              <button id="admin-upload-doc-btn" onclick="openUploadDocModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center justify-center gap-1.5 hidden">
                 <i data-lucide="upload" class="w-4 h-4"></i> Upload Safety Document
               </button>
             </div>
@@ -1285,7 +1319,7 @@ service cloud.firestore {
                 </div>
               </div>
               <div class="flex justify-end mt-4">
-                <button onclick="addSafetyMetric()" class="bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
+                <button onclick="addSafetyMetric()" class="bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
                   <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Save Entry
                 </button>
               </div>
@@ -1357,7 +1391,7 @@ service cloud.firestore {
             <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
               <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
                 <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300">Registered Personnel Directory</h3>
-                <button onclick="openCreateUserModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow">
+                <button onclick="openCreateUserModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs py-2 px-4 rounded-lg shadow">
                   + Provision New Account
                 </button>
               </div>
@@ -1402,7 +1436,7 @@ service cloud.firestore {
                   </h3>
                   <p class="text-[11px] text-slate-400 mt-0.5">Add and manage contractor companies on site. Workers are logged per-contractor in the Manpower tab daily.</p>
                 </div>
-                <button onclick="openContractorModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
+                <button onclick="openContractorModal()" class="w-full sm:w-auto bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
                   <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Contractor
                 </button>
               </div>
@@ -1432,7 +1466,7 @@ service cloud.firestore {
                   </h3>
                   <p class="text-[11px] text-slate-400 mt-0.5">Live figures for <strong id="admin-manpower-date" class="text-slate-300">today</strong> from the daily log. Contractor-wise worker breakdown plus site staff.</p>
                 </div>
-                <button onclick="switchTab('labour')" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
+                <button onclick="switchTab('labour')" class="w-full sm:w-auto bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
                   <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Add / Edit Manpower
                 </button>
               </div>
@@ -1610,7 +1644,7 @@ service cloud.firestore {
 
           <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Submit Permit for Review</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg shadow-md">Submit Permit for Review</button>
           </div>
         </form>
       </div>
@@ -1655,7 +1689,7 @@ service cloud.firestore {
 
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Apply Signature & Submit</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg">Apply Signature & Submit</button>
           </div>
         </form>
       </div>
@@ -1681,8 +1715,8 @@ service cloud.firestore {
             <input id="permit-close-datetime" type="datetime-local" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Comments <span class="text-red-400">*</span></label>
-            <textarea id="permit-close-comment" required rows="3" placeholder="Reason for closing or cancelling this permit…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Comments <span id="permit-close-comment-required" class="text-red-400">*</span></label>
+            <textarea id="permit-close-comment" rows="3" placeholder="Reason for closing or cancelling this permit…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
           </div>
           <!-- Closer Signature -->
           <div id="permit-close-sig-wrap">
@@ -1842,7 +1876,7 @@ service cloud.firestore {
 
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" id="report-submit-btn" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save</button>
+            <button type="submit" id="report-submit-btn" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg">Save</button>
           </div>
         </form>
       </div>
@@ -2040,7 +2074,7 @@ service cloud.firestore {
           </div>
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save Action</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg">Save Action</button>
           </div>
         </form>
       </div>
@@ -2114,7 +2148,7 @@ service cloud.firestore {
           </div>
           <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Update Entry</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg shadow-md">Update Entry</button>
           </div>
         </form>
       </div>
@@ -2133,7 +2167,7 @@ service cloud.firestore {
           <p class="text-[10px] text-slate-500 bg-slate-900 rounded p-2 border border-construction-border">Worker counts are entered daily in the Manpower tab — not stored here.</p>
           <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Save Contractor</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg shadow-md">Save Contractor</button>
           </div>
         </form>
       </div>
@@ -2185,7 +2219,7 @@ service cloud.firestore {
 
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Provision User</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg shadow-md">Provision User</button>
           </div>
         </form>
       </div>
@@ -2216,7 +2250,7 @@ service cloud.firestore {
 
           <div class="flex justify-end gap-2 pt-4 border-t border-construction-border">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Apply Credentials</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg shadow-md">Apply Credentials</button>
           </div>
         </form>
       </div>
@@ -2244,7 +2278,7 @@ service cloud.firestore {
 
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save Contact Details</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg">Save Contact Details</button>
           </div>
         </form>
       </div>
@@ -2283,7 +2317,7 @@ service cloud.firestore {
 
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg">Save Changes</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg">Save Changes</button>
           </div>
         </form>
       </div>
@@ -2315,7 +2349,7 @@ service cloud.firestore {
 
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-md">Add to Vault</button>
+            <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg shadow-md">Add to Vault</button>
           </div>
         </form>
       </div>
@@ -6188,8 +6222,11 @@ ${editCtrLines}
 
         let actions = `<button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>`;
 
-        // Review button (not on closed/cancelled)
-        if (!['Closed','Cancelled'].includes(p.status)) {
+        // Review button (Approve/Reject/Return) — only while still in the
+        // review pipeline. Once a permit reaches "Approved", it can no longer
+        // be rejected or edited — only Closed or Cancelled from here on.
+        // (The separate PM-Sign button below still applies on Approved permits.)
+        if (!['Closed','Cancelled','Approved'].includes(p.status)) {
           if (isReviewer) {
             actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
           } else if (isContractor && p.status === 'Returned To Contractor') {
@@ -6361,10 +6398,19 @@ ${editCtrLines}
       currentEditPermit = dbState.permits.find(p => p.id === permitId);
       if (!currentEditPermit) return;
 
+      const isPM = currentUser.role === 'Staff' && currentUser.isProjectManager;
+
+      // Once a permit is Approved it can no longer be rejected, returned, or
+      // edited — only the PM's final sign-off (if pending) is still allowed.
+      // Closing/cancelling from this point happens via the Close/Cancel buttons.
+      if (currentEditPermit.status === 'Approved' && !isPM) {
+        showToast('This permit is already approved. Use Close or Cancel instead.', 'error');
+        return;
+      }
+
       const decisionSel = document.getElementById('review-decision');
       decisionSel.innerHTML = '';
 
-      const isPM = currentUser.role === 'Staff' && currentUser.isProjectManager;
       const adminHasSigned = !!(currentEditPermit.signatures && currentEditPermit.signatures['Admin']);
       const pmNote = document.getElementById('review-pm-note');
 
@@ -6474,6 +6520,15 @@ ${editCtrLines}
       const sigWrap = document.getElementById('permit-close-sig-wrap');
       sigWrap.classList.toggle('hidden', isCancelling);
 
+      // Comments are REQUIRED for cancellation (must justify why), but
+      // OPTIONAL for a routine closure (signature + datetime already confirm it).
+      const commentReqMark = document.getElementById('permit-close-comment-required');
+      const commentField   = document.getElementById('permit-close-comment');
+      if (commentReqMark) commentReqMark.classList.toggle('hidden', !isCancelling);
+      if (commentField)   commentField.placeholder = isCancelling
+        ? 'Reason for cancelling this permit (required)…'
+        : 'Closing remarks (optional)…';
+
       // Pre-fill closing datetime to now
       const d = new Date();
       document.getElementById('permit-close-datetime').value =
@@ -6508,10 +6563,11 @@ ${editCtrLines}
     function submitPermitClosure() {
       const comment  = document.getElementById('permit-close-comment').value.trim();
       const closeAt  = document.getElementById('permit-close-datetime').value;
-      if (!comment)  { showToast('Please enter a comment before confirming.', 'error'); return; }
-      if (!closeAt)  { showToast('Please enter the closing date and time.', 'error'); return; }
-
       const isCancelling = permitCloseMode === 'cancel';
+
+      // Cancellation must be justified with a reason; routine closure does not.
+      if (isCancelling && !comment) { showToast('Please enter a reason for cancelling this permit.', 'error'); return; }
+      if (!closeAt)  { showToast('Please enter the closing date and time.', 'error'); return; }
 
       // Require signature for closure (not cancellation)
       let closeSig = null;
@@ -6528,13 +6584,15 @@ ${editCtrLines}
       const newStatus = isCancelling ? 'Cancelled' : 'Closed';
       p.status = newStatus;
       p.comments = p.comments || [];
-      p.comments.push({
-        author: currentUser.fullname,
-        role: currentUser.role,
-        designation: currentUser.designation || currentUser.role,
-        text: `[${newStatus.toUpperCase()}] ${comment}`,
-        timestamp: fmtDT(new Date())
-      });
+      if (comment) {
+        p.comments.push({
+          author: currentUser.fullname,
+          role: currentUser.role,
+          designation: currentUser.designation || currentUser.role,
+          text: `[${newStatus.toUpperCase()}] ${comment}`,
+          timestamp: fmtDT(new Date())
+        });
+      }
 
       if (newStatus === 'Closed') {
         p.closedBy        = currentUser.fullname;
@@ -6561,8 +6619,7 @@ ${editCtrLines}
 👷 Contractor: ${p.contractor}
 📍 Location: ${p.location}
 👤 By: ${userLabel()}
-🕐 Closed at: ${fmtDateTimeLocal(closeAt)}
-💬 ${comment}`,
+🕐 Closed at: ${fmtDateTimeLocal(closeAt)}${comment ? '\n💬 ' + comment : ''}`,
         [], 'permit_close'
       );
     }
@@ -6679,18 +6736,7 @@ ${editCtrLines}
       const preparedBy = `${currentUser.fullname} (Senior Safety Officer)`;
       const printDate  = fmtDateOnly(new Date());
 
-      const fullHTML = `<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HSE Report \u2014 ${monthName} ${year}</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:Arial,sans-serif;font-size:11px;background:#fff;color:#111;padding:14px;}
-  .pbtn{display:block;margin:0 auto 14px;padding:11px 32px;background:#f97316;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:0.5px;}
-  @media print{.pbtn{display:none !important;} body{padding:0;} @page{size:A4 portrait;margin:12mm 10mm;} *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
-</style>
-</head><body>
-<button class="pbtn" onclick="window.print()">\uD83D\uDDA8 Print / Save as PDF</button>
+      const reportHTML = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#111;padding:16px;background:#fff;">
 <div style="display:flex;align-items:center;justify-content:space-between;background:#0f172a;padding:13px 16px;border-radius:5px;margin-bottom:12px;">
   <div>
     <div style="font-size:16px;font-weight:900;text-transform:uppercase;color:#f97316;letter-spacing:1px;">HSE Monthly Report</div>
@@ -6729,7 +6775,7 @@ ${sec('Manpower &amp; Exposure Log')}
   <span>Prepared By: <b style="color:#111;">${preparedBy}</b></span>
   <span>Date: <b style="color:#111;">${printDate}</b></span>
 </div>
-</body></html>`;
+</div>`;
 
       // Write final content into the already-open window (opened before await above)
       const pa = document.getElementById('print-area');
@@ -6739,7 +6785,7 @@ ${sec('Manpower &amp; Exposure Log')}
           <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
           <span style="color:#94a3b8;font-size:11px;margin-left:auto;">Tap Close to return to the app</span>
         </div>`;
-      pa.innerHTML = actionBar + fullHTML;
+      pa.innerHTML = actionBar + reportHTML;
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       pa.scrollTop = 0;

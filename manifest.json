@@ -4,8 +4,8 @@
   "description": "Chettinad Products & Services – Site Safety Management",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#f97316",
+  "background_color": "#0A1A30",
+  "theme_color": "#105BA8",
   "orientation": "portrait-primary",
   "icons": [
     {
