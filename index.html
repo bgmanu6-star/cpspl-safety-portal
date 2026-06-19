@@ -148,7 +148,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-orange/20 text-construction-orange px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.0.2</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.1.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -365,13 +365,19 @@ service cloud.firestore {
                   <p id="kpi-staff" class="text-xl font-extrabold text-blue-400 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Personnel</span></p>
                 </div>
               </div>
-              <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-construction-orange/50 transition-colors">
-                <div class="w-10 h-10 rounded-lg bg-construction-orange/10 flex items-center justify-center text-construction-orange shrink-0">
-                  <i data-lucide="users-2" class="w-5 h-5"></i>
+              <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex flex-col gap-2 cursor-pointer hover:border-construction-orange/50 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-construction-orange/10 flex items-center justify-center text-construction-orange shrink-0">
+                    <i data-lucide="users-2" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Today's Workers</p>
+                    <p id="kpi-labour" class="text-xl font-extrabold text-slate-100 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Workers</span></p>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Today's Workers</p>
-                  <p id="kpi-labour" class="text-xl font-extrabold text-slate-100 mt-0.5">0 <span class="text-[10px] font-normal text-slate-400">Workers</span></p>
+                <div class="flex justify-between text-[9px] text-slate-500 border-t border-construction-border pt-1.5">
+                  <span>Mth Total: <span id="kpi-labour-month" class="text-slate-300 font-bold">0</span></span>
+                  <span>Wk Avg: <span id="kpi-labour-weekavg" class="text-construction-orange font-bold">0</span>/day</span>
                 </div>
               </div>
               <div onclick="dashboardNavTo('labour')" class="bg-construction-cardBg border border-construction-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-purple-500/50 transition-colors">
@@ -3006,6 +3012,18 @@ service cloud.firestore {
     }
 
     // DASHBOARD KPI STATISTICS
+    // Returns array of date-string keys for the last n days (today first, oldest last)
+    function lastNDaysKeys(n) {
+      const arr = [];
+      const base = new Date();
+      for (let i = 0; i < n; i++) {
+        const dt = new Date(base);
+        dt.setDate(dt.getDate() - i);
+        arr.push(dt.toISOString().slice(0, 10));
+      }
+      return arr;
+    }
+
     function renderDashboardStats() {
       const today = getTodayStr();
       const entry = getManpowerForDate(today);
@@ -3024,6 +3042,16 @@ service cloud.firestore {
       const baselineManhours = (dbState.projectBaseline || {}).manhours || 0;
       const projectTotalManhours = allManhours + baselineManhours;
 
+      // Monthly total workers (sum of daily worker headcount this month) + weekly average labour strength
+      const monthEntries = (dbState.manpower || []).filter(e => e.date && e.date.slice(0, 7) === ym);
+      const monthlyTotalWorkers = monthEntries.reduce((s, e) => s + mpWorkers(e), 0);
+
+      const last7Keys = lastNDaysKeys(7);
+      const week7Entries = (dbState.manpower || []).filter(e => last7Keys.includes(e.date));
+      const weeklyAvgWorkers = week7Entries.length
+        ? Math.round(week7Entries.reduce((s, e) => s + mpWorkers(e), 0) / week7Entries.length)
+        : 0;
+
       document.getElementById('kpi-staff').innerHTML = `${staffCount} <span class="text-[10px] font-normal text-slate-400">Personnel</span>`;
       document.getElementById('kpi-labour').innerHTML = `${workerCount} <span class="text-[10px] font-normal text-slate-400">Workers</span>`;
       document.getElementById('kpi-total-manpower').innerHTML = `${totalManpower} <span class="text-[10px] font-normal text-slate-400">On Site</span>`;
@@ -3031,6 +3059,11 @@ service cloud.firestore {
       document.getElementById('kpi-safehours').innerHTML = `${monthlyManhours.toLocaleString()} <span class="text-xs font-normal text-emerald-500">hrs</span>`;
       const totalEl = document.getElementById('kpi-safehours-total');
       if (totalEl) totalEl.innerHTML = `${projectTotalManhours.toLocaleString()} <span class="text-xs font-normal text-yellow-500">hrs</span>`;
+
+      const labMonthEl = document.getElementById('kpi-labour-month');
+      if (labMonthEl) labMonthEl.innerText = monthlyTotalWorkers.toLocaleString();
+      const labWeekAvgEl = document.getElementById('kpi-labour-weekavg');
+      if (labWeekAvgEl) labWeekAvgEl.innerText = weeklyAvgWorkers.toLocaleString();
 
       // Render contractor-wise breakdown for today on dashboard
       const dateEl = document.getElementById('dashboard-ctr-date');
@@ -3042,15 +3075,23 @@ service cloud.firestore {
         if (!entry || contractors.length === 0) {
           ctrTable.innerHTML = `<p class="text-[11px] text-slate-500 italic py-2">${contractors.length === 0 ? 'No contractors registered yet.' : 'No manpower logged for today yet.'}</p>`;
         } else {
+          // Weekly average per contractor — based on last 7 days' logged entries
+          const weekDenom = week7Entries.length || 1;
           let rows = '';
           contractors.forEach(c => {
             const cw = cws.find(x => x.contractorId === c.id) || {};
             const dW = parseInt(cw.dayWorkers)||0, nW = parseInt(cw.nightWorkers)||0;
+            const ctrWeekTotal = week7Entries.reduce((s, e) => {
+              const wcw = (e.contractorWorkers||[]).find(x => x.contractorId === c.id);
+              return s + (wcw ? (parseInt(wcw.dayWorkers)||0) + (parseInt(wcw.nightWorkers)||0) : 0);
+            }, 0);
+            const ctrWeekAvg = week7Entries.length ? Math.round(ctrWeekTotal / weekDenom) : 0;
             rows += `<tr class="hover:bg-slate-800/20">
               <td class="p-2 text-slate-300 text-xs font-medium">${c.name}</td>
               <td class="p-2 text-center text-amber-400 font-bold text-xs">${dW}</td>
               <td class="p-2 text-center text-indigo-400 font-bold text-xs">${nW}</td>
               <td class="p-2 text-center text-construction-orange font-bold text-xs">${dW+nW}</td>
+              <td class="p-2 text-center text-emerald-400 font-bold text-xs">${ctrWeekAvg}</td>
             </tr>`;
           });
           const totalD = cws.reduce((s,c)=>s+(parseInt(c.dayWorkers)||0),0);
@@ -3061,6 +3102,7 @@ service cloud.firestore {
               <th class="p-2 text-center">Day W</th>
               <th class="p-2 text-center">Night W</th>
               <th class="p-2 text-center">Total</th>
+              <th class="p-2 text-center">Wk Avg</th>
             </tr></thead>
             <tbody class="divide-y divide-construction-border">${rows}</tbody>
             <tfoot><tr class="bg-slate-800/50 text-[10px] font-bold">
@@ -3068,12 +3110,14 @@ service cloud.firestore {
               <td class="p-2 text-center text-amber-400">${totalD}</td>
               <td class="p-2 text-center text-indigo-400">${totalN}</td>
               <td class="p-2 text-center text-construction-orange">${totalD+totalN}</td>
+              <td class="p-2 text-center text-emerald-400">${weeklyAvgWorkers}</td>
             </tr>
             <tr class="bg-slate-800/30 text-[10px]">
-              <td class="p-2 text-slate-400" colspan="3">Staff (Day ${entry.dayStaff||0} · Night ${entry.nightStaff||0})</td>
+              <td class="p-2 text-slate-400" colspan="4">Staff (Day ${entry.dayStaff||0} · Night ${entry.nightStaff||0})</td>
               <td class="p-2 text-center text-blue-400 font-bold">${staffCount}</td>
             </tr></tfoot>
-          </table>`;
+          </table>
+          <p class="text-[9px] text-slate-500 mt-1.5">Wk Avg = average daily workers over the last 7 logged days</p>`;
         }
       }
 
