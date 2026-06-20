@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.9.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.9.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2579,6 +2579,10 @@ service cloud.firestore {
       if (!dbState.penaltyNotices)  dbState.penaltyNotices  = [];
       if (!dbState.ppeChecks)       dbState.ppeChecks       = [];
       if (!dbState.permitAlertLog) dbState.permitAlertLog   = {};
+      // Sequential permit numbering — seed once from however many permits
+      // already exist, so the serial continues naturally rather than
+      // jarringly restarting at 1 on sites with existing history.
+      if (dbState.permitSerialCounter === undefined) dbState.permitSerialCounter = (dbState.permits || []).length;
 
       // ---- One-time password-policy upgrade (v2) ----
       // Runs once per database. Resets the primary admin to the known temporary
@@ -6410,6 +6414,19 @@ ${editCtrLines}
       openModal('modal-create-permit');
     }
 
+    // Sequential permit numbering — peek shows a non-committing preview
+    // while filling the form; consume actually advances the counter, called
+    // only at real submission time so abandoned/cancelled forms don't
+    // create gaps in the sequence.
+    function peekNextPermitSerial() {
+      const n = (dbState.permitSerialCounter || 0) + 1;
+      return `CPSPL/02/CTO-${String(n).padStart(4, '0')}`;
+    }
+    function consumeNextPermitSerial() {
+      dbState.permitSerialCounter = (dbState.permitSerialCounter || 0) + 1;
+      return `CPSPL/02/CTO-${String(dbState.permitSerialCounter).padStart(4, '0')}`;
+    }
+
     function startPermitCreation(type) {
       selectedPermitType = type;
       currentEditPermit = null;
@@ -6423,7 +6440,7 @@ ${editCtrLines}
       }[type];
 
       document.getElementById('permit-form-title').innerText = formTitle;
-      document.getElementById('permit-form-subtitle').innerText = `CPSPL/02/CTO-${Math.floor(1000 + Math.random() * 9000)}`;
+      document.getElementById('permit-form-subtitle').innerText = peekNextPermitSerial();
 
       // Reset static fields
       document.getElementById('permit-field-project').value = "CTO Project";
@@ -6500,7 +6517,10 @@ ${editCtrLines}
         return;
       }
 
-      const permitNo = document.getElementById('permit-form-subtitle').innerText;
+      // New permits get a freshly-consumed sequential serial (this is the
+      // ONLY point a number is actually committed); resubmissions of a
+      // returned permit keep their original number unchanged.
+      const permitNo = currentEditPermit ? currentEditPermit.permitNo : consumeNextPermitSerial();
       const project = document.getElementById('permit-field-project').value;
       const contractor = document.getElementById('permit-field-contractor').value;
       const location = document.getElementById('permit-field-location').value;
@@ -7600,6 +7620,13 @@ ${sec('Manpower &amp; Exposure Log')}
   @media print{ *{-webkit-print-color-adjust:exact;print-color-adjust:exact;} }
 </style></head><body>${_lastPrintHTML}</body></html>`;
 
+      // A blob URL (rather than srcdoc) gives this iframe its own distinct
+      // address instead of inheriting/displaying the app's page URL — on
+      // browsers that print a page-URL footer for HTML content, this is
+      // what determines what (if anything) shows there.
+      const blob = new Blob([doc], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+
       // Wait for everything (incl. embedded signature <img> data URLs) to
       // finish loading before printing — otherwise iOS can rasterize a
       // blank/partial page. Documents with several embedded signatures
@@ -7618,15 +7645,18 @@ ${sec('Manpower &amp; Exposure Log')}
           console.error('Print failed:', err);
           showToast('Could not open the print dialog. Please try again.', 'error');
         }
-        setTimeout(() => { if (iframe.parentNode) iframe.remove(); }, 1500);
+        setTimeout(() => {
+          if (iframe.parentNode) iframe.remove();
+          URL.revokeObjectURL(blobUrl);
+        }, 1500);
       };
 
-      // Attach onload BEFORE setting srcdoc/appending, so a fast-loading
+      // Attach onload BEFORE setting src/appending, so a fast-loading
       // iframe can never finish loading before the listener is in place.
       iframe.onload = () => setTimeout(fire, 300);
 
       document.body.appendChild(iframe);
-      iframe.srcdoc = doc;
+      iframe.src = blobUrl;
 
       // Safety net in case onload never fires (some WebView/iOS quirks):
       // scales from 1.2s up to 5s based on content size so a large permit
