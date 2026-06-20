@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.8.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.8.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -6845,7 +6845,7 @@ ${editCtrLines}
       const preparedBy = `${currentUser.fullname} (Senior Safety Officer)`;
       const printDate  = fmtDateOnly(new Date());
 
-      const reportHTML = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#111;padding:16px;background:#fff;">
+      const reportHTML = `<div id="hse-report-root" style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#111;padding:16px;background:#fff;page-break-inside:avoid;">
 <div style="background:#0f172a;border-radius:5px;margin-bottom:12px;overflow:hidden;">
   <table style="width:100%;border-collapse:collapse;"><tr>
     <td style="padding:13px 16px;vertical-align:middle;">
@@ -6918,6 +6918,26 @@ ${sec('Manpower &amp; Exposure Log')}
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       pa.scrollTop = 0;
+
+      // Keep the report to a single A4 page: measure the actual rendered
+      // height and, only if it would spill onto a 2nd page, shrink it
+      // (via CSS zoom, well supported in WebKit/Safari/Chrome) by just
+      // enough to fit — rather than guessing at font sizes ahead of time.
+      const rootEl = document.getElementById('hse-report-root');
+      if (rootEl) {
+        const mmToPx = 96 / 25.4;
+        const targetHeight = (297 - 20) * mmToPx - 24; // A4 minus 10mm margins minus a small safety buffer
+        const naturalHeight = rootEl.scrollHeight;
+        if (naturalHeight > targetHeight) {
+          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
+          rootEl.style.zoom = zoomFactor;
+          _lastPrintHTML = reportHTML.replace(
+            '<div id="hse-report-root" style="',
+            `<div id="hse-report-root" style="zoom:${zoomFactor};`
+          );
+        }
+      }
+
       showToast('Report ready — tap Print to save as PDF.', 'success');
       clearHSESignature();
     }
