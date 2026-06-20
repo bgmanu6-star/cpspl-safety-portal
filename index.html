@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.7.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.8.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1257,6 +1257,14 @@ service cloud.firestore {
                 <button onclick="generateHSEReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-5 rounded-lg flex items-center gap-2">
                   <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Generate PDF
                 </button>
+              </div>
+              <div class="mt-4 pt-4 border-t border-construction-border">
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400">Prepared By — Signature <span class="text-red-400">*</span></label>
+                  <button type="button" onclick="clearHSESignature()" class="text-[10px] text-emerald-400 hover:underline">Clear</button>
+                </div>
+                <canvas id="hse-sig-canvas" class="w-full h-28 bg-white rounded-lg border border-construction-border cursor-crosshair"></canvas>
+                <p class="text-[9px] text-slate-500 mt-1">Sign to confirm this report before generating the PDF.</p>
               </div>
             </div>
             <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
@@ -6749,12 +6757,17 @@ ${editCtrLines}
     // ============================================================
     // MONTHLY HSE REPORT GENERATOR
     // ============================================================
+    let hseSigPad = null;
+    function setupHSESignaturePad() { hseSigPad = createSignaturePad('hse-sig-canvas'); }
+    function clearHSESignature() { if (hseSigPad) hseSigPad.clear(); }
+
     function initHSEReportInputs() {
       const now = new Date();
       const mel = document.getElementById('hse-report-month');
       const yel = document.getElementById('hse-report-year');
       if (mel) mel.value = now.getMonth() + 1;
       if (yel) yel.value = now.getFullYear();
+      setTimeout(setupHSESignaturePad, 200);
     }
 
     function generateHSEReport() {
@@ -6762,6 +6775,8 @@ ${editCtrLines}
       const month = parseInt(document.getElementById('hse-report-month').value);
       const year  = parseInt(document.getElementById('hse-report-year').value);
       if (!month || !year) { showToast('Select month and year.', 'error'); return; }
+      if (!hseSigPad || hseSigPad.isEmpty()) { showToast('Please sign before generating the report.', 'error'); return; }
+      const hseSignatureImage = hseSigPad.toDataURL();
 
       showToast('Building report…', 'info');
 
@@ -6823,7 +6838,7 @@ ${editCtrLines}
       // table-layout:fixed. That combination has inconsistent support across
       // older/mobile print engines — plain border-collapse:collapse with
       // table-layout:fixed is the most universally reliable combination.
-      const kpi  = (n,l,col) => `<td style="width:1%;padding:0 3.5px;"><div style="border:2px solid #e2e8f0;border-radius:6px;padding:10px 6px;text-align:center;"><div style="font-size:26px;font-weight:900;color:${col};line-height:1;">${n}</div><div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;margin-top:5px;line-height:1.2;">${l}</div></div></td>`;
+      const kpi  = (n,l,col) => `<td style="padding:0 3.5px;"><div style="border:2px solid #e2e8f0;border-radius:6px;padding:10px 6px;text-align:center;"><div style="font-size:26px;font-weight:900;color:${col};line-height:1;">${n}</div><div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;margin-top:5px;line-height:1.2;">${l}</div></div></td>`;
       const kpiRow = (...cells) => `<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:10px;"><tr>${cells.join('')}</tr></table>`;
       const sec  = t => `<div style="background:#1e293b;color:#fff;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:5px 12px;border-radius:3px;margin:12px 0 7px;">${t}</div>`;
 
@@ -6861,10 +6876,10 @@ ${kpiRow(
 )}
 ${sec('Manpower &amp; Exposure Log')}
 <table style="width:100%;border-collapse:collapse;table-layout:fixed;"><tr>
-  <td style="width:1%;vertical-align:top;padding:0 4px 0 0;">
+  <td style="vertical-align:top;padding:0 4px 0 0;">
     <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${L.map(mkR).join('')}</tbody></table>
   </td>
-  <td style="width:1%;vertical-align:top;padding:0 0 0 4px;">
+  <td style="vertical-align:top;padding:0 0 0 4px;">
     <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${R.map(mkR).join('')}</tbody></table>
   </td>
 </tr></table>
@@ -6874,7 +6889,16 @@ ${sec('Manpower &amp; Exposure Log')}
     <td style="padding:7px 14px;color:#fff;font-size:11px;text-align:right;">Mandays: <b style="color:#f97316;">${totMd.toLocaleString()}</b> &nbsp; Manhours: <b style="color:#f97316;">${totMh.toLocaleString()}</b></td>
   </tr></table>
 </div>
-<table style="width:100%;border-collapse:collapse;margin-top:12px;border-top:2px solid #1e293b;"><tr>
+<table style="width:100%;border-collapse:collapse;margin-top:16px;"><tr>
+  <td style="width:60%;"></td>
+  <td style="width:40%;text-align:center;">
+    <p style="font-size:8.5px;color:#666;margin:0 0 3px;text-transform:uppercase;letter-spacing:0.3px;">Prepared &amp; Certified By</p>
+    <img src="${hseSignatureImage}" style="height:42px;display:block;margin:0 auto;border-bottom:1px solid #999;padding-bottom:2px;">
+    <p style="font-size:10px;font-weight:bold;color:#111;margin:3px 0 0;">${currentUser.fullname}</p>
+    <p style="font-size:8.5px;color:#666;margin:0;">Senior Safety Officer</p>
+  </td>
+</tr></table>
+<table style="width:100%;border-collapse:collapse;margin-top:10px;border-top:2px solid #1e293b;"><tr>
   <td style="padding-top:8px;font-size:9.5px;color:#555;text-align:left;width:33%;">Report Status: <b style="color:#111;">Final</b></td>
   <td style="padding-top:8px;font-size:9.5px;color:#555;text-align:center;width:34%;">Prepared By: <b style="color:#111;">${preparedBy}</b></td>
   <td style="padding-top:8px;font-size:9.5px;color:#555;text-align:right;width:33%;">Date: <b style="color:#111;">${printDate}</b></td>
@@ -6895,6 +6919,7 @@ ${sec('Manpower &amp; Exposure Log')}
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       pa.scrollTop = 0;
       showToast('Report ready — tap Print to save as PDF.', 'success');
+      clearHSESignature();
     }
 
     function previewPermit(id) {
@@ -6951,7 +6976,7 @@ ${sec('Manpower &amp; Exposure Log')}
           const s   = sigs[role];
           const lbl = reviewerLabel(role);
           const isPM = role === 'ProjectManager';
-          return `<td style="width:1%;padding:0 2.5px;vertical-align:bottom;"><div style="border:${isPM ? '1.5px solid #f97316' : '1px solid #aaa'};border-radius:3px;padding:3px 4px;text-align:center;background:${isPM ? '#fff8f0' : '#fff'};">
+          return `<td style="padding:0 2.5px;vertical-align:bottom;"><div style="border:${isPM ? '1.5px solid #f97316' : '1px solid #aaa'};border-radius:3px;padding:3px 4px;text-align:center;background:${isPM ? '#fff8f0' : '#fff'};">
             <p style="font-size:6.5px;font-weight:800;text-transform:uppercase;color:${isPM ? '#f97316' : '#555'};letter-spacing:0.4px;margin:0 0 3px;">${lbl}</p>
             <img src="${s.signatureImage}" style="height:18px;display:block;margin:0 auto;max-width:100%;">
             <p style="font-size:8.5px;font-weight:bold;color:#000;margin:3px 0 0;">${s.name}</p>
@@ -7154,16 +7179,22 @@ ${sec('Manpower &amp; Exposure Log')}
 
 
     // ============================================================
-    // PRINTING — runs in an ISOLATED popup window, never the main app.
+    // PRINTING — runs inside a hidden, isolated <iframe>, never the main
+    // app window and never a popup/new tab.
     //
-    // Why: window.print() on the main window forces the browser to lay out
-    // the ENTIRE app DOM (every tab, every modal, every table — thousands
-    // of nodes) even though almost all of it is hidden, because CSS
-    // visibility:hidden still keeps elements in the layout tree. On an
-    // iPhone this is exactly what makes printing feel slow / hang.
-    // Opening a tiny, self-contained popup with ONLY the document content
-    // means the print engine only ever has a few dozen nodes to lay out —
-    // fast on any device, every time.
+    // History of this function:
+    //  1) Originally printed the main window directly. Slow on iPhone,
+    //     because visibility:hidden keeps every other tab/modal/table in
+    //     the layout tree even though nothing else is visible.
+    //  2) Switched to a popup window (window.open) to isolate the content
+    //     and fix the slowness — but on an installed iOS PWA there is no
+    //     browser chrome, so opening a window left people stuck with no
+    //     way back to the app without force-closing it.
+    //  3) This version: a hidden <iframe> appended to the SAME page. It
+    //     has its own separate document, so the print engine only has to
+    //     lay out the report's content — not the rest of the app — giving
+    //     the same speed benefit. Because nothing ever navigates away from
+    //     the current page, there is nothing to get stuck on.
     // ============================================================
     let _lastPrintHTML = '';
     let _lastPrintTitle = 'Document';
@@ -7171,14 +7202,15 @@ ${sec('Manpower &amp; Exposure Log')}
     function printDocNow() {
       if (!_lastPrintHTML) { showToast('Nothing to print.', 'error'); return; }
 
-      // window.open must run synchronously inside this click handler —
-      // any await/setTimeout before this point would make iOS Safari
-      // treat it as a popup and block it.
-      const printWin = window.open('', '_blank');
-      if (!printWin) {
-        showToast('Please allow popups for this site, then tap Print again.', 'error');
-        return;
-      }
+      // Remove any iframe left over from a previous print
+      const old = document.getElementById('hidden-print-frame');
+      if (old) old.remove();
+
+      const iframe = document.createElement('iframe');
+      iframe.id = 'hidden-print-frame';
+      iframe.setAttribute('aria-hidden', 'true');
+      iframe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;border:0;opacity:0;pointer-events:none;';
+      document.body.appendChild(iframe);
 
       const doc = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7190,9 +7222,10 @@ ${sec('Manpower &amp; Exposure Log')}
   @media print{ *{-webkit-print-color-adjust:exact;print-color-adjust:exact;} }
 </style></head><body>${_lastPrintHTML}</body></html>`;
 
-      printWin.document.open();
-      printWin.document.write(doc);
-      printWin.document.close();
+      const idoc = iframe.contentWindow.document;
+      idoc.open();
+      idoc.write(doc);
+      idoc.close();
 
       // Wait for images (logo, signatures) to finish loading before printing,
       // otherwise iOS can rasterize a blank/partial page. onload fires once
@@ -7202,10 +7235,13 @@ ${sec('Manpower &amp; Exposure Log')}
       const fire = () => {
         if (printed) return;
         printed = true;
-        printWin.focus();
-        printWin.print();
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        // Remove the iframe a little later — removing it immediately can
+        // cancel the print dialog on some browsers before it finishes opening.
+        setTimeout(() => { if (iframe.parentNode) iframe.remove(); }, 1500);
       };
-      printWin.onload = () => setTimeout(fire, 250);
+      iframe.onload = () => setTimeout(fire, 250);
       setTimeout(fire, 1000);
     }
 
