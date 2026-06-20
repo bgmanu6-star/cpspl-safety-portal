@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.6.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.7.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -4029,8 +4029,10 @@ service cloud.firestore {
       const pa = document.getElementById('print-area');
       const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
         <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-        <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
       </div>`;
+      _lastPrintHTML = html;
+      _lastPrintTitle = `${rec.title} — ${rec.date}`;
       pa.innerHTML = bar + html;
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
@@ -4171,8 +4173,10 @@ service cloud.firestore {
       const pa = document.getElementById('print-area');
       const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
         <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-        <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
       </div>`;
+      _lastPrintHTML = html;
+      _lastPrintTitle = `Penalty Notice — ${rec.personName} — ${rec.date}`;
       pa.innerHTML = bar + html;
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
@@ -4411,8 +4415,10 @@ service cloud.firestore {
       const pa = document.getElementById('print-area');
       const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
         <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-        <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
       </div>`;
+      _lastPrintHTML = html;
+      _lastPrintTitle = `PPE Compliance — ${rec.location} — ${rec.date}`;
       pa.innerHTML = bar + html;
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
@@ -6812,8 +6818,13 @@ ${editCtrLines}
       // rather than flexbox — some mobile browsers' print engines collapse
       // flex rows to the left when rasterising for PDF/paper, but <table>
       // layout prints reliably everywhere, so this avoids that entirely.
-      const kpi  = (n,l,col) => `<td style="border:2px solid #e2e8f0;border-radius:6px;padding:10px 6px;text-align:center;"><div style="font-size:26px;font-weight:900;color:${col};line-height:1;">${n}</div><div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;margin-top:5px;line-height:1.2;">${l}</div></td>`;
-      const kpiRow = (...cells) => `<table style="width:100%;border-collapse:separate;border-spacing:7px 0;table-layout:fixed;margin-bottom:10px;"><tr>${cells.join('')}</tr></table>`;
+      // NOTE: the visual gap between KPI boxes comes from padding on each
+      // <td> (around an inner bordered <div>) rather than border-spacing +
+      // table-layout:fixed. That combination has inconsistent support across
+      // older/mobile print engines — plain border-collapse:collapse with
+      // table-layout:fixed is the most universally reliable combination.
+      const kpi  = (n,l,col) => `<td style="width:1%;padding:0 3.5px;"><div style="border:2px solid #e2e8f0;border-radius:6px;padding:10px 6px;text-align:center;"><div style="font-size:26px;font-weight:900;color:${col};line-height:1;">${n}</div><div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;margin-top:5px;line-height:1.2;">${l}</div></div></td>`;
+      const kpiRow = (...cells) => `<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:10px;"><tr>${cells.join('')}</tr></table>`;
       const sec  = t => `<div style="background:#1e293b;color:#fff;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:5px 12px;border-radius:3px;margin:12px 0 7px;">${t}</div>`;
 
       const preparedBy = `${currentUser.fullname} (Senior Safety Officer)`;
@@ -6849,11 +6860,11 @@ ${kpiRow(
   kpi(obsOpen,'Obs Open','#d97706')
 )}
 ${sec('Manpower &amp; Exposure Log')}
-<table style="width:100%;border-collapse:separate;border-spacing:8px 0;"><tr>
-  <td style="width:50%;vertical-align:top;padding:0;">
+<table style="width:100%;border-collapse:collapse;table-layout:fixed;"><tr>
+  <td style="width:1%;vertical-align:top;padding:0 4px 0 0;">
     <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${L.map(mkR).join('')}</tbody></table>
   </td>
-  <td style="width:50%;vertical-align:top;padding:0;">
+  <td style="width:1%;vertical-align:top;padding:0 0 0 4px;">
     <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${R.map(mkR).join('')}</tbody></table>
   </td>
 </tr></table>
@@ -6870,14 +6881,15 @@ ${sec('Manpower &amp; Exposure Log')}
 </tr></table>
 </div>`;
 
-      // Write final content into the already-open window (opened before await above)
       const pa = document.getElementById('print-area');
       const actionBar = `
         <div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
           <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-          <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+          <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
           <span style="color:#94a3b8;font-size:11px;margin-left:auto;">Tap Close to return to the app</span>
         </div>`;
+      _lastPrintHTML = reportHTML;
+      _lastPrintTitle = `HSE Monthly Report — ${monthName} ${year}`;
       pa.innerHTML = actionBar + reportHTML;
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
@@ -6939,13 +6951,13 @@ ${sec('Manpower &amp; Exposure Log')}
           const s   = sigs[role];
           const lbl = reviewerLabel(role);
           const isPM = role === 'ProjectManager';
-          return `<td style="border:${isPM ? '1.5px solid #f97316' : '1px solid #aaa'};border-radius:3px;padding:3px 4px;text-align:center;background:${isPM ? '#fff8f0' : '#fff'};vertical-align:bottom;">
+          return `<td style="width:1%;padding:0 2.5px;vertical-align:bottom;"><div style="border:${isPM ? '1.5px solid #f97316' : '1px solid #aaa'};border-radius:3px;padding:3px 4px;text-align:center;background:${isPM ? '#fff8f0' : '#fff'};">
             <p style="font-size:6.5px;font-weight:800;text-transform:uppercase;color:${isPM ? '#f97316' : '#555'};letter-spacing:0.4px;margin:0 0 3px;">${lbl}</p>
             <img src="${s.signatureImage}" style="height:18px;display:block;margin:0 auto;max-width:100%;">
             <p style="font-size:8.5px;font-weight:bold;color:#000;margin:3px 0 0;">${s.name}</p>
             <p style="font-size:7px;color:#444;margin:1px 0 0;">${s.designation || ''}</p>
             <p style="font-size:6.5px;color:#999;margin:1px 0 0;">${s.timestamp}</p>
-          </td>`;
+          </div></td>`;
         }).join('');
 
       // Combined signature row: Applicant | vertical divider | Reviewers L→R
@@ -6961,7 +6973,7 @@ ${sec('Manpower &amp; Exposure Log')}
             <td style="width:1%;white-space:nowrap;vertical-align:bottom;padding-right:8px;">${applicantSigHtml}</td>
             <td style="width:1px;background:#ccc;padding:0;"></td>` : ''}
           <td style="vertical-align:bottom;padding-left:${applicantSigHtml ? '8px' : '0'};">
-            <table style="width:100%;border-collapse:separate;border-spacing:5px 0;table-layout:fixed;"><tr>
+            <table style="width:100%;border-collapse:collapse;table-layout:fixed;"><tr>
               ${reviewerSigsHtml || '<td style="font-size:9px;color:#aaa;font-style:italic;text-align:center;">Reviewer signatures pending.</td>'}
             </tr></table>
           </td>
@@ -7116,11 +7128,13 @@ ${sec('Manpower &amp; Exposure Log')}
       const wrapper = `
         <div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
           <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-          <button onclick="window.print()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+          <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
           <span style="color:#94a3b8;font-size:11px;margin-left:auto;">Tap Close to return to the app</span>
         </div>
         ${html}`;
 
+      _lastPrintHTML = html;
+      _lastPrintTitle = `Permit ${p.permitNo} — ${p.type}`;
       printContainer.innerHTML = wrapper;
       printContainer.classList.remove('hidden');
       printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
@@ -7138,6 +7152,62 @@ ${sec('Manpower &amp; Exposure Log')}
     // printPermitBlob — no longer opens a new tab; previewPermit now handles full-screen overlay
     function printPermitBlob(id) { previewPermit(id); }
 
+
+    // ============================================================
+    // PRINTING — runs in an ISOLATED popup window, never the main app.
+    //
+    // Why: window.print() on the main window forces the browser to lay out
+    // the ENTIRE app DOM (every tab, every modal, every table — thousands
+    // of nodes) even though almost all of it is hidden, because CSS
+    // visibility:hidden still keeps elements in the layout tree. On an
+    // iPhone this is exactly what makes printing feel slow / hang.
+    // Opening a tiny, self-contained popup with ONLY the document content
+    // means the print engine only ever has a few dozen nodes to lay out —
+    // fast on any device, every time.
+    // ============================================================
+    let _lastPrintHTML = '';
+    let _lastPrintTitle = 'Document';
+
+    function printDocNow() {
+      if (!_lastPrintHTML) { showToast('Nothing to print.', 'error'); return; }
+
+      // window.open must run synchronously inside this click handler —
+      // any await/setTimeout before this point would make iOS Safari
+      // treat it as a popup and block it.
+      const printWin = window.open('', '_blank');
+      if (!printWin) {
+        showToast('Please allow popups for this site, then tap Print again.', 'error');
+        return;
+      }
+
+      const doc = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${_lastPrintTitle}</title>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:#fff;}
+  @page{size:A4 portrait;margin:10mm;}
+  @media print{ *{-webkit-print-color-adjust:exact;print-color-adjust:exact;} }
+</style></head><body>${_lastPrintHTML}</body></html>`;
+
+      printWin.document.open();
+      printWin.document.write(doc);
+      printWin.document.close();
+
+      // Wait for images (logo, signatures) to finish loading before printing,
+      // otherwise iOS can rasterize a blank/partial page. onload fires once
+      // everything (incl. <img> tags) is loaded; the timeout is a safety net
+      // in case onload doesn't fire reliably in a particular browser.
+      let printed = false;
+      const fire = () => {
+        if (printed) return;
+        printed = true;
+        printWin.focus();
+        printWin.print();
+      };
+      printWin.onload = () => setTimeout(fire, 250);
+      setTimeout(fire, 1000);
+    }
 
     function hidePrintArea() {
       const el = document.getElementById('print-area');
