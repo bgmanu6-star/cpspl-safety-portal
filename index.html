@@ -159,6 +159,46 @@
     body.light-mode .text-orange-400,
     body.light-mode .text-orange-500 { color: #c2410c !important; }
 
+    /* ══════════════════════════════════════════════════════════
+       CLICK / TAP ANIMATIONS — applied globally so every existing
+       and future button, card, and nav item gets tactile feedback
+       without needing to touch individual class strings.
+       ══════════════════════════════════════════════════════════ */
+    button, [onclick], .cursor-pointer, a {
+      transition: transform 0.15s cubic-bezier(0.4,0,0.2,1),
+                  opacity 0.15s ease,
+                  background-color 0.2s ease,
+                  border-color 0.2s ease,
+                  color 0.2s ease,
+                  box-shadow 0.2s ease;
+    }
+    button:active:not(:disabled),
+    [onclick]:active,
+    .cursor-pointer:active { transform: scale(0.96); }
+    /* Inputs/selects shouldn't shrink on tap — only get a quick focus glow */
+    input, select, textarea { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+
+    /* Modal backdrop + panel — fade & scale in/out instead of a hard cut */
+    #modal-backdrop { transition: opacity 0.22s ease; }
+    #modal-backdrop > div { transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1); }
+
+    /* Tab view fade-in on switch */
+    .tab-fade-in { animation: tabFadeIn 0.22s ease; }
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Respect the OS-level "reduce motion" accessibility setting */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
     /* Premium touch target improvements */
     input, button, select, textarea { min-height: 44px; }
     /* Hide scrollbar for clean app design */
@@ -265,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.5.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.6.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2972,25 +3012,55 @@ service cloud.firestore {
       }, 4000);
     }
 
-    // Modal Control wrappers
+    // Modal Control wrappers — animated fade + scale, and discovers every
+    // modal panel dynamically (instead of a hardcoded ID list) so newly
+    // added modals are never accidentally left un-closeable.
     function openModal(modalId) {
-      document.getElementById('modal-backdrop').classList.remove('hidden');
-      document.getElementById(modalId).classList.remove('hidden');
+      const backdrop = document.getElementById('modal-backdrop');
+      const panel = document.getElementById(modalId);
+      if (!backdrop || !panel) return;
+
+      backdrop.classList.remove('hidden');
+      panel.classList.remove('hidden');
+
+      // Start from the "hidden" visual state, then transition in next frame
+      backdrop.style.opacity = '0';
+      panel.style.opacity = '0';
+      panel.style.transform = 'scale(0.95) translateY(8px)';
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          backdrop.style.opacity = '1';
+          panel.style.opacity = '1';
+          panel.style.transform = 'scale(1) translateY(0)';
+        });
+      });
+
       lucide.createIcons();
     }
 
     function closeModal() {
-      document.getElementById('modal-backdrop').classList.add('hidden');
-      const modals = [
-        'modal-create-permit', 'modal-permit-form', 'modal-permit-review', 'modal-permit-close',
-        'modal-report', 'modal-capa', 'modal-close-observation', 'modal-create-user', 'modal-contact',
-        'modal-edit-profile', 'modal-upload-doc', 'modal-edit-labour', 'modal-reset-password',
-        'modal-contractor', 'modal-staff-strength'
-      ];
-      modals.forEach(m => {
-        const el = document.getElementById(m);
-        if (el) el.classList.add('hidden');
+      const backdrop = document.getElementById('modal-backdrop');
+      if (!backdrop) return;
+
+      const panels = Array.from(backdrop.children).filter(el => el.id && el.id.startsWith('modal-'));
+      backdrop.style.opacity = '0';
+      panels.forEach(p => {
+        if (!p.classList.contains('hidden')) {
+          p.style.opacity = '0';
+          p.style.transform = 'scale(0.95) translateY(8px)';
+        }
       });
+
+      setTimeout(() => {
+        backdrop.classList.add('hidden');
+        panels.forEach(p => {
+          p.classList.add('hidden');
+          p.style.opacity = '';
+          p.style.transform = '';
+        });
+        backdrop.style.opacity = '';
+      }, 200);
     }
 
     // Toggle Notifications Dropdown
@@ -3013,10 +3083,18 @@ service cloud.firestore {
       
       // Hide all standard views
       const views = ['view-dashboard', 'view-permits', 'view-labour', 'view-reports', 'view-emergency', 'view-documents', 'view-admin', 'view-force-pin'];
-      views.forEach(v => document.getElementById(v).classList.add('hidden'));
-      
-      // Show requested tab view
-      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      views.forEach(v => {
+        const el = document.getElementById(v);
+        el.classList.add('hidden');
+        el.classList.remove('tab-fade-in');
+      });
+
+      // Show requested tab view with a quick fade-in
+      const activeView = document.getElementById(`view-${tabId}`);
+      activeView.classList.remove('hidden');
+      // Re-trigger the animation even if the class was already present
+      void activeView.offsetWidth;
+      activeView.classList.add('tab-fade-in');
 
       // Sync active states inside Desktop Sidebar Nav Buttons
       document.querySelectorAll('#desktop-sidebar-nav button').forEach(btn => {
@@ -3911,16 +3989,18 @@ service cloud.firestore {
       }).join('');
 
       const html = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <img src="chettinad-logo.png" style="height:40px;">
-            <div>
-              <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
-              <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
-            </div>
-          </div>
-          <p style="font-size:9px;color:#555;">${rec.ref}</p>
-        </div>
+        <table style="width:100%;border-collapse:collapse;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;"><tr>
+          <td style="vertical-align:middle;">
+            <table style="border-collapse:collapse;"><tr>
+              <td style="vertical-align:middle;padding-right:12px;"><img src="chettinad-logo.png" style="height:40px;"></td>
+              <td style="vertical-align:middle;">
+                <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
+                <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
+              </td>
+            </tr></table>
+          </td>
+          <td style="vertical-align:middle;text-align:right;font-size:9px;color:#555;">${rec.ref}</td>
+        </tr></table>
         <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">${rec.title.toUpperCase()}</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
           <tr><td style="width:50%;font-size:10px;padding:2px;">Name of Project: <strong>CTO, Chennai</strong></td>
@@ -3938,12 +4018,12 @@ service cloud.firestore {
           <tbody>${rows}</tbody>
         </table>
         ${rec.remarks ? `<p style="margin-top:8px;font-size:10px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
-        <div style="display:flex;justify-content:space-between;margin-top:24px;font-size:10px;">
-          <div>Checked by (Safety Officer):<br>
+        <table style="width:100%;border-collapse:collapse;margin-top:24px;font-size:10px;"><tr>
+          <td style="width:50%;vertical-align:bottom;">Checked by (Safety Officer):<br>
             ${rec.inspectorSignature ? `<img src="${rec.inspectorSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
-            <small>${rec.inspector} · ${rec.inspectorDesig}</small></div>
-          <div>Signature of Project In-charge:<br><br>____________________</div>
-        </div>
+            <small>${rec.inspector} · ${rec.inspectorDesig}</small></td>
+          <td style="width:50%;vertical-align:bottom;">Signature of Project In-charge:<br><br>____________________</td>
+        </tr></table>
       </div>`;
 
       const pa = document.getElementById('print-area');
@@ -4035,10 +4115,10 @@ service cloud.firestore {
 
       const rfText = rec.riskFactors && rec.riskFactors.length ? rec.riskFactors.join(' / ') : '—';
       const html = `<div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:8px;">
-          <img src="chettinad-logo.png" style="height:40px;">
-          <p style="font-size:9px;color:#555;">CPSPL/02/F24/R0</p>
-        </div>
+        <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:8px;"><tr>
+          <td style="vertical-align:middle;"><img src="chettinad-logo.png" style="height:40px;"></td>
+          <td style="vertical-align:middle;text-align:right;font-size:9px;color:#555;">CPSPL/02/F24/R0</td>
+        </tr></table>
         <p style="text-align:center;font-size:15px;font-weight:900;margin:8px 0 4px;">ON SPOT PENALTY / WARNING NOTICE</p>
         <p style="text-align:center;font-size:13px;font-weight:bold;margin:0 0 12px;">FOR SAFETY VIOLATION</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
@@ -4072,20 +4152,20 @@ service cloud.firestore {
         <div style="border:1px solid #666;padding:8px;font-size:10px;margin-bottom:16px;background:#f9f9f9;">
           <p>Declaration by offender: I <strong>${rec.personName}</strong> working as designation <strong>${rec.designation}</strong> under contractor <strong>${rec.contractor||'_______'}</strong>. I have done safety violation and agree to pay the penalty charge imposed by the engineer / safety officer / manager.</p>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:20px;">
-          <div style="text-align:center;">
+        <table style="width:100%;border-collapse:collapse;font-size:10px;margin-top:20px;"><tr>
+          <td style="text-align:center;width:33%;">
             <p>Observed by:</p><p style="margin-top:24px;">____________________</p>
             <p><small>${rec.issuedBy} · ${rec.issuedDesig}</small></p>
-          </div>
-          <div style="text-align:center;">
+          </td>
+          <td style="text-align:center;width:33%;">
             <p>Offender / Subcontractor:</p><p style="margin-top:24px;">____________________</p>
             <p><small>Signature</small></p>
-          </div>
-          <div style="text-align:center;">
+          </td>
+          <td style="text-align:center;width:34%;">
             <p>Project Manager:</p><p style="margin-top:24px;">____________________</p>
             <p><small>Name &amp; Signature</small></p>
-          </div>
-        </div>
+          </td>
+        </tr></table>
       </div>`;
 
       const pa = document.getElementById('print-area');
@@ -4293,15 +4373,13 @@ service cloud.firestore {
       }).join('');
 
       const html = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <img src="chettinad-logo.png" style="height:40px;">
-            <div>
-              <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
-              <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
-            </div>
-          </div>
-        </div>
+        <table style="width:100%;border-collapse:collapse;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;"><tr>
+          <td style="vertical-align:middle;width:50px;"><img src="chettinad-logo.png" style="height:40px;"></td>
+          <td style="vertical-align:middle;">
+            <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
+            <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
+          </td>
+        </tr></table>
         <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">PPE COMPLIANCE CHECKLIST</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
           <tr><td style="width:50%;font-size:10px;padding:2px;">Date: <strong>${fmtDate(rec.date)}</strong></td>
@@ -4322,12 +4400,12 @@ service cloud.firestore {
         </table>
         <p style="margin-top:10px;font-size:12px;"><strong>Overall Compliance: ${rec.compliancePct}%</strong></p>
         ${rec.remarks ? `<p style="margin-top:6px;font-size:10px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
-        <div style="display:flex;justify-content:space-between;margin-top:24px;font-size:10px;">
-          <div>Checked by:<br>
+        <table style="width:100%;border-collapse:collapse;margin-top:24px;font-size:10px;"><tr>
+          <td style="width:50%;vertical-align:bottom;">Checked by:<br>
             ${rec.checkerSignature ? `<img src="${rec.checkerSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
-            <small>${rec.checkedBy} · ${rec.checkedByDesig}</small></div>
-          <div>Signature of Project In-charge:<br><br>____________________</div>
-        </div>
+            <small>${rec.checkedBy} · ${rec.checkedByDesig}</small></td>
+          <td style="width:50%;vertical-align:bottom;">Signature of Project In-charge:<br><br>____________________</td>
+        </tr></table>
       </div>`;
 
       const pa = document.getElementById('print-area');
@@ -6730,51 +6808,66 @@ ${editCtrLines}
       const mkR  = r => r.holiday
         ? `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:4px 6px;font-size:10px;font-weight:600;">${r.label}</td><td colspan="5" style="font-size:9px;color:#94a3b8;text-align:center;font-style:italic;">Holiday / No Work</td></tr>`
         : `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:4px 6px;font-size:10px;font-weight:600;">${r.label}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.wkr}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.stf}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.md}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.mh}</td><td style="padding:4px 6px;font-size:10px;text-align:center;">${r.cum.toLocaleString()}</td></tr>`;
-      const kpi  = (n,l,col) => `<div style="border:2px solid #e2e8f0;border-radius:6px;padding:10px 6px;text-align:center;flex:1;min-width:0;"><div style="font-size:26px;font-weight:900;color:${col};line-height:1;">${n}</div><div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;margin-top:5px;line-height:1.2;">${l}</div></div>`;
+      // NOTE: KPI cells render as plain <td>s inside a fixed-layout <table>
+      // rather than flexbox — some mobile browsers' print engines collapse
+      // flex rows to the left when rasterising for PDF/paper, but <table>
+      // layout prints reliably everywhere, so this avoids that entirely.
+      const kpi  = (n,l,col) => `<td style="border:2px solid #e2e8f0;border-radius:6px;padding:10px 6px;text-align:center;"><div style="font-size:26px;font-weight:900;color:${col};line-height:1;">${n}</div><div style="font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;margin-top:5px;line-height:1.2;">${l}</div></td>`;
+      const kpiRow = (...cells) => `<table style="width:100%;border-collapse:separate;border-spacing:7px 0;table-layout:fixed;margin-bottom:10px;"><tr>${cells.join('')}</tr></table>`;
       const sec  = t => `<div style="background:#1e293b;color:#fff;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:5px 12px;border-radius:3px;margin:12px 0 7px;">${t}</div>`;
 
       const preparedBy = `${currentUser.fullname} (Senior Safety Officer)`;
       const printDate  = fmtDateOnly(new Date());
 
       const reportHTML = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#111;padding:16px;background:#fff;">
-<div style="display:flex;align-items:center;justify-content:space-between;background:#0f172a;padding:13px 16px;border-radius:5px;margin-bottom:12px;">
-  <div>
-    <div style="font-size:16px;font-weight:900;text-transform:uppercase;color:#f97316;letter-spacing:1px;">HSE Monthly Report</div>
-    <div style="font-size:9px;color:#94a3b8;margin-top:3px;">CTO Chennai &nbsp;\u2022&nbsp; ${monthName.toUpperCase()} ${year} &nbsp;\u2022&nbsp; Project : CTO, Chennai</div>
-    <div style="font-size:8px;color:#64748b;margin-top:2px;">Chettinad Products and Services Pvt. Ltd.</div>
-  </div>
-  ${logoSrc ? `<img src="${logoSrc}" style="height:42px;width:auto;background:#fff;padding:4px 6px;border-radius:3px;">` : ''}
+<div style="background:#0f172a;border-radius:5px;margin-bottom:12px;overflow:hidden;">
+  <table style="width:100%;border-collapse:collapse;"><tr>
+    <td style="padding:13px 16px;vertical-align:middle;">
+      <div style="font-size:16px;font-weight:900;text-transform:uppercase;color:#f97316;letter-spacing:1px;">HSE Monthly Report</div>
+      <div style="font-size:9px;color:#94a3b8;margin-top:3px;">CTO Chennai &nbsp;\u2022&nbsp; ${monthName.toUpperCase()} ${year} &nbsp;\u2022&nbsp; Project : CTO, Chennai</div>
+      <div style="font-size:8px;color:#64748b;margin-top:2px;">Chettinad Products and Services Pvt. Ltd.</div>
+    </td>
+    <td style="padding:13px 16px;vertical-align:middle;text-align:right;width:100px;">
+      ${logoSrc ? `<img src="${logoSrc}" style="height:42px;width:auto;background:#fff;padding:4px 6px;border-radius:3px;">` : ''}
+    </td>
+  </tr></table>
 </div>
 ${sec('Safety Performance Indicators')}
-<div style="display:flex;gap:7px;margin-bottom:10px;">
-  ${kpi(incCount,'Near Miss / Incidents','#dc2626')}
-  ${kpi(smTotals.penalties,'Warnings / Penalties','#d97706')}
-  ${kpi(smTotals.firstAid,'First Aid Cases','#2563eb')}
-  ${kpi(ltifrData.ltifr.toFixed(2),'LTIFR (per 10\u2076 hrs)','#7c2d12')}
-</div>
+${kpiRow(
+  kpi(incCount,'Near Miss / Incidents','#dc2626'),
+  kpi(smTotals.penalties,'Warnings / Penalties','#d97706'),
+  kpi(smTotals.firstAid,'First Aid Cases','#2563eb'),
+  kpi(ltifrData.ltifr.toFixed(2),'LTIFR (per 10\u2076 hrs)','#7c2d12')
+)}
 ${sec('HSE Activities &amp; Observations')}
-<div style="display:flex;gap:7px;margin-bottom:10px;">
-  ${kpi(smTotals.induction,'Inductions','#f97316')}
-  ${kpi(smTotals.toolbox,'TBTs Held','#0f172a')}
-  ${kpi(smTotals.attendance,'TBT Attend.','#0f172a')}
-  ${kpi(obsRaised,'Obs Raised','#2563eb')}
-  ${kpi(obsClosed,'Obs Closed','#16a34a')}
-  ${kpi(obsOpen,'Obs Open','#d97706')}
-</div>
+${kpiRow(
+  kpi(smTotals.induction,'Inductions','#f97316'),
+  kpi(smTotals.toolbox,'TBTs Held','#0f172a'),
+  kpi(smTotals.attendance,'TBT Attend.','#0f172a'),
+  kpi(obsRaised,'Obs Raised','#2563eb'),
+  kpi(obsClosed,'Obs Closed','#16a34a'),
+  kpi(obsOpen,'Obs Open','#d97706')
+)}
 ${sec('Manpower &amp; Exposure Log')}
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-  <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${L.map(mkR).join('')}</tbody></table>
-  <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${R.map(mkR).join('')}</tbody></table>
+<table style="width:100%;border-collapse:separate;border-spacing:8px 0;"><tr>
+  <td style="width:50%;vertical-align:top;padding:0;">
+    <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${L.map(mkR).join('')}</tbody></table>
+  </td>
+  <td style="width:50%;vertical-align:top;padding:0;">
+    <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;"><thead>${chdr()}</thead><tbody>${R.map(mkR).join('')}</tbody></table>
+  </td>
+</tr></table>
+<div style="background:#1e293b;border-radius:4px;margin-top:9px;overflow:hidden;">
+  <table style="width:100%;border-collapse:collapse;"><tr>
+    <td style="padding:7px 14px;color:#fff;font-size:11px;">Month-End Cumulative Totals</td>
+    <td style="padding:7px 14px;color:#fff;font-size:11px;text-align:right;">Mandays: <b style="color:#f97316;">${totMd.toLocaleString()}</b> &nbsp; Manhours: <b style="color:#f97316;">${totMh.toLocaleString()}</b></td>
+  </tr></table>
 </div>
-<div style="background:#1e293b;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-radius:4px;margin-top:9px;font-size:11px;">
-  <span>Month-End Cumulative Totals</span>
-  <span>Mandays: <b style="color:#f97316;">${totMd.toLocaleString()}</b> &nbsp; Manhours: <b style="color:#f97316;">${totMh.toLocaleString()}</b></span>
-</div>
-<div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:8px;border-top:2px solid #1e293b;font-size:9.5px;color:#555;">
-  <span>Report Status: <b style="color:#111;">Final</b></span>
-  <span>Prepared By: <b style="color:#111;">${preparedBy}</b></span>
-  <span>Date: <b style="color:#111;">${printDate}</b></span>
-</div>
+<table style="width:100%;border-collapse:collapse;margin-top:12px;border-top:2px solid #1e293b;"><tr>
+  <td style="padding-top:8px;font-size:9.5px;color:#555;text-align:left;width:33%;">Report Status: <b style="color:#111;">Final</b></td>
+  <td style="padding-top:8px;font-size:9.5px;color:#555;text-align:center;width:34%;">Prepared By: <b style="color:#111;">${preparedBy}</b></td>
+  <td style="padding-top:8px;font-size:9.5px;color:#555;text-align:right;width:33%;">Date: <b style="color:#111;">${printDate}</b></td>
+</tr></table>
 </div>`;
 
       // Write final content into the already-open window (opened before await above)
@@ -6846,30 +6939,33 @@ ${sec('Manpower &amp; Exposure Log')}
           const s   = sigs[role];
           const lbl = reviewerLabel(role);
           const isPM = role === 'ProjectManager';
-          return `<div style="border:${isPM ? '1.5px solid #f97316' : '1px solid #aaa'};border-radius:3px;padding:3px 4px;text-align:center;flex:1;min-width:0;background:${isPM ? '#fff8f0' : '#fff'};">
+          return `<td style="border:${isPM ? '1.5px solid #f97316' : '1px solid #aaa'};border-radius:3px;padding:3px 4px;text-align:center;background:${isPM ? '#fff8f0' : '#fff'};vertical-align:bottom;">
             <p style="font-size:6.5px;font-weight:800;text-transform:uppercase;color:${isPM ? '#f97316' : '#555'};letter-spacing:0.4px;margin:0 0 3px;">${lbl}</p>
             <img src="${s.signatureImage}" style="height:18px;display:block;margin:0 auto;max-width:100%;">
             <p style="font-size:8.5px;font-weight:bold;color:#000;margin:3px 0 0;">${s.name}</p>
             <p style="font-size:7px;color:#444;margin:1px 0 0;">${s.designation || ''}</p>
             <p style="font-size:6.5px;color:#999;margin:1px 0 0;">${s.timestamp}</p>
-          </div>`;
+          </td>`;
         }).join('');
 
       // Combined signature row: Applicant | vertical divider | Reviewers L→R
+      // Built as a <table> rather than flexbox — some mobile print engines
+      // collapse flex rows to the left when rasterising for PDF/paper, but
+      // <table> layout prints reliably across all browsers and OSes.
       let sigsHtml = '';
       if (!applicantSigHtml && !reviewerSigsHtml) {
         sigsHtml = '<p style="font-size:10px;color:#888;font-style:italic;">Signatures pending.</p>';
       } else {
-        sigsHtml = `<div style="display:flex;align-items:flex-end;gap:0;width:100%;">
+        sigsHtml = `<table style="width:100%;border-collapse:collapse;"><tr>
           ${applicantSigHtml ? `
-            <div style="display:flex;flex-direction:column;align-items:center;padding-right:8px;">
-              ${applicantSigHtml}
-            </div>
-            <div style="width:1px;background:#ccc;align-self:stretch;margin:0 8px;"></div>` : ''}
-          <div style="display:flex;gap:5px;flex:1;align-items:flex-end;">
-            ${reviewerSigsHtml || '<p style="font-size:9px;color:#aaa;font-style:italic;">Reviewer signatures pending.</p>'}
-          </div>
-        </div>`;
+            <td style="width:1%;white-space:nowrap;vertical-align:bottom;padding-right:8px;">${applicantSigHtml}</td>
+            <td style="width:1px;background:#ccc;padding:0;"></td>` : ''}
+          <td style="vertical-align:bottom;padding-left:${applicantSigHtml ? '8px' : '0'};">
+            <table style="width:100%;border-collapse:separate;border-spacing:5px 0;table-layout:fixed;"><tr>
+              ${reviewerSigsHtml || '<td style="font-size:9px;color:#aaa;font-style:italic;text-align:center;">Reviewer signatures pending.</td>'}
+            </tr></table>
+          </td>
+        </tr></table>`;
       }
 
       // Comments — compact, show designation not role
@@ -6907,19 +7003,21 @@ ${sec('Manpower &amp; Exposure Log')}
         closureSigHtml = `
           <div style="margin-top:10px;border:1.5px solid #222;border-radius:4px;padding:8px;background:#f9f9f9;">
             <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:0 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px;">Permit Closure Certificate</p>
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-              <div style="flex:1;font-size:9px;">
+            <table style="width:100%;border-collapse:collapse;"><tr>
+              <td style="vertical-align:top;font-size:9px;">
                 <p style="margin:2px 0;"><strong>Closed By:</strong> ${escapeHtml(p.closedBy)}</p>
                 <p style="margin:2px 0;"><strong>Date &amp; Time:</strong> ${escapeHtml(p.closedAt||'')}</p>
                 ${p.closureComment ? `<p style="margin:4px 0;"><strong>Remarks:</strong> ${escapeHtml(p.closureComment)}</p>` : ''}
                 <p style="margin:4px 0;font-size:8px;color:#555;">Work area inspected, personnel accounted for, area confirmed safe.</p>
-              </div>
-              ${p.closureSignature ? `<div style="text-align:center;border:1px solid #ccc;padding:5px;border-radius:3px;min-width:100px;">
-                <p style="font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">Closer Signature</p>
-                <img src="${p.closureSignature}" style="height:32px;display:block;margin:0 auto;">
-                <p style="font-size:8px;color:#555;margin-top:3px;">${escapeHtml(p.closedBy)}</p>
-              </div>` : ''}
-            </div>
+              </td>
+              ${p.closureSignature ? `<td style="width:1%;white-space:nowrap;vertical-align:top;padding-left:12px;">
+                <div style="text-align:center;border:1px solid #ccc;padding:5px;border-radius:3px;min-width:100px;">
+                  <p style="font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">Closer Signature</p>
+                  <img src="${p.closureSignature}" style="height:32px;display:block;margin:0 auto;">
+                  <p style="font-size:8px;color:#555;margin-top:3px;">${escapeHtml(p.closedBy)}</p>
+                </div>
+              </td>` : ''}
+            </tr></table>
           </div>`;
       }
 
@@ -6929,11 +7027,11 @@ ${sec('Manpower &amp; Exposure Log')}
         nightExtraHtml = `
           <div style="margin-top:8px;padding:7px;border:1px solid #ff4500;border-radius:4px;background:#fffaf0;">
             <p style="font-size:10px;font-weight:bold;color:#ff4500;margin:0 0 4px;">Special Night Operations Parameters</p>
-            <div style="display:flex;justify-content:space-between;font-size:9px;gap:8px;">
-              <span><strong>Vehicle/Driver:</strong> ${p.extra.driver}</span>
-              <span><strong>HSE Officer:</strong> ${p.extra.hse}</span>
-              <span><strong>Electrician:</strong> ${p.extra.electrician}</span>
-            </div>
+            <table style="width:100%;border-collapse:collapse;font-size:9px;"><tr>
+              <td><strong>Vehicle/Driver:</strong> ${p.extra.driver}</td>
+              <td><strong>HSE Officer:</strong> ${p.extra.hse}</td>
+              <td><strong>Electrician:</strong> ${p.extra.electrician}</td>
+            </tr></table>
           </div>`;
       }
 
@@ -6948,21 +7046,23 @@ ${sec('Manpower &amp; Exposure Log')}
         <div style="max-width:800px;margin:0 auto;background:white;color:black;font-family:Arial,sans-serif;font-size:10px;padding:14px;">
 
           <!-- Header -->
-          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:10px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <img src="chettinad-logo.png" style="height:40px;width:auto;object-fit:contain;">
-              <div>
-                <p style="font-size:12px;font-weight:800;margin:0;color:#111;">Chettinad Products &amp; Services Pvt. Ltd.</p>
-                <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
-              </div>
-            </div>
-            <div style="text-align:right;">
+          <table style="width:100%;border-collapse:collapse;border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:10px;"><tr>
+            <td style="vertical-align:middle;">
+              <table style="border-collapse:collapse;"><tr>
+                <td style="vertical-align:middle;padding-right:10px;width:1%;white-space:nowrap;"><img src="chettinad-logo.png" style="height:40px;width:auto;object-fit:contain;"></td>
+                <td style="vertical-align:middle;">
+                  <p style="font-size:12px;font-weight:800;margin:0;color:#111;">Chettinad Products &amp; Services Pvt. Ltd.</p>
+                  <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
+                </td>
+              </tr></table>
+            </td>
+            <td style="vertical-align:middle;text-align:right;width:1%;white-space:nowrap;">
               <p style="font-size:11px;font-weight:bold;margin:0;color:#f97316;">PERMIT NO: ${p.permitNo}</p>
               <p style="font-size:9px;margin:2px 0 0;color:#555;">Status: <strong>${p.status.toUpperCase()}</strong></p>
               ${p.status==='Closed'&&p.closedBy ? `<p style="font-size:8px;color:#888;margin:1px 0 0;">Closed by ${p.closedBy} · ${p.closedAt||''}</p>` : ''}
               ${p.status==='Cancelled'&&p.cancelledBy ? `<p style="font-size:8px;color:#c00;margin:1px 0 0;">Cancelled by ${p.cancelledBy} · ${p.cancelledAt||''}</p>` : ''}
-            </div>
-          </div>
+            </td>
+          </tr></table>
 
           <p style="text-align:center;font-size:11px;font-weight:bold;text-transform:uppercase;margin:0 0 10px;">${permitFormHeader}</p>
 
