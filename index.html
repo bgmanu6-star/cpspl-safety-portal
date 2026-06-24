@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.9.2</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.9.3</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -3041,6 +3041,20 @@ service cloud.firestore {
       // permit: close the type-picker, immediately open the form — the
       // type-picker's delayed cleanup was hiding the form moments later).
       if (_modalCloseTimer) { clearTimeout(_modalCloseTimer); _modalCloseTimer = null; }
+
+      // Cancelling that timer also means the PREVIOUS panel never gets its
+      // .hidden class restored — it sits invisible (opacity:0) but still
+      // present as a flex item in the centered backdrop, squeezing the new
+      // modal into less space than it should have (this is what was making
+      // the permit form render small/not full screen). Force it hidden now,
+      // synchronously, since it's being replaced anyway.
+      Array.from(backdrop.children).forEach(el => {
+        if (el.id && el.id.startsWith('modal-') && el.id !== modalId && !el.classList.contains('hidden')) {
+          el.classList.add('hidden');
+          el.style.opacity = '';
+          el.style.transform = '';
+        }
+      });
 
       backdrop.classList.remove('hidden');
       panel.classList.remove('hidden');
