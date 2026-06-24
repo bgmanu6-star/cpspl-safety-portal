@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.9.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.9.2</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -3027,10 +3027,20 @@ service cloud.firestore {
     // Modal Control wrappers — animated fade + scale, and discovers every
     // modal panel dynamically (instead of a hardcoded ID list) so newly
     // added modals are never accidentally left un-closeable.
+    let _modalCloseTimer = null;
+
     function openModal(modalId) {
       const backdrop = document.getElementById('modal-backdrop');
       const panel = document.getElementById(modalId);
       if (!backdrop || !panel) return;
+
+      // If a previous closeModal() is still mid-animation (its 200ms hide
+      // hasn't fired yet), cancel it — otherwise it fires AFTER this modal
+      // opens and hides the backdrop again, making the new modal vanish
+      // right after appearing (this is what was happening when creating a
+      // permit: close the type-picker, immediately open the form — the
+      // type-picker's delayed cleanup was hiding the form moments later).
+      if (_modalCloseTimer) { clearTimeout(_modalCloseTimer); _modalCloseTimer = null; }
 
       backdrop.classList.remove('hidden');
       panel.classList.remove('hidden');
@@ -3055,6 +3065,8 @@ service cloud.firestore {
       const backdrop = document.getElementById('modal-backdrop');
       if (!backdrop) return;
 
+      if (_modalCloseTimer) clearTimeout(_modalCloseTimer);
+
       const panels = Array.from(backdrop.children).filter(el => el.id && el.id.startsWith('modal-'));
       backdrop.style.opacity = '0';
       panels.forEach(p => {
@@ -3064,7 +3076,8 @@ service cloud.firestore {
         }
       });
 
-      setTimeout(() => {
+      _modalCloseTimer = setTimeout(() => {
+        _modalCloseTimer = null;
         backdrop.classList.add('hidden');
         panels.forEach(p => {
           p.classList.add('hidden');
