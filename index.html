@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v2.9.3</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.0.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1044,7 +1044,7 @@ service cloud.firestore {
                   <i data-lucide="alert-octagon" class="w-5 h-5 text-yellow-500"></i>
                   Site Observation &amp; Incident Tracker
                 </h2>
-                <p class="text-xs text-slate-400">Record safety observations, incidents, inspections and penalty notices.</p>
+                <p class="text-xs text-slate-400">Record safety observations, incidents and penalty notices.</p>
               </div>
               <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                 <button onclick="openReportModal('observation')" class="flex-grow sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
@@ -1053,17 +1053,8 @@ service cloud.firestore {
                 <button onclick="openReportModal('incident')" class="flex-grow sm:flex-none bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
                   <i data-lucide="alert-triangle" class="w-4 h-4"></i> Incident
                 </button>
-                <button onclick="openInspectionModal('scaffolding')" class="flex-grow sm:flex-none bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
-                  <i data-lucide="clipboard-list" class="w-4 h-4"></i> Scaffold Check
-                </button>
-                <button onclick="openInspectionModal('safety_harness')" class="flex-grow sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
-                  <i data-lucide="shield-check" class="w-4 h-4"></i> Harness Check
-                </button>
                 <button onclick="openPenaltyModal()" class="flex-grow sm:flex-none bg-orange-700 hover:bg-orange-800 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
                   <i data-lucide="ban" class="w-4 h-4"></i> Issue Warning
-                </button>
-                <button onclick="openPPEModal()" class="flex-grow sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
-                  <i data-lucide="hard-hat" class="w-4 h-4"></i> PPE Check
                 </button>
               </div>
             </div>
@@ -1120,6 +1111,47 @@ service cloud.firestore {
                 </div>
               </div>
 
+              <!-- PENALTY NOTICES PANEL -->
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5 lg:col-span-2">
+                <h3 class="text-sm font-bold text-orange-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <i data-lucide="ban" class="w-4 h-4"></i>
+                  Penalty / Warning Notices
+                </h3>
+                <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="penalties-list-panel">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ==============================================
+               5b. CHECKLISTS VIEW — Admin & Reviewers only
+               ============================================== -->
+          <div id="view-checklists" class="space-y-6 hidden no-print">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-construction-border pb-4">
+              <div>
+                <h2 class="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
+                  <i data-lucide="clipboard-check" class="w-5 h-5 text-blue-400"></i>
+                  Inspection &amp; Compliance Checklists
+                </h2>
+                <p class="text-xs text-slate-400">Scaffolding, safety harness and PPE compliance checks — visible to Admin and Staff reviewers only.</p>
+              </div>
+              <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                <button onclick="openInspectionModal('scaffolding')" class="flex-grow sm:flex-none bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="clipboard-list" class="w-4 h-4"></i> Scaffold Check
+                </button>
+                <button onclick="openInspectionModal('safety_harness')" class="flex-grow sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i> Harness Check
+                </button>
+                <button onclick="openPPEModal()" class="flex-grow sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 uppercase">
+                  <i data-lucide="hard-hat" class="w-4 h-4"></i> PPE Check
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
               <!-- INSPECTIONS PANEL -->
               <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
                 <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2 mb-3">
@@ -1131,24 +1163,13 @@ service cloud.firestore {
                 </div>
               </div>
 
-              <!-- PENALTY NOTICES PANEL -->
-              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
-                <h3 class="text-sm font-bold text-orange-500 uppercase tracking-wider flex items-center gap-2 mb-3">
-                  <i data-lucide="ban" class="w-4 h-4"></i>
-                  Penalty / Warning Notices
-                </h3>
-                <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="penalties-list-panel">
-                  <!-- Rendered dynamically -->
-                </div>
-              </div>
-
               <!-- PPE COMPLIANCE PANEL -->
-              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5 lg:col-span-2">
+              <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
                 <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2 mb-3">
                   <i data-lucide="hard-hat" class="w-4 h-4"></i>
                   PPE Compliance Checks
                 </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1" id="ppe-list-panel">
+                <div class="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto pr-1" id="ppe-list-panel">
                   <!-- Rendered dynamically -->
                 </div>
               </div>
@@ -1546,6 +1567,8 @@ service cloud.firestore {
               </div>
               <p id="admin-manpower-empty" class="hidden text-[11px] text-slate-500 italic mt-3">No manpower logged for today. Use "Add / Edit Manpower" to record it.</p>
             </div>
+
+          </div>
 
         </section>
       </div>
@@ -2567,6 +2590,11 @@ service cloud.firestore {
 
     // ------ data migrations (run after any load) ------
     function runMigrations() {
+      if (!Array.isArray(dbState.hazards))       dbState.hazards       = [];
+      if (!Array.isArray(dbState.incidents))     dbState.incidents     = [];
+      if (!Array.isArray(dbState.contacts))      dbState.contacts      = [];
+      if (!Array.isArray(dbState.documents))     dbState.documents     = [];
+      if (!Array.isArray(dbState.notifications)) dbState.notifications = [];
       if (!dbState.contractors)  dbState.contractors = [];
       if (!Array.isArray(dbState.users)) dbState.users = [];
       if (!Array.isArray(dbState.announcements)) dbState.announcements = [];
@@ -2940,6 +2968,10 @@ service cloud.firestore {
     function canAddCapa() {
       return !!currentUser && (currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove));
     }
+    // Checklists tab (Scaffolding/Harness/PPE) — Admin and reviewer Staff only
+    function canAccessChecklists() {
+      return !!currentUser && (currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove));
+    }
     function canCloseObservation() {
       return !!currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Staff');
     }
@@ -3118,10 +3150,19 @@ service cloud.firestore {
     // TAB SWITCHER
     function switchTab(tabId) {
       if (!currentUser) return;
+
+      // Defense in depth: Checklists is Admin/Reviewer-only. Even if this
+      // were ever reached without the nav button being shown, redirect
+      // rather than render a restricted view.
+      if (tabId === 'checklists' && !canAccessChecklists()) {
+        showToast('Checklists are only accessible to Admin and reviewers.', 'error');
+        tabId = 'dashboard';
+      }
+
       activeTab = tabId;
       
       // Hide all standard views
-      const views = ['view-dashboard', 'view-permits', 'view-labour', 'view-reports', 'view-emergency', 'view-documents', 'view-admin', 'view-force-pin'];
+      const views = ['view-dashboard', 'view-permits', 'view-labour', 'view-reports', 'view-checklists', 'view-emergency', 'view-documents', 'view-admin', 'view-force-pin'];
       views.forEach(v => {
         const el = document.getElementById(v);
         el.classList.add('hidden');
@@ -3160,6 +3201,8 @@ service cloud.firestore {
         renderLabourHistory();
       } else if (tabId === 'reports') {
         renderObservations();
+      } else if (tabId === 'checklists') {
+        renderChecklistsTab();
       } else if (tabId === 'emergency') {
         renderEmergencyGrid();
       } else if (tabId === 'documents') {
@@ -3213,6 +3256,16 @@ service cloud.firestore {
         </button>
       `;
 
+      // Checklists tab — Admin & reviewer Staff only
+      if (canAccessChecklists()) {
+        sidebar.insertAdjacentHTML('beforeend', `
+          <button onclick="switchTab('checklists')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="checklists">
+            <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+            <span>Checklists</span>
+          </button>
+        `);
+      }
+
       if (currentUser.role === 'Admin') {
         sidebar.insertAdjacentHTML('beforeend', `
           <button onclick="switchTab('admin')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="admin">
@@ -3242,6 +3295,18 @@ service cloud.firestore {
           <span class="text-[9px] font-medium">Observe</span>
         </button>
       `;
+
+      // Checklists tab on mobile — only for Admin/reviewers, who also keep
+      // their dedicated Admin/SOS slot, so this is an extra icon for them
+      // specifically rather than something every user has to scroll past.
+      if (canAccessChecklists()) {
+        mobileTabsHtml += `
+          <button onclick="switchTab('checklists')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="checklists">
+            <i data-lucide="clipboard-check" class="w-5 h-5 mb-0.5"></i>
+            <span class="text-[9px] font-medium">Checklist</span>
+          </button>
+        `;
+      }
 
       if (currentUser.role === 'Admin') {
         // Embed direct Admin tab entry explicitly inside the active mobile bottom navbar
@@ -4228,6 +4293,10 @@ service cloud.firestore {
         title: 'Scaffolding Checklist',
         ref: 'CPSPL/02/F23/R0',
         responseType: 'YNN', // YES / NO / N/A
+        // Sub-heading inserted directly before the item at this 0-based
+        // index — item 25 ("Do wheels used...") begins the Mobile Scaffold
+        // section of the official CPSPL form.
+        subheadings: { 24: 'Mobile Scaffold' },
         items: [
           'Is the footing of scaffold sound, rigid and ensure no loose stone and wood pieces used for scaffold base support?',
           'Is the sufficient and suitable scaffolds have been provided so that the work could be safely done at a height?',
@@ -4299,8 +4368,13 @@ service cloud.firestore {
         : ['OK', 'NOT OK', 'N/A'];
 
       const container = document.getElementById('insp-items-container');
-      container.innerHTML = cfg.items.map((item, i) => `
-        <div class="border border-construction-border rounded-lg p-2.5 bg-slate-900/50">
+      container.innerHTML = cfg.items.map((item, i) => {
+        const subheading = cfg.subheadings && cfg.subheadings[i]
+          ? `<div class="pt-2 pb-1 px-1 border-t border-construction-orange/30 mt-1">
+               <p class="text-[10px] font-bold uppercase tracking-wider text-construction-orange">${cfg.subheadings[i]}</p>
+             </div>`
+          : '';
+        return `${subheading}<div class="border border-construction-border rounded-lg p-2.5 bg-slate-900/50">
           <p class="text-[11px] text-slate-300 mb-2">${i+1}. ${item}</p>
           <div class="flex gap-2 flex-wrap">
             ${options.map(opt => `
@@ -4312,7 +4386,8 @@ service cloud.firestore {
             <input type="text" name="insp-remark-${i}" placeholder="Remark (optional)"
               class="ml-auto text-[10px] px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-300 w-40 min-h-0" style="min-height:28px;">
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
 
       openModal('modal-inspection');
       setTimeout(setupInspectionSignaturePad, 200);
@@ -4369,7 +4444,10 @@ service cloud.firestore {
 
       const rows = rec.responses.map((r, i) => {
         const color = (r.response==='YES'||r.response==='OK') ? '#16a34a' : (r.response==='NO'||r.response==='NOT OK') ? '#dc2626' : '#64748b';
-        return `<tr style="border-bottom:1px solid #eee;">
+        const subheadingRow = cfg.subheadings && cfg.subheadings[i]
+          ? `<tr><td colspan="4" style="padding:5px 5px 2px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid #000;">${cfg.subheadings[i]}</td></tr>`
+          : '';
+        return `${subheadingRow}<tr style="border-bottom:1px solid #eee;">
           <td style="padding:3px 5px;font-size:9px;text-align:center;">${i+1}</td>
           <td style="padding:3px 5px;font-size:9px;">${r.item}</td>
           <td style="padding:3px 5px;font-size:9px;font-weight:bold;text-align:center;color:${color};">${r.response}</td>
@@ -4583,8 +4661,8 @@ service cloud.firestore {
       showToast('Penalty notice deleted.', 'info');
     }
 
-    function renderInspectionsAndPenalties() {
-      // Inspections
+    // Checklists tab — Inspections + PPE Compliance (Admin & Reviewers only)
+    function renderChecklistsTab() {
       const inspPanel = document.getElementById('inspections-list-panel');
       if (inspPanel) {
         const inspections = dbState.inspections || [];
@@ -4613,8 +4691,11 @@ service cloud.firestore {
           }).join('');
         }
       }
+      renderPPEChecks();
+    }
 
-      // Penalties
+    // Penalty / Warning Notices — stays in the Observe tab
+    function renderPenaltyNotices() {
       const penPanel = document.getElementById('penalties-list-panel');
       if (penPanel) {
         const penalties = dbState.penaltyNotices || [];
@@ -4644,8 +4725,6 @@ service cloud.firestore {
           }).join('');
         }
       }
-
-      renderPPEChecks();
     }
 
     // ============================================================
@@ -5954,7 +6033,7 @@ ${editCtrLines}
       }
 
       lucide.createIcons();
-      renderInspectionsAndPenalties();
+      renderPenaltyNotices();
       renderObserveScorecard();
     }
 
