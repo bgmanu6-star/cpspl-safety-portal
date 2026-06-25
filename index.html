@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.0.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.2.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -927,6 +927,7 @@ service cloud.firestore {
                   <button onclick="filterPermits('Submitted')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Submitted">Submitted</button>
                   <button onclick="filterPermits('Pending Staff Review')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Staff Review">Pending Staff</button>
                   <button onclick="filterPermits('Pending Admin Approval')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending Admin Approval">Pending Admin</button>
+                  <button onclick="filterPermits('Pending PM Approval')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Pending PM Approval">Pending PM</button>
                   <button onclick="filterPermits('Approved')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Approved">Approved</button>
                   <button onclick="filterPermits('Closed')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Closed">Closed</button>
                   <button onclick="filterPermits('Cancelled')" class="permit-filter-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md" data-filter="Cancelled">Cancelled</button>
@@ -1755,7 +1756,7 @@ service cloud.firestore {
           <!-- PM note — shown only for Project Manager signing -->
           <div id="review-pm-note" class="hidden bg-yellow-950/40 border border-yellow-700/40 rounded-lg px-3 py-2 flex items-center gap-2">
             <i data-lucide="star" class="w-4 h-4 text-yellow-400 shrink-0"></i>
-            <p class="text-[11px] text-yellow-300">You are signing as <strong>Project Manager</strong>. Admin has already approved — your signature adds final PM authorisation. Admin's label will change to "Checked By".</p>
+            <p class="text-[11px] text-yellow-300">You are signing as <strong>Project Manager</strong> — the final authority on this permit. Admin has already checked it; your decision here determines whether it becomes Approved, Rejected, or Returned.</p>
           </div>
 
           <div class="flex justify-end gap-2 pt-4">
@@ -1969,6 +1970,11 @@ service cloud.firestore {
               <input id="insp-location" type="text" required placeholder="e.g. Block B" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
             </div>
           </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Next Due Date <span class="text-red-400">*</span></label>
+            <input id="insp-next-due" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            <p class="text-[9px] text-slate-500 mt-1">The inspector will be reminded automatically when this date arrives.</p>
+          </div>
           <div id="insp-items-container" class="space-y-2 border-t border-construction-border pt-3">
             <!-- Checklist items rendered here -->
           </div>
@@ -2088,6 +2094,11 @@ service cloud.firestore {
             </div>
           </div>
           <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Next Due Date <span class="text-red-400">*</span></label>
+            <input id="ppe-next-due" type="date" required class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
+            <p class="text-[9px] text-slate-500 mt-1">The checker will be reminded automatically when this date arrives.</p>
+          </div>
+          <div>
             <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contractor</label>
             <select id="ppe-contractor" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100">
               <option value="">— Select contractor —</option>
@@ -2120,6 +2131,39 @@ service cloud.firestore {
           <div class="flex justify-end gap-2 pt-2">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
             <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg">Save Checklist</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PROJECT MANAGER SIGN-OFF — checklist becomes locked once signed.
+           PM can only sign + add a remark, never edit checklist items. -->
+      <div id="modal-checklist-pm-sign" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-yellow-400">⭐ Project Manager Sign-Off</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="bg-slate-900 border border-construction-border rounded-lg p-3 mb-4 text-xs space-y-1">
+          <p class="text-slate-200 font-semibold" id="pm-sign-summary-title">—</p>
+          <p class="text-slate-400" id="pm-sign-summary-meta">—</p>
+        </div>
+        <p class="text-[10px] text-yellow-500/90 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2.5 mb-4">
+          ⚠ Signing locks this checklist permanently — it can no longer be edited or deleted by anyone. You may add a remark, but cannot change any checklist item.
+        </p>
+        <form id="pm-sign-form" onsubmit="event.preventDefault(); submitChecklistPMSign();" class="space-y-3 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Remarks (optional)</label>
+            <textarea id="pm-sign-remarks" rows="2" placeholder="Any remarks for the record…" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100"></textarea>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[10px] font-bold uppercase text-slate-400">Project Manager Signature <span class="text-red-400">*</span></label>
+              <button type="button" onclick="clearPMSignSignature()" class="text-[10px] text-yellow-400 hover:underline">Clear</button>
+            </div>
+            <canvas id="pm-sign-sig-canvas" class="w-full h-28 bg-white rounded-lg border border-construction-border cursor-crosshair"></canvas>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold rounded-lg">Sign &amp; Lock</button>
           </div>
         </form>
       </div>
@@ -2607,6 +2651,7 @@ service cloud.firestore {
       if (!dbState.penaltyNotices)  dbState.penaltyNotices  = [];
       if (!dbState.ppeChecks)       dbState.ppeChecks       = [];
       if (!dbState.permitAlertLog) dbState.permitAlertLog   = {};
+      if (!dbState.checklistDueAlertLog) dbState.checklistDueAlertLog = {};
       // Sequential permit numbering — seed once from however many permits
       // already exist, so the serial continues naturally rather than
       // jarringly restarting at 1 on sites with existing history.
@@ -2971,6 +3016,11 @@ service cloud.firestore {
     // Checklists tab (Scaffolding/Harness/PPE) — Admin and reviewer Staff only
     function canAccessChecklists() {
       return !!currentUser && (currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove));
+    }
+    // Project Manager sign-off on checklists — same PM concept used for
+    // permits. PM can only sign + add a remark, never edit checklist items.
+    function isProjectManagerUser() {
+      return !!currentUser && currentUser.role === 'Staff' && currentUser.isProjectManager;
     }
     function canCloseObservation() {
       return !!currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Staff');
@@ -3391,10 +3441,11 @@ service cloud.firestore {
 
       showToast(`Welcome back, ${user.fullname}! Session active.`, 'success');
       switchTab('dashboard');
-      // Remind about expired permits after a short delay
+      // Remind about expired permits and due checklists after a short delay
       setTimeout(() => {
         const n = checkPermitExpiry();
         if (n > 0) showToast(`⚠ ${n} permit${n>1?'s are':' is'} past end time — please close ${n>1?'them':'it'}.`, 'info');
+        checkChecklistDueDates();
       }, 1500);
     }
 
@@ -4059,7 +4110,7 @@ service cloud.firestore {
             ? p.contractorId === currentUser.contractorId
             : p.contractor === getContractorName(currentUser.contractorId))
         : dbState.permits;
-      const openPermits = permitsScope.filter(p => ['Submitted', 'Pending Staff Review', 'Pending Admin Approval'].includes(p.status)).length;
+      const openPermits = permitsScope.filter(p => ['Submitted', 'Pending Staff Review', 'Pending Admin Approval', 'Pending PM Approval'].includes(p.status)).length;
       const approvedPermits = permitsScope.filter(p => p.status === 'Approved').length;
       const allObs     = dbState.hazards   || [];
       const allInc     = dbState.incidents || [];
@@ -4096,6 +4147,13 @@ service cloud.firestore {
     // ============================================================
     function todayKey() {
       const d = new Date();
+      return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    }
+    // "YYYY-MM-DD" key for n days from today — used to default the "Next
+    // Due Date" field on checklists to a sensible re-inspection interval.
+    function dateKeyPlusDays(n) {
+      const d = new Date();
+      d.setDate(d.getDate() + n);
       return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     }
 
@@ -4362,6 +4420,7 @@ service cloud.firestore {
       document.getElementById('insp-date').value = todayKey();
       document.getElementById('insp-location').value = '';
       document.getElementById('insp-remarks').value = '';
+      document.getElementById('insp-next-due').value = dateKeyPlusDays(30);
 
       const options = cfg.responseType === 'YNN'
         ? ['YES', 'NO', 'N/A']
@@ -4403,6 +4462,8 @@ service cloud.firestore {
       const date = document.getElementById('insp-date').value;
       const location = document.getElementById('insp-location').value.trim();
       const remarks = document.getElementById('insp-remarks').value.trim();
+      const nextDueDate = document.getElementById('insp-next-due').value;
+      if (!nextDueDate) { showToast('Please set the next due date.', 'error'); return; }
 
       const responses = cfg.items.map((item, i) => {
         const checked = document.querySelector(`input[name="insp-item-${i}"]:checked`);
@@ -4419,21 +4480,25 @@ service cloud.firestore {
         type: currentInspectionType,
         title: cfg.title,
         ref: cfg.ref,
-        date, location, remarks,
+        date, location, remarks, nextDueDate,
         responses,
         inspector: currentUser.fullname,
         inspectorDesig: currentUser.designation || currentUser.role,
         inspectorSignature: inspectionSigPad.toDataURL(),
-        createdAt: fmtDT(new Date())
+        createdAt: fmtDT(new Date()),
+        // Project Manager sign-off — null until a PM signs; once set, the
+        // record is locked (PM only ever adds a signature + remark, never
+        // edits checklist items)
+        pmSignature: null, pmRemarks: '', pmSignedBy: '', pmSignedAt: ''
       };
 
       dbState.inspections = dbState.inspections || [];
       dbState.inspections.unshift(rec);
       saveCurrentState();
       closeModal();
-      renderObservations();
+      renderChecklistsTab();
       showToast(`${cfg.title} saved.`, 'success');
-      sendTelegram(`📋 ${cfg.title}\n📍 Location: ${location}\n📅 Date: ${date}\n👤 Inspector: ${userLabel()}`, [], 'obs_capa');
+      sendTelegram(`📋 ${cfg.title}\n📍 Location: ${location}\n📅 Date: ${date}\n📆 Next Due: ${fmtDate(nextDueDate)}\n👤 Inspector: ${userLabel()}`, [], 'obs_capa');
     }
 
     function previewInspection(id) {
@@ -4467,7 +4532,7 @@ service cloud.firestore {
             </tr></table>
           </td>
           <td style="vertical-align:middle;text-align:right;font-size:9px;color:#555;padding-right:8px;">${rec.ref}</td>
-          <td style="vertical-align:middle;width:1%;white-space:nowrap;">${generateQRCodeSVG(`${rec.title} | Ref: ${rec.ref} | Date: ${fmtDate(rec.date)} | Location: ${rec.location} | Inspector: ${rec.inspector}`, 56)}</td>
+          <td style="vertical-align:middle;width:1%;white-space:nowrap;">${generateQRCodeSVG(`${rec.title} | Ref: ${rec.ref} | Date: ${fmtDate(rec.date)} | Location: ${rec.location} | Inspector: ${rec.inspector} | Next Due: ${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}`, 56)}</td>
         </tr></table>
         <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">${rec.title.toUpperCase()}</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
@@ -4475,6 +4540,8 @@ service cloud.firestore {
               <td style="font-size:10px;padding:2px;">Date: <strong>${fmtDate(rec.date)}</strong></td></tr>
           <tr><td style="font-size:10px;padding:2px;">Location: <strong>${rec.location}</strong></td>
               <td style="font-size:10px;padding:2px;">Inspector: <strong>${rec.inspector} (${rec.inspectorDesig})</strong></td></tr>
+          <tr><td style="font-size:10px;padding:2px;">Next Due Date: <strong>${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}</strong></td>
+              <td></td></tr>
         </table>
         <table style="width:100%;border-collapse:collapse;border:1px solid #ccc;margin-top:8px;">
           <thead><tr style="background:#f1f1f1;">
@@ -4490,7 +4557,10 @@ service cloud.firestore {
           <td style="width:50%;vertical-align:bottom;">Checked by (Safety Officer):<br>
             ${rec.inspectorSignature ? `<img src="${rec.inspectorSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
             <small>${rec.inspector} · ${rec.inspectorDesig}</small></td>
-          <td style="width:50%;vertical-align:bottom;">Signature of Project In-charge:<br><br>____________________</td>
+          <td style="width:50%;vertical-align:bottom;">Signature of Project Manager:<br>
+            ${rec.pmSignature ? `<img src="${rec.pmSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
+            <small>${rec.pmSignedBy || ''}${rec.pmSignedAt ? ' · ' + rec.pmSignedAt : ''}</small>
+            ${rec.pmRemarks ? `<br><small style="color:#555;">Remarks: ${rec.pmRemarks}</small>` : ''}</td>
         </tr></table>
       </div>`;
 
@@ -4508,10 +4578,12 @@ service cloud.firestore {
     }
 
     function deleteInspection(id) {
+      const rec = (dbState.inspections||[]).find(r => r.id === id);
+      if (rec && rec.pmSignature) { showToast('This checklist is locked — a Project Manager has signed it.', 'error'); return; }
       if (!confirm('Delete this inspection record?')) return;
       dbState.inspections = (dbState.inspections||[]).filter(r => r.id !== id);
       saveCurrentState();
-      renderObservations();
+      renderChecklistsTab();
       showToast('Inspection deleted.', 'info');
     }
 
@@ -4662,6 +4734,31 @@ service cloud.firestore {
     }
 
     // Checklists tab — Inspections + PPE Compliance (Admin & Reviewers only)
+    // Shared by both Inspection and PPE cards — colour-coded due-date line
+    function dueDateBadgeHtml(dueDate) {
+      if (!dueDate) return '';
+      const today = todayKey();
+      let color = 'text-slate-400', label = 'Next Due';
+      if (dueDate < today)       { color = 'text-red-400';    label = 'Overdue — was due'; }
+      else if (dueDate === today) { color = 'text-orange-400'; label = 'Due Today'; }
+      else if ((new Date(dueDate) - new Date(today)) / 86400000 <= 7) { color = 'text-yellow-400'; }
+      return `<p class="text-[10px] ${color} font-medium">📆 ${label}: ${fmtDate(dueDate)}</p>`;
+    }
+
+    // Shared by both Inspection and PPE cards — PM lock badge or sign button
+    function pmSignBlockHtml(rec, recordType) {
+      if (rec.pmSignature) {
+        return `<div class="bg-yellow-500/10 border border-yellow-500/20 rounded px-2 py-1.5">
+          <p class="text-[9px] font-bold text-yellow-400">🔒 Signed &amp; Locked — ${rec.pmSignedBy}</p>
+          <p class="text-[9px] text-slate-500">${rec.pmSignedAt}</p>
+          ${rec.pmRemarks ? `<p class="text-[9px] text-slate-400 mt-0.5">💬 ${rec.pmRemarks}</p>` : ''}
+        </div>`;
+      } else if (isProjectManagerUser()) {
+        return `<button onclick="openChecklistPMSignModal('${rec.id}','${recordType}')" class="text-[10px] text-yellow-400 hover:underline font-semibold">⭐ PM Sign &amp; Lock</button>`;
+      }
+      return '';
+    }
+
     function renderChecklistsTab() {
       const inspPanel = document.getElementById('inspections-list-panel');
       if (inspPanel) {
@@ -4673,20 +4770,23 @@ service cloud.firestore {
             const badgeColor = r.type === 'scaffolding' ? 'bg-blue-600/20 text-blue-400' : 'bg-indigo-600/20 text-indigo-400';
             const fails = r.responses.filter(x => x.response==='NO'||x.response==='NOT OK').length;
             const isAdmin = currentUser && currentUser.role === 'Admin';
-            return `<div class="bg-slate-900 border border-construction-border p-3 rounded-lg space-y-1.5">
+            const locked = !!r.pmSignature;
+            return `<div class="bg-slate-900 border ${locked ? 'border-yellow-700/40' : 'border-construction-border'} p-3 rounded-lg space-y-1.5">
               <div class="flex items-center justify-between flex-wrap gap-1">
                 <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded ${badgeColor}">${r.title}</span>
                 <span class="text-[10px] text-slate-500 font-mono">${fmtDate(r.date)}</span>
               </div>
               <p class="text-xs font-semibold text-slate-300">📍 ${r.location}</p>
+              ${dueDateBadgeHtml(r.nextDueDate)}
               ${fails ? `<p class="text-[10px] text-red-400">⚠️ ${fails} item${fails>1?'s':''} failed</p>` : '<p class="text-[10px] text-emerald-400">✅ All items satisfactory</p>'}
               <div class="flex items-center justify-between pt-1.5 border-t border-slate-800">
                 <span class="text-[9px] text-slate-500">By: ${r.inspector}</span>
-                <div class="flex gap-2">
+                <div class="flex gap-2 items-center">
                   <button onclick="previewInspection('${r.id}')" class="text-[10px] text-blue-400 hover:underline">View/Print</button>
-                  ${isAdmin ? `<button onclick="deleteInspection('${r.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>` : ''}
+                  ${(isAdmin && !locked) ? `<button onclick="deleteInspection('${r.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>` : ''}
                 </div>
               </div>
+              ${pmSignBlockHtml(r, 'inspection')}
             </div>`;
           }).join('');
         }
@@ -4746,6 +4846,7 @@ service cloud.firestore {
       document.getElementById('ppe-location').value = '';
       document.getElementById('ppe-total-workers').value = '';
       document.getElementById('ppe-remarks').value = '';
+      document.getElementById('ppe-next-due').value = dateKeyPlusDays(30);
 
       const ctrSel = document.getElementById('ppe-contractor');
       if (ctrSel) {
@@ -4791,8 +4892,10 @@ service cloud.firestore {
       const contractor = document.getElementById('ppe-contractor').value;
       const totalWorkers = parseInt(document.getElementById('ppe-total-workers').value) || 0;
       const remarks = document.getElementById('ppe-remarks').value.trim();
+      const nextDueDate = document.getElementById('ppe-next-due').value;
 
       if (!location) { showToast('Location is required.', 'error'); return; }
+      if (!nextDueDate) { showToast('Please set the next due date.', 'error'); return; }
 
       let totalCompliant = 0, totalNonCompliant = 0;
       const items = PPE_ITEMS.map((item, i) => {
@@ -4809,23 +4912,24 @@ service cloud.firestore {
 
       const rec = {
         id: `ppe-${Date.now()}`,
-        date, location, contractor, totalWorkers, remarks,
+        date, location, contractor, totalWorkers, remarks, nextDueDate,
         items, compliancePct,
         checkedBy: currentUser.fullname,
         checkedByDesig: currentUser.designation || currentUser.role,
         checkerSignature: ppeSigPad.toDataURL(),
-        createdAt: fmtDT(new Date())
+        createdAt: fmtDT(new Date()),
+        pmSignature: null, pmRemarks: '', pmSignedBy: '', pmSignedAt: ''
       };
 
       dbState.ppeChecks = dbState.ppeChecks || [];
       dbState.ppeChecks.unshift(rec);
       saveCurrentState();
       closeModal();
-      renderObservations();
+      renderChecklistsTab();
       showToast(`PPE check saved — ${compliancePct}% compliance.`, compliancePct >= 80 ? 'success' : 'info');
 
       const emoji = compliancePct >= 90 ? '✅' : compliancePct >= 70 ? '⚠️' : '🚨';
-      sendTelegram(`${emoji} PPE Compliance Check\n📍 Location: ${location}\n🏗 Contractor: ${contractor || '—'}\n📊 Compliance: ${compliancePct}%\n👥 Workers Checked: ${totalWorkers || totalChecked}\n👤 Checked by: ${userLabel()}`, [], 'ppe_check');
+      sendTelegram(`${emoji} PPE Compliance Check\n📍 Location: ${location}\n🏗 Contractor: ${contractor || '—'}\n📊 Compliance: ${compliancePct}%\n👥 Workers Checked: ${totalWorkers || totalChecked}\n📆 Next Due: ${fmtDate(nextDueDate)}\n👤 Checked by: ${userLabel()}`, [], 'ppe_check');
     }
 
     function previewPPECheck(id) {
@@ -4853,7 +4957,7 @@ service cloud.firestore {
             <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
             <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
           </td>
-          <td style="vertical-align:middle;width:1%;white-space:nowrap;">${generateQRCodeSVG(`PPE Compliance | Location: ${rec.location} | Contractor: ${rec.contractor||'—'} | Compliance: ${rec.compliancePct}% | Date: ${fmtDate(rec.date)}`, 56)}</td>
+          <td style="vertical-align:middle;width:1%;white-space:nowrap;">${generateQRCodeSVG(`PPE Compliance | Location: ${rec.location} | Contractor: ${rec.contractor||'—'} | Compliance: ${rec.compliancePct}% | Date: ${fmtDate(rec.date)} | Next Due: ${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}`, 56)}</td>
         </tr></table>
         <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">PPE COMPLIANCE CHECKLIST</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
@@ -4861,6 +4965,8 @@ service cloud.firestore {
               <td style="font-size:10px;padding:2px;">Location: <strong>${rec.location}</strong></td></tr>
           <tr><td style="font-size:10px;padding:2px;">Contractor: <strong>${rec.contractor||'—'}</strong></td>
               <td style="font-size:10px;padding:2px;">Total Workers Checked: <strong>${rec.totalWorkers}</strong></td></tr>
+          <tr><td style="font-size:10px;padding:2px;">Next Due Date: <strong>${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}</strong></td>
+              <td></td></tr>
         </table>
         <table style="width:100%;border-collapse:collapse;border:1px solid #ccc;margin-top:8px;">
           <thead><tr style="background:#f1f1f1;">
@@ -4879,7 +4985,10 @@ service cloud.firestore {
           <td style="width:50%;vertical-align:bottom;">Checked by:<br>
             ${rec.checkerSignature ? `<img src="${rec.checkerSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
             <small>${rec.checkedBy} · ${rec.checkedByDesig}</small></td>
-          <td style="width:50%;vertical-align:bottom;">Signature of Project In-charge:<br><br>____________________</td>
+          <td style="width:50%;vertical-align:bottom;">Signature of Project Manager:<br>
+            ${rec.pmSignature ? `<img src="${rec.pmSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
+            <small>${rec.pmSignedBy || ''}${rec.pmSignedAt ? ' · ' + rec.pmSignedAt : ''}</small>
+            ${rec.pmRemarks ? `<br><small style="color:#555;">Remarks: ${rec.pmRemarks}</small>` : ''}</td>
         </tr></table>
       </div>`;
 
@@ -4897,11 +5006,63 @@ service cloud.firestore {
     }
 
     function deletePPECheck(id) {
+      const rec = (dbState.ppeChecks||[]).find(r => r.id === id);
+      if (rec && rec.pmSignature) { showToast('This checklist is locked — a Project Manager has signed it.', 'error'); return; }
       if (!confirm('Delete this PPE compliance check?')) return;
       dbState.ppeChecks = (dbState.ppeChecks||[]).filter(r => r.id !== id);
       saveCurrentState();
-      renderObservations();
+      renderChecklistsTab();
       showToast('PPE check deleted.', 'info');
+    }
+
+    // ============================================================
+    // PROJECT MANAGER SIGN-OFF — locks a checklist once signed.
+    // PM only ever adds a signature + optional remark, never touches the
+    // checklist items themselves.
+    // ============================================================
+    let pmSignTarget = { id: null, recordType: null };
+
+    function openChecklistPMSignModal(id, recordType) {
+      if (!isProjectManagerUser()) { showToast('Only the Project Manager can sign off checklists.', 'error'); return; }
+      const list = recordType === 'ppe' ? (dbState.ppeChecks || []) : (dbState.inspections || []);
+      const rec = list.find(r => r.id === id);
+      if (!rec) return;
+      if (rec.pmSignature) { showToast('This checklist is already signed and locked.', 'error'); return; }
+
+      pmSignTarget = { id, recordType };
+      const title = recordType === 'ppe' ? 'PPE Compliance Check' : rec.title;
+      const filler = recordType === 'ppe' ? rec.checkedBy : rec.inspector;
+      document.getElementById('pm-sign-summary-title').innerText = title;
+      document.getElementById('pm-sign-summary-meta').innerText = `📍 ${rec.location} · 📅 ${fmtDate(rec.date)} · Filled by ${filler}`;
+      document.getElementById('pm-sign-remarks').value = '';
+
+      openModal('modal-checklist-pm-sign');
+      setTimeout(setupPMSignSignaturePad, 200);
+    }
+
+    function submitChecklistPMSign() {
+      if (!pmSignSigPad || pmSignSigPad.isEmpty()) {
+        showToast('Please sign before locking this checklist.', 'error');
+        return;
+      }
+      const { id, recordType } = pmSignTarget;
+      const list = recordType === 'ppe' ? (dbState.ppeChecks || []) : (dbState.inspections || []);
+      const rec = list.find(r => r.id === id);
+      if (!rec) { showToast('Record no longer exists.', 'error'); closeModal(); return; }
+      if (rec.pmSignature) { showToast('Already signed.', 'error'); closeModal(); return; }
+
+      rec.pmRemarks   = document.getElementById('pm-sign-remarks').value.trim();
+      rec.pmSignature = pmSignSigPad.toDataURL();
+      rec.pmSignedBy  = currentUser.fullname;
+      rec.pmSignedAt  = fmtDT(new Date());
+
+      saveCurrentState();
+      closeModal();
+      renderChecklistsTab();
+      showToast('Checklist signed and locked.', 'success');
+
+      const title = recordType === 'ppe' ? 'PPE Compliance Check' : rec.title;
+      sendTelegram(`⭐ Checklist Signed by Project Manager\n📝 ${title}\n📍 Location: ${rec.location}\n👤 PM: ${userLabel()}${rec.pmRemarks ? '\n💬 ' + rec.pmRemarks : ''}\n🔒 This checklist is now locked.`, [], 'checklist_signed');
     }
 
     function renderPPEChecks() {
@@ -4916,20 +5077,23 @@ service cloud.firestore {
       panel.innerHTML = checks.map(r => {
         const color = r.compliancePct >= 90 ? 'text-emerald-400' : r.compliancePct >= 70 ? 'text-yellow-400' : 'text-red-400';
         const badge = r.compliancePct >= 90 ? 'bg-emerald-600/20' : r.compliancePct >= 70 ? 'bg-yellow-600/20' : 'bg-red-600/20';
-        return `<div class="bg-slate-900 border border-construction-border p-3 rounded-lg space-y-1.5">
+        const locked = !!r.pmSignature;
+        return `<div class="bg-slate-900 border ${locked ? 'border-yellow-700/40' : 'border-construction-border'} p-3 rounded-lg space-y-1.5">
           <div class="flex items-center justify-between flex-wrap gap-1">
             <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded ${badge} ${color}">${r.compliancePct}% Compliant</span>
             <span class="text-[10px] text-slate-500 font-mono">${fmtDate(r.date)}</span>
           </div>
           <p class="text-xs font-semibold text-slate-300">📍 ${r.location}</p>
           <p class="text-[10px] text-slate-400">🏗 ${r.contractor || '—'} · 👥 ${r.totalWorkers} workers</p>
+          ${dueDateBadgeHtml(r.nextDueDate)}
           <div class="flex items-center justify-between pt-1.5 border-t border-slate-800">
             <span class="text-[9px] text-slate-500">By: ${r.checkedBy}</span>
-            <div class="flex gap-2">
+            <div class="flex gap-2 items-center">
               <button onclick="previewPPECheck('${r.id}')" class="text-[10px] text-emerald-400 hover:underline">View/Print</button>
-              ${isAdmin ? `<button onclick="deletePPECheck('${r.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>` : ''}
+              ${(isAdmin && !locked) ? `<button onclick="deletePPECheck('${r.id}')" class="text-[10px] text-red-400 hover:underline">Delete</button>` : ''}
             </div>
           </div>
+          ${pmSignBlockHtml(r, 'ppe')}
         </div>`;
       }).join('');
     }
@@ -4947,6 +5111,8 @@ service cloud.firestore {
       { key: 'incident_delete',  label: 'Incident Deleted',        desc: 'When admin deletes an incident',              group: 'Incidents' },
       { key: 'notice_board',     label: 'Notice Board Post',       desc: 'When a new site notice is posted',            group: 'Other' },
       { key: 'ppe_check',        label: 'PPE Compliance Check',    desc: 'When a PPE compliance checklist is logged',   group: 'Other' },
+      { key: 'checklist_due',    label: 'Checklist Due Reminder',  desc: 'When a Scaffold/Harness/PPE re-check is due', group: 'Other' },
+      { key: 'checklist_signed', label: 'Checklist PM Sign-Off',   desc: 'When a Project Manager signs/locks a checklist', group: 'Other' },
       { key: 'safety_activity',  label: 'Safety Activity Logged',  desc: 'Toolbox talks, inductions, etc.',             group: 'Other' },
       { key: 'document',         label: 'Document Uploaded',       desc: 'When a document is added to the vault',       group: 'Other' },
     ];
@@ -6775,6 +6941,7 @@ ${editCtrLines}
       list.forEach(p => {
         let statusClass = "bg-slate-800 text-slate-300";
         if      (p.status === 'Approved')               statusClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
+        else if (p.status === 'Pending PM Approval')    statusClass = "bg-violet-950 text-violet-400 border border-violet-800/50";
         else if (p.status === 'Rejected')               statusClass = "bg-red-950 text-red-400 border border-red-800/50";
         else if (p.status === 'Submitted')              statusClass = "bg-blue-950 text-blue-400 border border-blue-800/50";
         else if (p.status === 'Returned To Contractor') statusClass = "bg-yellow-950 text-yellow-400 border border-yellow-800/50";
@@ -6793,11 +6960,13 @@ ${editCtrLines}
 
         let actions = `<button onclick="previewPermit('${p.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-1 px-2.5 rounded border border-construction-border">View</button>`;
 
-        // Review button (Approve/Reject/Return) — only while still in the
-        // review pipeline. Once a permit reaches "Approved", it can no longer
-        // be rejected or edited — only Closed or Cancelled from here on.
-        // (The separate PM-Sign button below still applies on Approved permits.)
-        if (!['Closed','Cancelled','Approved'].includes(p.status)) {
+        // Review button (Check/Reject/Return) — only while still in the
+        // Staff or Admin review pipeline. Once a permit is forwarded to
+        // "Pending PM Approval", only the Project Manager — the final
+        // authority — has anything to act on (see the dedicated PM button
+        // below); Admin/Staff reviewing again at that point would let them
+        // approve permits PM was supposed to be the sole gate for.
+        if (!['Closed','Cancelled','Approved','Pending PM Approval'].includes(p.status)) {
           if (isReviewer) {
             actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white py-1 px-2.5 rounded border border-construction-orange/30">Review</button>`;
           } else if (isContractor && p.status === 'Returned To Contractor') {
@@ -6805,9 +6974,10 @@ ${editCtrLines}
           }
         }
 
-        // PM sign button — on Approved permits where admin has signed and PM hasn't yet
-        if (isPMUser && p.status === 'Approved' && p.signatures && p.signatures['Admin'] && !p.signatures['ProjectManager']) {
-          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600 hover:text-white py-1 px-2.5 rounded border border-yellow-600/30">⭐ PM Sign</button>`;
+        // PM is the final authority — only the PM can act once Admin has
+        // checked the permit and forwarded it for approval.
+        if (isPMUser && p.status === 'Pending PM Approval') {
+          actions += ` <button onclick="openReviewModal('${p.id}')" class="text-xs bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600 hover:text-white py-1 px-2.5 rounded border border-yellow-600/30">⭐ PM Approve</button>`;
         }
 
         // Close button — reviewer or contractor, only on Approved (especially if expired)
@@ -6965,6 +7135,11 @@ ${editCtrLines}
     function setupPPESignaturePad() { ppeSigPad = createSignaturePad('ppe-sig-canvas'); }
     function clearPPESignature() { if (ppeSigPad) ppeSigPad.clear(); }
 
+    // Project Manager sign-off signature pad (locks the checklist once signed)
+    let pmSignSigPad = null;
+    function setupPMSignSignaturePad() { pmSignSigPad = createSignaturePad('pm-sign-sig-canvas'); }
+    function clearPMSignSignature() { if (pmSignSigPad) pmSignSigPad.clear(); }
+
     function openReviewModal(permitId) {
       currentEditPermit = dbState.permits.find(p => p.id === permitId);
       if (!currentEditPermit) return;
@@ -6972,35 +7147,48 @@ ${editCtrLines}
       const isPM = currentUser.role === 'Staff' && currentUser.isProjectManager;
 
       // Once a permit is Approved it can no longer be rejected, returned, or
-      // edited — only the PM's final sign-off (if pending) is still allowed.
-      // Closing/cancelling from this point happens via the Close/Cancel buttons.
-      if (currentEditPermit.status === 'Approved' && !isPM) {
+      // edited — only the Project Manager's decision can ever set this
+      // status, and once set it is final. Closing/cancelling from this
+      // point happens via the Close/Cancel buttons.
+      if (currentEditPermit.status === 'Approved') {
         showToast('This permit is already approved. Use Close or Cancel instead.', 'error');
+        return;
+      }
+
+      // PM is the final authority — only the PM can act while a permit is
+      // awaiting PM approval, and the PM has nothing to do until Admin has
+      // checked it first.
+      if (currentEditPermit.status === 'Pending PM Approval' && !isPM) {
+        showToast('This permit is awaiting Project Manager approval.', 'error');
+        return;
+      }
+      if (isPM && currentEditPermit.status !== 'Pending PM Approval') {
+        showToast('Nothing for the Project Manager to approve yet — Admin must check it first.', 'error');
         return;
       }
 
       const decisionSel = document.getElementById('review-decision');
       decisionSel.innerHTML = '';
-
-      const adminHasSigned = !!(currentEditPermit.signatures && currentEditPermit.signatures['Admin']);
       const pmNote = document.getElementById('review-pm-note');
 
       if (isPM) {
-        if (!adminHasSigned) {
-          showToast('Admin must sign and approve before Project Manager can add final approval.', 'error');
-          return;
-        }
-        decisionSel.innerHTML = `<option value="Approved">Final Approve (Project Manager)</option>`;
+        // PM holds final authority — the only one whose decision can set a
+        // permit to Approved. Admin and Staff before this step only ever
+        // "check" and forward; they never approve.
+        decisionSel.innerHTML = `
+          <option value="Approved">Final Approve (Project Manager)</option>
+          <option value="Returned To Contractor">Return with Corrections</option>
+          <option value="Rejected">Final Reject Permit</option>`;
         if (pmNote) pmNote.classList.remove('hidden');
       } else if (currentUser.role === 'Admin') {
         decisionSel.innerHTML = `
-          <option value="Approved">Final Approve Permit</option>
-          <option value="Rejected">Final Reject Permit</option>
-          <option value="Returned To Contractor">Return with Corrections</option>`;
+          <option value="Pending PM Approval">Check &amp; Forward to Project Manager</option>
+          <option value="Returned To Contractor">Return with Corrections</option>
+          <option value="Rejected">Reject Permit</option>`;
         if (pmNote) pmNote.classList.add('hidden');
       } else if (currentUser.role === 'Staff' && currentUser.canApprove) {
         decisionSel.innerHTML = `
-          <option value="Pending Admin Approval">Approve (Forward to Admin)</option>
+          <option value="Pending Admin Approval">Check &amp; Forward to Admin</option>
           <option value="Returned To Contractor">Return with Corrections</option>
           <option value="Rejected">Reject Permit</option>`;
         if (pmNote) pmNote.classList.add('hidden');
@@ -7047,7 +7235,18 @@ ${editCtrLines}
       showToast(`Safety Permit updated to: ${decision}`, 'success');
       pushNotification(`Permit ${permit.permitNo} reviewed: status ${decision} by ${currentUser.fullname}`);
 
-      const decisionEmoji = decision === 'Approved' ? '✅' : decision === 'Rejected' ? '❌' : decision === 'Returned To Contractor' ? '↩️' : '🔄';
+      // PM is the final authority for approval — if Admin just forwarded a
+      // permit for PM sign-off but no one on the site is actually set up as
+      // a Project Manager, it would sit stuck with nobody able to act on
+      // it. Warn immediately rather than let it go silently unnoticed.
+      if (decision === 'Pending PM Approval') {
+        const hasPMUser = (dbState.users || []).some(u => u.role === 'Staff' && u.isProjectManager);
+        if (!hasPMUser) {
+          showToast('No Project Manager is set up yet — assign one in Admin → Personnel so this permit can be approved.', 'error');
+        }
+      }
+
+      const decisionEmoji = decision === 'Approved' ? '✅' : decision === 'Rejected' ? '❌' : decision === 'Returned To Contractor' ? '↩️' : decision === 'Pending PM Approval' ? '⭐' : '🔄';
       sendTelegram(
 `${decisionEmoji} <b>Permit ${decision.toUpperCase()}</b>
 📋 Permit No: ${permit.permitNo} (${permit.type})
@@ -7232,6 +7431,34 @@ ${editCtrLines}
 
       if (changed) saveCurrentState();
       return expiredCount;
+    }
+
+    // Reminds the original filler when a Scaffold/Harness/PPE checklist's
+    // "Next Due Date" arrives (or has passed) — fires once per record via
+    // dbState.checklistDueAlertLog, same dedup pattern as permit expiry.
+    function checkChecklistDueDates() {
+      const todayStr = todayKey();
+      dbState.checklistDueAlertLog = dbState.checklistDueAlertLog || {};
+      let changed = false;
+
+      const remindFor = (rec, label, fillerName) => {
+        if (!rec.nextDueDate || rec.nextDueDate > todayStr) return; // not due yet
+        const log = dbState.checklistDueAlertLog[rec.id] || {};
+        if (log.sent) return;
+
+        const overdue = rec.nextDueDate < todayStr;
+        pushNotification(`📋 ${label} at ${rec.location} is ${overdue ? 'overdue' : 'due today'} for re-inspection (was due ${fmtDate(rec.nextDueDate)}). Filled by ${fillerName}.`);
+        sendTelegram(`📋 Checklist ${overdue ? 'Overdue' : 'Due Today'}\n📝 ${label}\n📍 Location: ${rec.location}\n👤 Filled by: ${fillerName}\n📆 Due: ${fmtDate(rec.nextDueDate)}\n⚠ Please carry out the re-inspection.`, [], 'checklist_due');
+
+        log.sent = true;
+        dbState.checklistDueAlertLog[rec.id] = log;
+        changed = true;
+      };
+
+      (dbState.inspections || []).forEach(rec => remindFor(rec, rec.title, rec.inspector));
+      (dbState.ppeChecks   || []).forEach(rec => remindFor(rec, 'PPE Compliance Check', rec.checkedBy));
+
+      if (changed) saveCurrentState();
     }
     // ============================================================
     // MONTHLY HSE REPORT GENERATOR
@@ -7445,7 +7672,6 @@ ${sec('Manpower &amp; Exposure Log')}
 
       // Signatures — Applicant left, reviewers right (Staff → Admin → PM), all bottom-aligned
       const sigs   = p.signatures || {};
-      const hasPM  = !!sigs['ProjectManager'];
 
       // Build applicant block separately
       let applicantSigHtml = '';
@@ -7463,12 +7689,15 @@ ${sec('Manpower &amp; Exposure Log')}
           </div>`;
       }
 
-      // Build reviewer blocks (Staff → Admin → ProjectManager), left to right
+      // Build reviewer blocks (Staff → Admin → ProjectManager), left to right.
+      // PM is the sole final authority now — Admin and Staff only ever
+      // "check" a permit, they never approve it, so their label is always
+      // "Checked By" regardless of whether a PM has signed yet.
       const reviewerOrder = ['Staff','Admin','ProjectManager'];
       const reviewerLabel = (role) => {
         if (role === 'Staff')          return 'Checked By';
-        if (role === 'Admin')          return hasPM ? 'Checked By' : 'Checked &amp; Approved By';
-        if (role === 'ProjectManager') return 'Approved By';
+        if (role === 'Admin')          return 'Checked By';
+        if (role === 'ProjectManager') return 'Approved By (Final Authority)';
         return role;
       };
 
@@ -8376,9 +8605,9 @@ ${sec('Manpower &amp; Exposure Log')}
         if (currentUser && activeTab === 'dashboard') renderDashboardStats();
       }, 60000);
 
-      // Periodic permit expiry check (every 15 min) while the app stays open
+      // Periodic permit expiry + checklist due-date check (every 15 min)
       setInterval(() => {
-        if (currentUser) checkPermitExpiry();
+        if (currentUser) { checkPermitExpiry(); checkChecklistDueDates(); }
       }, 15 * 60 * 1000);
     };
   </script>
