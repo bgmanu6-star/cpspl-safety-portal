@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.2.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.2.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2681,6 +2681,40 @@ service cloud.firestore {
         if (u.role === 'Staff' && typeof u.canManageManpower === 'undefined') u.canManageManpower = false;
         if (typeof u.mustChangePassword === 'undefined') u.mustChangePassword = false;
       });
+
+      // ---- One-time permit-authority correction (v3.2 — PM is the final
+      // authority on permits; Admin only checks and forwards) ----
+      // Permits already sitting at "Approved" from before this rule existed
+      // were approved by Admin alone, with no actual Project Manager
+      // sign-off — under the new rule that's not a real approval. Re-check
+      // them once: anything "Approved" without a ProjectManager signature
+      // goes back to "Pending PM Approval" so it accurately reflects
+      // whether the final authority has actually signed off. Permits that
+      // are already Closed are left alone — that work is done and shouldn't
+      // be reopened retroactively.
+      if (!dbState._pmAuthorityMigrationV1) {
+        let demotedCount = 0;
+        (dbState.permits || []).forEach(p => {
+          if (p.status === 'Approved' && !(p.signatures && p.signatures['ProjectManager'])) {
+            p.status = 'Pending PM Approval';
+            demotedCount++;
+          }
+        });
+        if (demotedCount > 0) {
+          // Push directly into dbState rather than via pushNotification() —
+          // that helper also calls saveCurrentState() immediately, which
+          // would fire too early here (before _serverLoaded is set by the
+          // caller) and trigger a spurious "not synced yet" toast on every
+          // fresh load. Migrations just modify dbState in memory; whoever
+          // called runMigrations() persists everything together afterward.
+          dbState.notifications.unshift({
+            id: `not-${Date.now()}`,
+            message: `Permit approval rule updated: ${demotedCount} permit${demotedCount > 1 ? 's' : ''} previously marked "Approved" without a Project Manager signature ${demotedCount > 1 ? 'have' : 'has'} been moved back to "Pending PM Approval" — the PM is now the only one who can give final approval.`,
+            timestamp: 'Just now'
+          });
+        }
+        dbState._pmAuthorityMigrationV1 = true;
+      }
 
       if (!dbState.manpower) {
         if (Array.isArray(dbState.labour)) {
