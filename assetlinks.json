@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.cpaspl.safety",
+        "sha256_cert_fingerprints": ["ED:F4:D7:48:4A:69:50:CE:6A:BC:AA:69:67:D7:47:12:15:48:48:97:EB:9A:64:0F:19:B2:45:96:D4:B0:0F:88"]
+      }
+    }]
