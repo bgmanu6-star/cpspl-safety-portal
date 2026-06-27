@@ -305,7 +305,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.2.2</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.2.3</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1737,8 +1737,8 @@ service cloud.firestore {
           </div>
 
           <div>
-            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1.5">Site Comments & Directions</label>
-            <textarea id="review-comment" required rows="3" placeholder="Enter review remarks, missing PPE warnings or notes here." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1.5">Site Comments & Directions <span class="text-slate-500 font-normal normal-case">(optional)</span></label>
+            <textarea id="review-comment" rows="3" placeholder="Optional — add review remarks, missing PPE warnings or notes here." class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500"></textarea>
           </div>
 
           <!-- Integrated Digital Signature Pad using HTML5 Canvas -->
@@ -7242,7 +7242,7 @@ ${editCtrLines}
 
     function triggerReviewAction() {
       const decision = document.getElementById('review-decision').value;
-      const comment = document.getElementById('review-comment').value;
+      const comment = document.getElementById('review-comment').value.trim();
       if (!reviewSigPad || reviewSigPad.isEmpty()) {
         showToast('Please sign before submitting your review.', 'error');
         return;
@@ -7256,13 +7256,15 @@ ${editCtrLines}
       const sigKey = isPM ? 'ProjectManager' : currentUser.role;
 
       permit.status = decision;
-      permit.comments.push({
-        author: currentUser.fullname,
-        role: currentUser.role,
-        designation: currentUser.designation || currentUser.role,
-        text: comment,
-        timestamp: fmtDT(new Date())
-      });
+      if (comment) {
+        permit.comments.push({
+          author: currentUser.fullname,
+          role: currentUser.role,
+          designation: currentUser.designation || currentUser.role,
+          text: comment,
+          timestamp: fmtDT(new Date())
+        });
+      }
 
       permit.signatures[sigKey] = {
         name: currentUser.fullname,
