@@ -308,7 +308,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.5.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.5.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -6067,7 +6067,14 @@ service cloud.firestore {
       if (!isPushSupported()) {
         el.innerHTML = '<span class="text-slate-500">Not supported on this browser/device.</span>';
       } else if (currentUser && currentUser.fcmToken) {
-        el.innerHTML = '<span class="text-emerald-400">✅ Enabled on this device</span>';
+        el.innerHTML = `<span class="text-emerald-400">✅ Enabled on this device</span>
+          <div class="mt-2">
+            <label class="block text-[9px] font-bold uppercase text-slate-500 mb-1">Device ID (for Firebase Console "Send test message")</label>
+            <div class="flex gap-1.5">
+              <input readonly value="${currentUser.fcmToken}" onclick="this.select()" class="flex-1 px-2 py-1.5 bg-slate-950 border border-construction-border rounded text-[9px] font-mono text-slate-400 overflow-hidden">
+              <button type="button" onclick="navigator.clipboard.writeText('${currentUser.fcmToken}').then(()=>showToast('Copied.','success'))" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[9px] font-bold shrink-0">Copy</button>
+            </div>
+          </div>`;
       } else {
         el.innerHTML = '<span class="text-slate-400">Not enabled yet on this device.</span>';
       }
