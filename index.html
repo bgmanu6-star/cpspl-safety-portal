@@ -306,7 +306,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.3.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.4.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1264,6 +1264,14 @@ service cloud.firestore {
                   <div id="db-size-bar" class="h-full rounded-full transition-all" style="width:0%;background:#10b981;"></div>
                 </div>
                 <p class="text-[10px] text-slate-500 mt-1" id="db-size-note">Firebase stores all data in a single 1 MB document. "Save to cloud failed" usually means this is full.</p>
+                <div class="flex gap-2 mt-3">
+                  <button onclick="archiveClosedCancelledPermits()" class="flex-1 bg-orange-700 hover:bg-orange-800 text-white font-bold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5">
+                    <i data-lucide="archive" class="w-3.5 h-3.5"></i> Archive Closed/Cancelled Permits
+                  </button>
+                  <button onclick="viewArchivedPermits()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-construction-border font-semibold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5">
+                    <i data-lucide="folder-open" class="w-3.5 h-3.5"></i> View Archived
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -2321,6 +2329,19 @@ service cloud.firestore {
         </form>
       </div>
 
+      <!-- ARCHIVED PERMITS — read-only, stored separately from the live
+           database to keep the live document small -->
+      <div id="modal-archived-permits" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-lg w-full p-6 hidden max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Archived Permits</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-3">Closed/Cancelled permits moved out of the live database to free up space. Still fully viewable and printable.</p>
+        <div id="archived-permits-list" class="space-y-2">
+          <!-- Rendered by renderArchivedPermitsModal() -->
+        </div>
+      </div>
+
       <!-- CREATE NEW USER PANEL MODAL -->
       <div id="modal-create-user" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-md w-full p-6 hidden">
         <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
@@ -2603,6 +2624,10 @@ service cloud.firestore {
     // Firestore path: /cpspl_safety/state (single shared document)
     const FS_COL = 'cpspl_safety';
     const FS_DOC = 'state';
+    // Archive lives as a SIBLING document in the same collection — already
+    // covered by the existing security rule (cpspl_safety/{doc=**}),
+    // so no Firestore rules changes are needed for this to work.
+    const FS_ARCHIVE_DOC = 'archive_permits';
 
     // Firebase runtime references
     let db   = null;         // Firestore instance
@@ -5361,6 +5386,104 @@ service cloud.firestore {
       } else {
         note.textContent = 'Firebase stores all data in a single 1 MB document. "Save to cloud failed" usually means this is full.';
       }
+    }
+
+    // ============================================================
+    // PERMIT ARCHIVING — frees up space in the live 1MB document by moving
+    // Closed/Cancelled permits to a separate Firestore document. They stay
+    // fully viewable via "View Archived Permits"; this only removes them
+    // from the document that has to be re-written on every single save.
+    // ============================================================
+    async function archiveClosedCancelledPermits() {
+      if (!currentUser || currentUser.role !== 'Admin') { showToast('Only Admin can archive permits.', 'error'); return; }
+      if (!db || !_firebaseMode) { showToast('Archiving requires an active cloud connection.', 'error'); return; }
+
+      const toArchive = (dbState.permits || []).filter(p => p.status === 'Closed' || p.status === 'Cancelled');
+      if (toArchive.length === 0) {
+        showToast('No closed or cancelled permits to archive right now.', 'info');
+        return;
+      }
+      if (!confirm(`Archive ${toArchive.length} closed/cancelled permit(s) to free up space?\n\nThey stay fully accessible via "View Archived Permits" — this only moves them out of the live database.`)) return;
+
+      showToast('Archiving — please wait…', 'info');
+
+      // Step 1: write to the archive FIRST. Nothing is ever lost regardless
+      // of what happens in step 2, since this is verified successful before
+      // anything gets removed from the live state.
+      try {
+        const archiveRef = db.collection(FS_COL).doc(FS_ARCHIVE_DOC);
+        const snap = await archiveRef.get();
+        const existing = snap.exists ? (snap.data().permits || []) : [];
+        await archiveRef.set({ permits: existing.concat(toArchive) });
+      } catch (err) {
+        console.error('Archive write failed:', err);
+        showToast('Could not write to archive storage — nothing was changed. Please try again.', 'error');
+        return;
+      }
+
+      // Step 2: remove from the live (oversized) document and re-save, now smaller.
+      const archivedIds = new Set(toArchive.map(p => p.id));
+      dbState.permits = (dbState.permits || []).filter(p => !archivedIds.has(p.id));
+
+      try {
+        await db.collection(FS_COL).doc(FS_DOC).set(dbState);
+        saveBackupSnapshot();
+        _hasPendingOfflineChanges = false;
+        setFirebaseStatus('online');
+        showToast(`Archived ${toArchive.length} permit(s) — live database is now smaller.`, 'success');
+      } catch (err) {
+        console.error('Live save after archiving failed:', err);
+        showToast(`Archived ${toArchive.length} permit(s) safely, but the live database is still too large to save. Other records (inspections, PPE checks, observations) may need archiving too — ask Claude to extend this.`, 'error');
+        saveCurrentState(); // keep retrying via the normal debounced path
+      }
+
+      renderPermitsTable();
+      renderDashboardStats();
+      renderDbSizeMeter();
+    }
+
+    let _archivedPermitsCache = [];
+    async function viewArchivedPermits() {
+      if (!db || !_firebaseMode) { showToast('Viewing archived permits requires an active cloud connection.', 'error'); return; }
+      try {
+        const snap = await db.collection(FS_COL).doc(FS_ARCHIVE_DOC).get();
+        const archived = snap.exists ? (snap.data().permits || []) : [];
+        _archivedPermitsCache = archived;
+        if (!archived.length) { showToast('No archived permits yet.', 'info'); return; }
+        renderArchivedPermitsModal(archived);
+        openModal('modal-archived-permits');
+      } catch (err) {
+        console.error('Could not load archived permits:', err);
+        showToast('Could not load archived permits.', 'error');
+      }
+    }
+
+    function renderArchivedPermitsModal(list) {
+      const container = document.getElementById('archived-permits-list');
+      if (!container) return;
+      container.innerHTML = list.map(p => `
+        <div class="bg-slate-900 border border-construction-border p-3 rounded-lg flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs font-bold text-slate-200">${p.permitNo} <span class="text-slate-500 font-normal">(${p.type})</span></p>
+            <p class="text-[10px] text-slate-500">${p.contractor} · ${p.location} · ${p.status}</p>
+          </div>
+          <button onclick="previewArchivedPermit('${p.id}')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-construction-border shrink-0">View</button>
+        </div>
+      `).join('');
+    }
+
+    // Archived permits aren't in dbState.permits any more — temporarily
+    // splice the single record in so the existing previewPermit() can find
+    // and render it without needing a duplicate implementation, then
+    // immediately remove it again. previewPermit() is fully synchronous
+    // (builds the HTML and shows it in one pass, no awaits), so there's no
+    // gap where anything else could see this temporary state.
+    function previewArchivedPermit(id) {
+      const p = _archivedPermitsCache.find(x => x.id === id);
+      if (!p) return;
+      dbState.permits.push(p);
+      previewPermit(p.id);
+      dbState.permits = dbState.permits.filter(x => x.id !== p.id);
     }
 
     function renderImgbbAdmin() {
