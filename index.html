@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.8.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.9.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -4655,50 +4655,50 @@ service cloud.firestore {
       const rows = rec.responses.map((r, i) => {
         const color = (r.response==='YES'||r.response==='OK') ? '#16a34a' : (r.response==='NO'||r.response==='NOT OK') ? '#dc2626' : '#64748b';
         const subheadingRow = cfg.subheadings && cfg.subheadings[i]
-          ? `<tr><td colspan="4" style="padding:5px 5px 2px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid #000;">${cfg.subheadings[i]}</td></tr>`
+          ? `<tr><td colspan="4" style="padding:5px 5px 2px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid #000;">${cfg.subheadings[i]}</td></tr>`
           : '';
         return `${subheadingRow}<tr style="border-bottom:1px solid #eee;">
-          <td style="padding:3px 5px;font-size:9px;text-align:center;">${i+1}</td>
-          <td style="padding:3px 5px;font-size:9px;">${r.item}</td>
-          <td style="padding:3px 5px;font-size:9px;font-weight:bold;text-align:center;color:${color};">${r.response}</td>
-          <td style="padding:3px 5px;font-size:9px;color:#555;">${r.remark||''}</td>
+          <td style="padding:3px 5px;font-size:10px;text-align:center;">${i+1}</td>
+          <td style="padding:3px 5px;font-size:10px;">${r.item}</td>
+          <td style="padding:3px 5px;font-size:10px;font-weight:bold;text-align:center;color:${color};">${r.response}</td>
+          <td style="padding:3px 5px;font-size:10px;color:#555;">${r.remark||''}</td>
         </tr>`;
       }).join('');
 
-      const html = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
+      const html = `<div id="insp-print-root" style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:12px;color:#000;padding:16px;">
         <table style="width:100%;border-collapse:collapse;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;"><tr>
           <td style="vertical-align:middle;">
             <table style="border-collapse:collapse;"><tr>
               <td style="vertical-align:middle;padding-right:12px;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;"></td>
               <td style="vertical-align:middle;">
-                <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
-                <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
+                <p style="font-size:13px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
+                <p style="font-size:10px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
               </td>
             </tr></table>
           </td>
-          <td style="vertical-align:middle;text-align:right;font-size:9px;color:#555;padding-right:8px;">${rec.ref}</td>
+          <td style="vertical-align:middle;text-align:right;font-size:10px;color:#555;padding-right:8px;">${rec.ref}</td>
           <td style="vertical-align:middle;width:1%;white-space:nowrap;">${generateQRCodeSVG(`${rec.title} | Ref: ${rec.ref} | Date: ${fmtDate(rec.date)} | Location: ${rec.location} | Inspector: ${rec.inspector} | Next Due: ${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}`, 56)}</td>
         </tr></table>
-        <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">${rec.title.toUpperCase()}</p>
+        <p style="text-align:center;font-size:15px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">${rec.title.toUpperCase()}</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
-          <tr><td style="width:50%;font-size:10px;padding:2px;">Name of Project: <strong>CTO, Chennai</strong></td>
-              <td style="font-size:10px;padding:2px;">Date: <strong>${fmtDate(rec.date)}</strong></td></tr>
-          <tr><td style="font-size:10px;padding:2px;">Location: <strong>${rec.location}</strong></td>
-              <td style="font-size:10px;padding:2px;">Inspector: <strong>${rec.inspector} (${rec.inspectorDesig})</strong></td></tr>
-          <tr><td style="font-size:10px;padding:2px;">Next Due Date: <strong>${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}</strong></td>
+          <tr><td style="width:50%;font-size:11px;padding:2px;">Name of Project: <strong>CTO, Chennai</strong></td>
+              <td style="font-size:11px;padding:2px;">Date: <strong>${fmtDate(rec.date)}</strong></td></tr>
+          <tr><td style="font-size:11px;padding:2px;">Location: <strong>${rec.location}</strong></td>
+              <td style="font-size:11px;padding:2px;">Inspector: <strong>${rec.inspector} (${rec.inspectorDesig})</strong></td></tr>
+          <tr><td style="font-size:11px;padding:2px;">Next Due Date: <strong>${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}</strong></td>
               <td></td></tr>
         </table>
         <table style="width:100%;border-collapse:collapse;border:1px solid #ccc;margin-top:8px;">
           <thead><tr style="background:#f1f1f1;">
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:5%;">SL</th>
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;text-align:left;">Description</th>
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:12%;">Response</th>
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:20%;">Remarks</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;width:5%;">SL</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;text-align:left;">Description</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;width:12%;">Response</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;width:20%;">Remarks</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
-        ${rec.remarks ? `<p style="margin-top:8px;font-size:10px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
-        <table style="width:100%;border-collapse:collapse;margin-top:24px;font-size:10px;"><tr>
+        ${rec.remarks ? `<p style="margin-top:8px;font-size:11px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
+        <table style="width:100%;border-collapse:collapse;margin-top:24px;font-size:11px;"><tr>
           <td style="width:50%;vertical-align:bottom;">Checked by (Safety Officer):<br>
             ${rec.inspectorSignature ? `<img src="${rec.inspectorSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
             <small>${rec.inspector} · ${rec.inspectorDesig}</small></td>
@@ -4711,8 +4711,8 @@ service cloud.firestore {
 
       const pa = document.getElementById('print-area');
       const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
-        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
       </div>`;
       _lastPrintHTML = html;
       _lastPrintTitle = `${rec.title} — ${rec.date}`;
@@ -4720,6 +4720,24 @@ service cloud.firestore {
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       pa.scrollTop = 0;
+
+      // Auto-fit to a single A4 page, same approach proven on the HSE
+      // report: measure the actual rendered height and shrink (via CSS
+      // zoom) only if it would otherwise spill onto a 2nd page.
+      const inspRootEl = document.getElementById('insp-print-root');
+      if (inspRootEl) {
+        const mmToPx = 96 / 25.4;
+        const targetHeight = (297 - 20) * mmToPx - 24;
+        const naturalHeight = inspRootEl.scrollHeight;
+        if (naturalHeight > targetHeight) {
+          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
+          inspRootEl.style.zoom = zoomFactor;
+          _lastPrintHTML = html.replace(
+            '<div id="insp-print-root" style="',
+            `<div id="insp-print-root" style="zoom:${zoomFactor};`
+          );
+        }
+      }
     }
 
     function deleteInspection(id) {
@@ -4801,46 +4819,46 @@ service cloud.firestore {
       if (!rec) return;
 
       const rfText = rec.riskFactors && rec.riskFactors.length ? rec.riskFactors.join(' / ') : '—';
-      const html = `<div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
+      const html = `<div id="penalty-print-root" style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;font-size:12px;color:#000;padding:16px;">
         <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:8px;"><tr>
           <td style="vertical-align:middle;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;"></td>
-          <td style="vertical-align:middle;text-align:right;font-size:9px;color:#555;padding-right:8px;">CPSPL/02/F24/R0</td>
+          <td style="vertical-align:middle;text-align:right;font-size:10px;color:#555;padding-right:8px;">CPSPL/02/F24/R0</td>
           <td style="vertical-align:middle;width:1%;white-space:nowrap;">${generateQRCodeSVG(`Penalty Notice | Person: ${rec.personName} | Contractor: ${rec.contractor||'—'} | Risk: ${rec.riskLevel} | Date: ${fmtDate(rec.date)} | Amount: ₹${rec.penaltyAmount||0}`, 56)}</td>
         </tr></table>
-        <p style="text-align:center;font-size:15px;font-weight:900;margin:8px 0 4px;">ON SPOT PENALTY / WARNING NOTICE</p>
-        <p style="text-align:center;font-size:13px;font-weight:bold;margin:0 0 12px;">FOR SAFETY VIOLATION</p>
+        <p style="text-align:center;font-size:16px;font-weight:900;margin:8px 0 4px;">ON SPOT PENALTY / WARNING NOTICE</p>
+        <p style="text-align:center;font-size:14px;font-weight:bold;margin:0 0 12px;">FOR SAFETY VIOLATION</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
           <tr>
-            <td style="padding:3px 0;font-size:10px;width:50%;">PROJECT: <strong>CTO, Chennai</strong></td>
-            <td style="padding:3px 0;font-size:10px;">Date: <strong>${fmtDate(rec.date)}</strong></td>
+            <td style="padding:3px 0;font-size:11px;width:50%;">PROJECT: <strong>CTO, Chennai</strong></td>
+            <td style="padding:3px 0;font-size:11px;">Date: <strong>${fmtDate(rec.date)}</strong></td>
           </tr>
           <tr>
-            <td style="padding:3px 0;font-size:10px;">Area/Location: <strong>${rec.location}</strong></td>
+            <td style="padding:3px 0;font-size:11px;">Area/Location: <strong>${rec.location}</strong></td>
             <td></td>
           </tr>
           <tr>
-            <td style="padding:3px 0;font-size:10px;">Name of person: <strong>${rec.personName}</strong></td>
-            <td style="padding:3px 0;font-size:10px;">Designation: <strong>${rec.designation}</strong></td>
+            <td style="padding:3px 0;font-size:11px;">Name of person: <strong>${rec.personName}</strong></td>
+            <td style="padding:3px 0;font-size:11px;">Designation: <strong>${rec.designation}</strong></td>
           </tr>
           <tr>
-            <td colspan="2" style="padding:3px 0;font-size:10px;">Name of Contractor/Agency: <strong>${rec.contractor||'—'}</strong></td>
+            <td colspan="2" style="padding:3px 0;font-size:11px;">Name of Contractor/Agency: <strong>${rec.contractor||'—'}</strong></td>
           </tr>
         </table>
-        <p style="font-size:10px;margin:6px 0 3px;"><strong>Observation / Safety Violation:</strong></p>
-        <p style="font-size:10px;border-bottom:1px solid #999;padding-bottom:4px;margin:0 0 4px;">${rec.observation}</p>
-        <p style="font-size:10px;border-bottom:1px solid #999;padding-bottom:16px;margin:0 0 8px;">&nbsp;</p>
-        <p style="font-size:10px;margin:6px 0 3px;"><strong>What mistake has been done:</strong></p>
-        <p style="font-size:10px;border-bottom:1px solid #999;padding-bottom:4px;margin:0 0 4px;">${rec.mistake}</p>
-        <p style="font-size:10px;border-bottom:1px solid #999;padding-bottom:16px;margin:0 0 8px;">&nbsp;</p>
-        <p style="font-size:11px;margin:8px 0;"><strong>Risk level: High / Medium / Low</strong> → <strong>${rec.riskLevel}</strong></p>
-        <p style="font-size:11px;margin:8px 0;"><strong>Risk Factor:</strong> Serious Injury / Temporary or Permanent disabilities / Fatal / Electric burn / shock / fire &amp; Explosion / Property damage → <strong>${rfText}</strong></p>
+        <p style="font-size:11px;margin:6px 0 3px;"><strong>Observation / Safety Violation:</strong></p>
+        <p style="font-size:11px;border-bottom:1px solid #999;padding-bottom:4px;margin:0 0 4px;">${rec.observation}</p>
+        <p style="font-size:11px;border-bottom:1px solid #999;padding-bottom:16px;margin:0 0 8px;">&nbsp;</p>
+        <p style="font-size:11px;margin:6px 0 3px;"><strong>What mistake has been done:</strong></p>
+        <p style="font-size:11px;border-bottom:1px solid #999;padding-bottom:4px;margin:0 0 4px;">${rec.mistake}</p>
+        <p style="font-size:11px;border-bottom:1px solid #999;padding-bottom:16px;margin:0 0 8px;">&nbsp;</p>
+        <p style="font-size:12px;margin:8px 0;"><strong>Risk level: High / Medium / Low</strong> → <strong>${rec.riskLevel}</strong></p>
+        <p style="font-size:12px;margin:8px 0;"><strong>Risk Factor:</strong> Serious Injury / Temporary or Permanent disabilities / Fatal / Electric burn / shock / fire &amp; Explosion / Property damage → <strong>${rfText}</strong></p>
         <div style="text-align:right;margin:8px 0 12px;">
-          <span style="border:1px solid #000;padding:4px 16px;font-size:11px;"><strong>Penalty Amount - ₹ ${rec.penaltyAmount || '________'}</strong></span>
+          <span style="border:1px solid #000;padding:4px 16px;font-size:12px;"><strong>Penalty Amount - ₹ ${rec.penaltyAmount || '________'}</strong></span>
         </div>
-        <div style="border:1px solid #666;padding:8px;font-size:10px;margin-bottom:16px;background:#f9f9f9;">
+        <div style="border:1px solid #666;padding:8px;font-size:11px;margin-bottom:16px;background:#f9f9f9;">
           <p>Declaration by offender: I <strong>${rec.personName}</strong> working as designation <strong>${rec.designation}</strong> under contractor <strong>${rec.contractor||'_______'}</strong>. I have done safety violation and agree to pay the penalty charge imposed by the engineer / safety officer / manager.</p>
         </div>
-        <table style="width:100%;border-collapse:collapse;font-size:10px;margin-top:20px;"><tr>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:20px;"><tr>
           <td style="text-align:center;width:33%;">
             <p>Observed by:</p><p style="margin-top:24px;">____________________</p>
             <p><small>${rec.issuedBy} · ${rec.issuedDesig}</small></p>
@@ -4858,8 +4876,8 @@ service cloud.firestore {
 
       const pa = document.getElementById('print-area');
       const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
-        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
       </div>`;
       _lastPrintHTML = html;
       _lastPrintTitle = `Penalty Notice — ${rec.personName} — ${rec.date}`;
@@ -4867,6 +4885,21 @@ service cloud.firestore {
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       pa.scrollTop = 0;
+
+      const penaltyRootEl = document.getElementById('penalty-print-root');
+      if (penaltyRootEl) {
+        const mmToPx = 96 / 25.4;
+        const targetHeight = (297 - 20) * mmToPx - 24;
+        const naturalHeight = penaltyRootEl.scrollHeight;
+        if (naturalHeight > targetHeight) {
+          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
+          penaltyRootEl.style.zoom = zoomFactor;
+          _lastPrintHTML = html.replace(
+            '<div id="penalty-print-root" style="',
+            `<div id="penalty-print-root" style="zoom:${zoomFactor};`
+          );
+        }
+      }
     }
 
     function deletePenaltyNotice(id) {
@@ -5151,47 +5184,47 @@ service cloud.firestore {
         const pct = total > 0 ? Math.round((it.compliant / total) * 100) : 100;
         const color = pct >= 90 ? '#16a34a' : pct >= 70 ? '#ca8a04' : '#dc2626';
         return `<tr style="border-bottom:1px solid #eee;">
-          <td style="padding:3px 5px;font-size:9px;text-align:center;">${i+1}</td>
-          <td style="padding:3px 5px;font-size:9px;">${it.item}</td>
-          <td style="padding:3px 5px;font-size:9px;text-align:center;color:#16a34a;">${it.compliant}</td>
-          <td style="padding:3px 5px;font-size:9px;text-align:center;color:#dc2626;">${it.nonCompliant}</td>
-          <td style="padding:3px 5px;font-size:9px;text-align:center;font-weight:bold;color:${color};">${pct}%</td>
-          <td style="padding:3px 5px;font-size:9px;color:#555;">${it.remark||''}</td>
+          <td style="padding:3px 5px;font-size:10px;text-align:center;">${i+1}</td>
+          <td style="padding:3px 5px;font-size:10px;">${it.item}</td>
+          <td style="padding:3px 5px;font-size:10px;text-align:center;color:#16a34a;">${it.compliant}</td>
+          <td style="padding:3px 5px;font-size:10px;text-align:center;color:#dc2626;">${it.nonCompliant}</td>
+          <td style="padding:3px 5px;font-size:10px;text-align:center;font-weight:bold;color:${color};">${pct}%</td>
+          <td style="padding:3px 5px;font-size:10px;color:#555;">${it.remark||''}</td>
         </tr>`;
       }).join('');
 
-      const html = `<div style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:11px;color:#000;padding:16px;">
+      const html = `<div id="ppe-print-root" style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:12px;color:#000;padding:16px;">
         <table style="width:100%;border-collapse:collapse;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;"><tr>
           <td style="vertical-align:middle;width:50px;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;"></td>
           <td style="vertical-align:middle;">
-            <p style="font-size:12px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
-            <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
+            <p style="font-size:13px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
+            <p style="font-size:10px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
           </td>
           <td style="vertical-align:middle;width:1%;white-space:nowrap;">${generateQRCodeSVG(`PPE Compliance | Location: ${rec.location} | Contractor: ${rec.contractor||'—'} | Compliance: ${rec.compliancePct}% | Date: ${fmtDate(rec.date)} | Next Due: ${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}`, 56)}</td>
         </tr></table>
-        <p style="text-align:center;font-size:14px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">PPE COMPLIANCE CHECKLIST</p>
+        <p style="text-align:center;font-size:15px;font-weight:bold;text-decoration:underline;margin-bottom:12px;">PPE COMPLIANCE CHECKLIST</p>
         <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
-          <tr><td style="width:50%;font-size:10px;padding:2px;">Date: <strong>${fmtDate(rec.date)}</strong></td>
-              <td style="font-size:10px;padding:2px;">Location: <strong>${rec.location}</strong></td></tr>
-          <tr><td style="font-size:10px;padding:2px;">Contractor: <strong>${rec.contractor||'—'}</strong></td>
-              <td style="font-size:10px;padding:2px;">Total Workers Checked: <strong>${rec.totalWorkers}</strong></td></tr>
-          <tr><td style="font-size:10px;padding:2px;">Next Due Date: <strong>${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}</strong></td>
+          <tr><td style="width:50%;font-size:11px;padding:2px;">Date: <strong>${fmtDate(rec.date)}</strong></td>
+              <td style="font-size:11px;padding:2px;">Location: <strong>${rec.location}</strong></td></tr>
+          <tr><td style="font-size:11px;padding:2px;">Contractor: <strong>${rec.contractor||'—'}</strong></td>
+              <td style="font-size:11px;padding:2px;">Total Workers Checked: <strong>${rec.totalWorkers}</strong></td></tr>
+          <tr><td style="font-size:11px;padding:2px;">Next Due Date: <strong>${rec.nextDueDate ? fmtDate(rec.nextDueDate) : '—'}</strong></td>
               <td></td></tr>
         </table>
         <table style="width:100%;border-collapse:collapse;border:1px solid #ccc;margin-top:8px;">
           <thead><tr style="background:#f1f1f1;">
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:5%;">SL</th>
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;text-align:left;">PPE Item</th>
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:10%;">Compliant</th>
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:11%;">Non-Compliant</th>
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:9%;">%</th>
-            <th style="padding:4px 5px;font-size:9px;border:1px solid #ccc;width:20%;">Remarks</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;width:5%;">SL</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;text-align:left;">PPE Item</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;width:10%;">Compliant</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;width:11%;">Non-Compliant</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;width:9%;">%</th>
+            <th style="padding:4px 5px;font-size:10px;border:1px solid #ccc;width:20%;">Remarks</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
-        <p style="margin-top:10px;font-size:12px;"><strong>Overall Compliance: ${rec.compliancePct}%</strong></p>
-        ${rec.remarks ? `<p style="margin-top:6px;font-size:10px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
-        <table style="width:100%;border-collapse:collapse;margin-top:24px;font-size:10px;"><tr>
+        <p style="margin-top:10px;font-size:13px;"><strong>Overall Compliance: ${rec.compliancePct}%</strong></p>
+        ${rec.remarks ? `<p style="margin-top:6px;font-size:11px;"><strong>General Remarks:</strong> ${rec.remarks}</p>` : ''}
+        <table style="width:100%;border-collapse:collapse;margin-top:24px;font-size:11px;"><tr>
           <td style="width:50%;vertical-align:bottom;">Checked by:<br>
             ${rec.checkerSignature ? `<img src="${rec.checkerSignature}" style="height:50px;border-bottom:1px solid #000;margin:4px 0;">` : '<br><br>____________________<br>'}
             <small>${rec.checkedBy} · ${rec.checkedByDesig}</small></td>
@@ -5204,8 +5237,8 @@ service cloud.firestore {
 
       const pa = document.getElementById('print-area');
       const bar = `<div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
-        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+        <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+        <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
       </div>`;
       _lastPrintHTML = html;
       _lastPrintTitle = `PPE Compliance — ${rec.location} — ${rec.date}`;
@@ -5213,6 +5246,21 @@ service cloud.firestore {
       pa.classList.remove('hidden');
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       pa.scrollTop = 0;
+
+      const ppeRootEl = document.getElementById('ppe-print-root');
+      if (ppeRootEl) {
+        const mmToPx = 96 / 25.4;
+        const targetHeight = (297 - 20) * mmToPx - 24;
+        const naturalHeight = ppeRootEl.scrollHeight;
+        if (naturalHeight > targetHeight) {
+          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
+          ppeRootEl.style.zoom = zoomFactor;
+          _lastPrintHTML = html.replace(
+            '<div id="ppe-print-root" style="',
+            `<div id="ppe-print-root" style="zoom:${zoomFactor};`
+          );
+        }
+      }
     }
 
     function deletePPECheck(id) {
@@ -5682,6 +5730,22 @@ service cloud.firestore {
       container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;background:#fff;';
       container.innerHTML = _lastPrintHTML;
       document.body.appendChild(container);
+
+      // Even base64 data-URI images (the logo, every signature) still need
+      // the browser to decode them into actual pixels before html2canvas
+      // can capture them — that decode is asynchronous, so without this
+      // wait, html2canvas was screenshotting before the logo (and
+      // sometimes signatures) had actually finished rendering, producing a
+      // PDF with them missing.
+      const imgs = Array.from(container.querySelectorAll('img'));
+      await Promise.all(imgs.map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise(resolve => {
+          img.addEventListener('load', resolve, { once: true });
+          img.addEventListener('error', resolve, { once: true }); // don't hang on a broken image
+          setTimeout(resolve, 3000); // safety net
+        });
+      }));
 
       try {
         const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
@@ -8240,8 +8304,8 @@ ${sec('Manpower &amp; Exposure Log')}
       (p.checklist || []).forEach((item, idx) => {
         const col = item.response === 'YES' ? '#15803d' : item.response === 'NO' ? '#dc2626' : '#6b7280';
         chkHtml += `<tr style="border-bottom:1px solid #eee;">
-          <td style="padding:3px 6px;font-size:10px;">${idx+1}. ${item.label}</td>
-          <td style="padding:3px 6px;font-size:10px;font-weight:bold;text-align:center;color:${col};">${item.response}</td>
+          <td style="padding:3px 6px;font-size:11px;">${idx+1}. ${item.label}</td>
+          <td style="padding:3px 6px;font-size:11px;font-weight:bold;text-align:center;color:${col};">${item.response}</td>
         </tr>`;
       });
 
@@ -8254,13 +8318,13 @@ ${sec('Manpower &amp; Exposure Log')}
         const a = sigs['Applicant'];
         applicantSigHtml = `
           <div style="border:1px solid #aaa;border-radius:3px;padding:3px 5px;text-align:center;min-width:90px;max-width:120px;background:#fff;">
-            <p style="font-size:6.5px;font-weight:800;text-transform:uppercase;color:#666;letter-spacing:0.4px;margin:0 0 1px;">Permittee / Applicant</p>
-            <p style="font-size:8.5px;font-weight:bold;color:#000;margin:0 0 1px;">${a.name}</p>
-            <p style="font-size:7px;color:#444;margin:0 0 3px;">${a.designation || ''}</p>
+            <p style="font-size:7.5px;font-weight:800;text-transform:uppercase;color:#666;letter-spacing:0.4px;margin:0 0 1px;">Permittee / Applicant</p>
+            <p style="font-size:9.5px;font-weight:bold;color:#000;margin:0 0 1px;">${a.name}</p>
+            <p style="font-size:8px;color:#444;margin:0 0 3px;">${a.designation || ''}</p>
             <div style="border-top:1px solid #ccc;padding-top:2px;">
               <img src="${a.signatureImage}" style="height:18px;display:block;margin:0 auto;max-width:100%;">
             </div>
-            <p style="font-size:6.5px;color:#999;margin:2px 0 0;">${a.timestamp}</p>
+            <p style="font-size:7.5px;color:#999;margin:2px 0 0;">${a.timestamp}</p>
           </div>`;
       }
 
@@ -8283,11 +8347,11 @@ ${sec('Manpower &amp; Exposure Log')}
           const lbl = reviewerLabel(role);
           const isPM = role === 'ProjectManager';
           return `<td style="padding:0 2.5px;vertical-align:bottom;"><div style="border:${isPM ? '1.5px solid #f97316' : '1px solid #aaa'};border-radius:3px;padding:3px 4px;text-align:center;background:${isPM ? '#fff8f0' : '#fff'};">
-            <p style="font-size:6.5px;font-weight:800;text-transform:uppercase;color:${isPM ? '#f97316' : '#555'};letter-spacing:0.4px;margin:0 0 3px;">${lbl}</p>
+            <p style="font-size:7.5px;font-weight:800;text-transform:uppercase;color:${isPM ? '#f97316' : '#555'};letter-spacing:0.4px;margin:0 0 3px;">${lbl}</p>
             <img src="${s.signatureImage}" style="height:18px;display:block;margin:0 auto;max-width:100%;">
-            <p style="font-size:8.5px;font-weight:bold;color:#000;margin:3px 0 0;">${s.name}</p>
-            <p style="font-size:7px;color:#444;margin:1px 0 0;">${s.designation || ''}</p>
-            <p style="font-size:6.5px;color:#999;margin:1px 0 0;">${s.timestamp}</p>
+            <p style="font-size:9.5px;font-weight:bold;color:#000;margin:3px 0 0;">${s.name}</p>
+            <p style="font-size:8px;color:#444;margin:1px 0 0;">${s.designation || ''}</p>
+            <p style="font-size:7.5px;color:#999;margin:1px 0 0;">${s.timestamp}</p>
           </div></td>`;
         }).join('');
 
@@ -8297,7 +8361,7 @@ ${sec('Manpower &amp; Exposure Log')}
       // <table> layout prints reliably across all browsers and OSes.
       let sigsHtml = '';
       if (!applicantSigHtml && !reviewerSigsHtml) {
-        sigsHtml = '<p style="font-size:10px;color:#888;font-style:italic;">Signatures pending.</p>';
+        sigsHtml = '<p style="font-size:11px;color:#888;font-style:italic;">Signatures pending.</p>';
       } else {
         sigsHtml = `<table style="width:100%;border-collapse:collapse;"><tr>
           ${applicantSigHtml ? `
@@ -8305,7 +8369,7 @@ ${sec('Manpower &amp; Exposure Log')}
             <td style="width:1px;background:#ccc;padding:0;"></td>` : ''}
           <td style="vertical-align:bottom;padding-left:${applicantSigHtml ? '8px' : '0'};">
             <table style="width:100%;border-collapse:collapse;table-layout:fixed;"><tr>
-              ${reviewerSigsHtml || '<td style="font-size:9px;color:#aaa;font-style:italic;text-align:center;">Reviewer signatures pending.</td>'}
+              ${reviewerSigsHtml || '<td style="font-size:10px;color:#aaa;font-style:italic;text-align:center;">Reviewer signatures pending.</td>'}
             </tr></table>
           </td>
         </tr></table>`;
@@ -8322,16 +8386,16 @@ ${sec('Manpower &amp; Exposure Log')}
         };
         const rows = p.comments.map(c => `
           <tr style="border-bottom:1px solid #eee;">
-            <td style="padding:3px 5px;font-size:9px;vertical-align:top;white-space:nowrap;">
+            <td style="padding:3px 5px;font-size:10px;vertical-align:top;white-space:nowrap;">
               <strong>${c.author||''}</strong>
               <span style="color:#666;"> · ${resolveDesig(c)}</span><br>
-              <span style="color:#999;font-size:8px;">${c.timestamp||''}</span>
+              <span style="color:#999;font-size:9px;">${c.timestamp||''}</span>
             </td>
-            <td style="padding:3px 5px;font-size:10px;vertical-align:top;">${(c.text||'').replace(/</g,'&lt;')}</td>
+            <td style="padding:3px 5px;font-size:11px;vertical-align:top;">${(c.text||'').replace(/</g,'&lt;')}</td>
           </tr>`).join('');
         commentsHtml = `
-          <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:10px 0 4px;border-bottom:1.5px solid #000;padding-bottom:2px;">Reviewer Remarks &amp; Site Directions</p>
-          <table style="width:100%;border-collapse:collapse;border:1px solid #ddd;font-size:9px;">
+          <p style="font-size:11px;font-weight:bold;text-transform:uppercase;margin:10px 0 4px;border-bottom:1.5px solid #000;padding-bottom:2px;">Reviewer Remarks &amp; Site Directions</p>
+          <table style="width:100%;border-collapse:collapse;border:1px solid #ddd;font-size:10px;">
             <thead><tr style="background:#f1f1f1;">
               <th style="padding:3px 5px;text-align:left;white-space:nowrap;">Reviewer</th>
               <th style="padding:3px 5px;text-align:left;">Comment</th>
@@ -8345,19 +8409,19 @@ ${sec('Manpower &amp; Exposure Log')}
       if (p.status === 'Closed' && p.closedBy) {
         closureSigHtml = `
           <div style="margin-top:10px;border:1.5px solid #222;border-radius:4px;padding:8px;background:#f9f9f9;">
-            <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:0 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px;">Permit Closure Certificate</p>
+            <p style="font-size:11px;font-weight:bold;text-transform:uppercase;margin:0 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px;">Permit Closure Certificate</p>
             <table style="width:100%;border-collapse:collapse;"><tr>
-              <td style="vertical-align:top;font-size:9px;">
+              <td style="vertical-align:top;font-size:10px;">
                 <p style="margin:2px 0;"><strong>Closed By:</strong> ${escapeHtml(p.closedBy)}</p>
                 <p style="margin:2px 0;"><strong>Date &amp; Time:</strong> ${escapeHtml(p.closedAt||'')}</p>
                 ${p.closureComment ? `<p style="margin:4px 0;"><strong>Remarks:</strong> ${escapeHtml(p.closureComment)}</p>` : ''}
-                <p style="margin:4px 0;font-size:8px;color:#555;">Work area inspected, personnel accounted for, area confirmed safe.</p>
+                <p style="margin:4px 0;font-size:9px;color:#555;">Work area inspected, personnel accounted for, area confirmed safe.</p>
               </td>
               ${p.closureSignature ? `<td style="width:1%;white-space:nowrap;vertical-align:top;padding-left:12px;">
                 <div style="text-align:center;border:1px solid #ccc;padding:5px;border-radius:3px;min-width:100px;">
-                  <p style="font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">Closer Signature</p>
+                  <p style="font-size:9px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">Closer Signature</p>
                   <img src="${p.closureSignature}" style="height:32px;display:block;margin:0 auto;">
-                  <p style="font-size:8px;color:#555;margin-top:3px;">${escapeHtml(p.closedBy)}</p>
+                  <p style="font-size:9px;color:#555;margin-top:3px;">${escapeHtml(p.closedBy)}</p>
                 </div>
               </td>` : ''}
             </tr></table>
@@ -8369,8 +8433,8 @@ ${sec('Manpower &amp; Exposure Log')}
       if (p.type === 'night' && p.extra) {
         nightExtraHtml = `
           <div style="margin-top:8px;padding:7px;border:1px solid #ff4500;border-radius:4px;background:#fffaf0;">
-            <p style="font-size:10px;font-weight:bold;color:#ff4500;margin:0 0 4px;">Special Night Operations Parameters</p>
-            <table style="width:100%;border-collapse:collapse;font-size:9px;"><tr>
+            <p style="font-size:11px;font-weight:bold;color:#ff4500;margin:0 0 4px;">Special Night Operations Parameters</p>
+            <table style="width:100%;border-collapse:collapse;font-size:10px;"><tr>
               <td><strong>Vehicle/Driver:</strong> ${p.extra.driver}</td>
               <td><strong>HSE Officer:</strong> ${p.extra.hse}</td>
               <td><strong>Electrician:</strong> ${p.extra.electrician}</td>
@@ -8386,7 +8450,7 @@ ${sec('Manpower &amp; Exposure Log')}
       }[p.type];
 
       const html = `
-        <div style="max-width:800px;margin:0 auto;background:white;color:black;font-family:Arial,sans-serif;font-size:10px;padding:14px;">
+        <div id="permit-print-root" style="max-width:800px;margin:0 auto;background:white;color:black;font-family:Arial,sans-serif;font-size:11px;padding:14px;">
 
           <!-- Header -->
           <table style="width:100%;border-collapse:collapse;border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:10px;"><tr>
@@ -8394,26 +8458,26 @@ ${sec('Manpower &amp; Exposure Log')}
               <table style="border-collapse:collapse;"><tr>
                 <td style="vertical-align:middle;padding-right:10px;width:1%;white-space:nowrap;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;width:auto;object-fit:contain;"></td>
                 <td style="vertical-align:middle;">
-                  <p style="font-size:12px;font-weight:800;margin:0;color:#111;">Chettinad Products &amp; Services Pvt. Ltd.</p>
-                  <p style="font-size:9px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
+                  <p style="font-size:13px;font-weight:800;margin:0;color:#111;">Chettinad Products &amp; Services Pvt. Ltd.</p>
+                  <p style="font-size:10px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
                 </td>
               </tr></table>
             </td>
             <td style="vertical-align:middle;text-align:right;width:1%;white-space:nowrap;padding-right:8px;">
-              <p style="font-size:11px;font-weight:bold;margin:0;color:#f97316;">PERMIT NO: ${p.permitNo}</p>
-              <p style="font-size:9px;margin:2px 0 0;color:#555;">Status: <strong>${p.status.toUpperCase()}</strong></p>
-              ${p.status==='Closed'&&p.closedBy ? `<p style="font-size:8px;color:#888;margin:1px 0 0;">Closed by ${p.closedBy} · ${p.closedAt||''}</p>` : ''}
-              ${p.status==='Cancelled'&&p.cancelledBy ? `<p style="font-size:8px;color:#c00;margin:1px 0 0;">Cancelled by ${p.cancelledBy} · ${p.cancelledAt||''}</p>` : ''}
+              <p style="font-size:12px;font-weight:bold;margin:0;color:#f97316;">PERMIT NO: ${p.permitNo}</p>
+              <p style="font-size:10px;margin:2px 0 0;color:#555;">Status: <strong>${p.status.toUpperCase()}</strong></p>
+              ${p.status==='Closed'&&p.closedBy ? `<p style="font-size:9px;color:#888;margin:1px 0 0;">Closed by ${p.closedBy} · ${p.closedAt||''}</p>` : ''}
+              ${p.status==='Cancelled'&&p.cancelledBy ? `<p style="font-size:9px;color:#c00;margin:1px 0 0;">Cancelled by ${p.cancelledBy} · ${p.cancelledAt||''}</p>` : ''}
             </td>
             <td style="vertical-align:middle;width:1%;white-space:nowrap;">
               ${generateQRCodeSVG(`PERMIT ${p.permitNo} | ${p.type} | ${p.status} | Contractor: ${p.contractor} | Location: ${p.location}`, 58)}
             </td>
           </tr></table>
 
-          <p style="text-align:center;font-size:11px;font-weight:bold;text-transform:uppercase;margin:0 0 10px;">${permitFormHeader}</p>
+          <p style="text-align:center;font-size:12px;font-weight:bold;text-transform:uppercase;margin:0 0 10px;">${permitFormHeader}</p>
 
           <!-- Info Table -->
-          <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:10px;">
+          <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:11px;">
             <tr>
               <td style="padding:3px 6px;border:1px solid #ccc;background:#f9f9f9;width:22%;"><strong>Name of Site:</strong></td>
               <td style="padding:3px 6px;border:1px solid #ccc;width:28%;">${p.project}</td>
@@ -8439,11 +8503,11 @@ ${sec('Manpower &amp; Exposure Log')}
           </table>
 
           <!-- Checklist -->
-          <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:0 0 4px;border-bottom:1.5px solid #000;padding-bottom:2px;">HSE Safety Point Compliance Checklist</p>
+          <p style="font-size:11px;font-weight:bold;text-transform:uppercase;margin:0 0 4px;border-bottom:1.5px solid #000;padding-bottom:2px;">HSE Safety Point Compliance Checklist</p>
           <table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
             <thead><tr style="background:#f1f1f1;border-bottom:1.5px solid #ccc;">
-              <th style="padding:3px 6px;text-align:left;font-size:10px;">Safety Requirement</th>
-              <th style="padding:3px 6px;text-align:center;font-size:10px;width:12%;">Check</th>
+              <th style="padding:3px 6px;text-align:left;font-size:11px;">Safety Requirement</th>
+              <th style="padding:3px 6px;text-align:center;font-size:11px;width:12%;">Check</th>
             </tr></thead>
             <tbody>${chkHtml}</tbody>
           </table>
@@ -8452,7 +8516,7 @@ ${sec('Manpower &amp; Exposure Log')}
           ${commentsHtml}
 
           <!-- Signatures: Applicant left | Reviewers right (left to right) -->
-          <p style="font-size:10px;font-weight:bold;text-transform:uppercase;margin:10px 0 6px;border-bottom:1.5px solid #000;padding-bottom:2px;">Permit Sign-Offs</p>
+          <p style="font-size:11px;font-weight:bold;text-transform:uppercase;margin:10px 0 6px;border-bottom:1.5px solid #000;padding-bottom:2px;">Permit Sign-Offs</p>
           ${sigsHtml}
 
           ${closureSigHtml}
@@ -8461,10 +8525,10 @@ ${sec('Manpower &amp; Exposure Log')}
       // Wrap with sticky action bar
       const wrapper = `
         <div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
-          <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
-          <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
-          <button onclick="sendPermitPDFToTelegram('${p.id}')" style="background:#0088cc;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">📤 Send PDF to Telegram</button>
-          <span style="color:#94a3b8;font-size:11px;margin-left:auto;">Tap Close to return to the app</span>
+          <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
+          <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+          <button onclick="sendPermitPDFToTelegram('${p.id}')" style="background:#0088cc;color:#fff;border:none;font-weight:700;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;">📤 Send PDF to Telegram</button>
+          <span style="color:#94a3b8;font-size:12px;margin-left:auto;">Tap Close to return to the app</span>
         </div>
         ${html}`;
 
@@ -8474,9 +8538,24 @@ ${sec('Manpower &amp; Exposure Log')}
       printContainer.classList.remove('hidden');
       printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       printContainer.scrollTop = 0;
+
+      const permitRootEl = document.getElementById('permit-print-root');
+      if (permitRootEl) {
+        const mmToPx = 96 / 25.4;
+        const targetHeight = (297 - 20) * mmToPx - 24;
+        const naturalHeight = permitRootEl.scrollHeight;
+        if (naturalHeight > targetHeight) {
+          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
+          permitRootEl.style.zoom = zoomFactor;
+          _lastPrintHTML = html.replace(
+            '<div id="permit-print-root" style="',
+            `<div id="permit-print-root" style="zoom:${zoomFactor};`
+          );
+        }
+      }
       } catch (err) {
         console.error('previewPermit error:', err);
-        printContainer.innerHTML = `<div style="padding:24px;font-family:Arial;color:#c00;background:#fff;"><strong>Could not render permit preview.</strong><br><span style="font-size:12px;">${err.message}</span></div>`;
+        printContainer.innerHTML = `<div style="padding:24px;font-family:Arial;color:#c00;background:#fff;"><strong>Could not render permit preview.</strong><br><span style="font-size:13px;">${err.message}</span></div>`;
         printContainer.classList.remove('hidden');
         printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
         showToast('Preview error: ' + err.message, 'error');
