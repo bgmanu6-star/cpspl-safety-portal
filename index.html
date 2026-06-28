@@ -24,8 +24,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-messaging-compat.js"></script>
-  <!-- EmailJS — sends the weekly permit summary email, no backend needed -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <!-- jsPDF + html2canvas — generates a real PDF file (used for Telegram document attachments) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
   <script>
     tailwind.config = {
@@ -40,9 +41,13 @@
               orange: '#105BA8',      /* Brand Blue — primary accent (was orange) */
               orangeDeep: '#0B3D7A',  /* Darker blue — hover/active state for the line above */
               gold: '#F4BE42',        /* Brand Gold/Amber — from the CTO hard-hat icon */
+              goldDeep: '#D89A1F',    /* Darker gold — hover/active state for gold buttons */
               green: '#78BD46',       /* Brand Green — from the Chettinad triangle mark */
-              darkBg: '#0A1A30',      /* Deep navy background, matching the logo's navy */
-              cardBg: '#15294A',      /* Navy card surface */
+              /* Page background deepened and card surface lightened versus
+                 before — they sat too close in shade, so cards barely
+                 "lifted" off the page. More separation = more depth. */
+              darkBg: '#060D1A',      /* Deep navy-black background */
+              cardBg: '#1A3258',      /* Navy card surface — now clearly lighter than the page */
               border: '#2A4566'       /* Navy-blue border tone */
             }
           }
@@ -69,8 +74,8 @@
       background-color: #ffffff !important;
       box-shadow: 0 1px 3px rgba(28,36,51,0.06), 0 1px 2px rgba(28,36,51,0.04);
     }
-    body.light-mode header.bg-construction-cardBg {
-      background-color: #fffdfb !important;
+    body.light-mode header.bg-gradient-to-b {
+      background: #fffdfb !important;
       border-bottom: 1px solid #f1d9bf !important;
     }
     body.light-mode nav#mobile-nav {
@@ -297,7 +302,7 @@ service cloud.firestore {
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
     <!-- HEADER / NAVIGATION -->
-    <header class="bg-construction-cardBg border-b border-construction-border sticky top-0 z-40 no-print">
+    <header class="bg-gradient-to-b from-construction-cardBg to-construction-darkBg border-b-2 border-construction-gold/30 sticky top-0 z-40 no-print">
       <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
         <!-- Logo & branding combined -->
         <div class="flex items-center gap-3">
@@ -308,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.5.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.8.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -439,7 +444,7 @@ service cloud.firestore {
                 </div>
               </div>
 
-              <button type="submit" class="w-full py-2.5 px-4 bg-gradient-to-r from-construction-orange to-construction-orangeDeep hover:from-construction-orangeDeep hover:to-blue-950 text-white text-sm font-bold rounded-lg shadow-lg hover:shadow-blue-500/20 active:translate-y-px transition-all">
+              <button type="submit" class="w-full py-2.5 px-4 bg-gradient-to-r from-construction-gold to-construction-goldDeep hover:from-construction-goldDeep hover:to-yellow-700 text-construction-darkBg text-sm font-bold rounded-lg shadow-lg hover:shadow-yellow-500/20 active:translate-y-px transition-all">
                 Access Safety Terminal
               </button>
             </form>
@@ -488,6 +493,9 @@ service cloud.firestore {
                2. MAIN DASHBOARD VIEW
                ============================================== -->
           <div id="view-dashboard" class="space-y-6 hidden no-print">
+
+            <!-- Decorative site illustration — purely visual, no data -->
+            <div class="rounded-xl overflow-hidden border border-construction-border" id="dashboard-skyline-banner"></div>
 
             <!-- SITE ANNOUNCEMENTS / NOTICE BOARD -->
             <div class="bg-gradient-to-br from-construction-cardBg to-slate-900 border border-construction-orange/40 rounded-xl p-4 sm:p-5">
@@ -957,7 +965,7 @@ service cloud.firestore {
                 </table>
               </div>
               <div id="empty-permits-message" class="text-center py-8 text-slate-500 hidden">
-                <i data-lucide="file-warning" class="w-12 h-12 mx-auto text-slate-600 mb-2"></i>
+                <div id="empty-permits-illustration"></div>
                 <p class="text-xs">No Safety Work Permits match your current filter.</p>
               </div>
             </div>
@@ -1365,51 +1373,6 @@ service cloud.firestore {
               </div>
               <div class="flex items-center justify-between mt-3">
                 <p class="text-[10px]" id="push-notif-admin-status">Each person enables this for themselves under their own Profile.</p>
-              </div>
-            </div>
-
-            <!-- Weekly Permit Email -->
-            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
-              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
-                <i data-lucide="mail" class="w-4 h-4 text-emerald-400"></i> Weekly Permit Email
-              </h3>
-              <p class="text-[11px] text-slate-400 mb-3">Automatically emails a summary of that week's permits — no extra backend, uses <a href="https://www.emailjs.com" target="_blank" class="text-blue-400 underline">EmailJS</a>'s free tier. Sends once every 7 days, checked whenever anyone opens the app.</p>
-              <div class="bg-slate-900 border border-construction-border rounded-lg p-3 text-[11px] text-slate-400 space-y-1 mb-3">
-                <p class="font-bold text-slate-300">One-time setup:</p>
-                <ol class="list-decimal list-inside space-y-1">
-                  <li>Free sign up at <a href="https://www.emailjs.com" target="_blank" class="text-blue-400 underline">emailjs.com</a>, connect your email (Gmail etc.)</li>
-                  <li>Create a Template with body containing just: <code class="bg-slate-800 px-1 rounded">{{permits_summary}}</code></li>
-                  <li>Copy your Service ID, Template ID and Public Key into the fields below</li>
-                </ol>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Destination Email</label>
-                  <input id="we-field-to" type="email" placeholder="you@example.com" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Service ID</label>
-                  <input id="we-field-service" type="text" placeholder="service_xxxxxxx" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Template ID</label>
-                  <input id="we-field-template" type="text" placeholder="template_xxxxxxx" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Public Key</label>
-                  <input id="we-field-publickey" type="text" placeholder="xxxxxxxxxxxxxxx" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
-                </div>
-              </div>
-              <div class="flex items-center justify-between mt-3 flex-wrap gap-2">
-                <p id="we-status-label" class="text-[10px] text-slate-500 italic">Not sent yet.</p>
-                <div class="flex gap-2">
-                  <button onclick="sendWeeklyPermitEmail(true)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs py-2 px-3 rounded-lg flex items-center gap-1.5">
-                    <i data-lucide="send" class="w-3.5 h-3.5"></i> Send Now (Test)
-                  </button>
-                  <button onclick="saveWeeklyEmailConfig()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5">
-                    <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -2776,7 +2739,6 @@ service cloud.firestore {
       // so permits already archived before sharding existed are still
       // found correctly (treated as the first shard).
       if (!Array.isArray(dbState.archiveShardNames)) dbState.archiveShardNames = [FS_ARCHIVE_DOC];
-      if (!dbState.weeklyEmailConfig) dbState.weeklyEmailConfig = { toEmail: '', serviceId: '', templateId: '', publicKey: '', lastSentAt: '' };
       if (!dbState.checklistDueAlertLog) dbState.checklistDueAlertLog = {};
       // Sequential permit numbering — seed once from however many permits
       // already exist, so the serial continues naturally rather than
@@ -3398,17 +3360,19 @@ service cloud.firestore {
 
       // Sync active states inside Desktop Sidebar Nav Buttons
       document.querySelectorAll('#desktop-sidebar-nav button').forEach(btn => {
-        btn.classList.remove('text-construction-orange', 'bg-slate-800');
+        btn.classList.remove('text-construction-gold', 'bg-construction-gold/10', 'border-l-2', 'border-construction-gold', 'pl-2.5');
+        btn.classList.add('border-l-2', 'border-transparent');
         if (btn.getAttribute('data-tab-desktop') === tabId) {
-          btn.classList.add('text-construction-orange', 'bg-slate-800');
+          btn.classList.remove('border-transparent');
+          btn.classList.add('text-construction-gold', 'bg-construction-gold/10', 'border-construction-gold');
         }
       });
 
       // Sync active states inside Mobile Nav Bar Buttons
       document.querySelectorAll('#mobile-nav button').forEach(btn => {
-        btn.classList.remove('text-construction-orange');
+        btn.classList.remove('text-construction-gold', 'bg-construction-gold/10');
         if (btn.getAttribute('data-tab-mobile') === tabId) {
-          btn.classList.add('text-construction-orange');
+          btn.classList.add('text-construction-gold', 'bg-construction-gold/10');
         }
       });
 
@@ -3439,7 +3403,6 @@ service cloud.firestore {
         renderImgbbAdmin();
         initHSEReportInputs();
         renderDbSizeMeter();
-        renderWeeklyEmailAdmin();
       }
 
       lucide.createIcons();
@@ -3500,19 +3463,19 @@ service cloud.firestore {
       // 2. Mobile Responsive Tab Bar Builder (Resolving the missing mobile admin feature)
       const mobileNav = document.getElementById('mobile-nav');
       let mobileTabsHtml = `
-        <button onclick="switchTab('dashboard')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="dashboard">
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="dashboard">
           <i data-lucide="layout-dashboard" class="w-5 h-5 mb-0.5"></i>
           <span class="text-[9px] font-medium">Home</span>
         </button>
-        <button onclick="switchTab('permits')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="permits">
+        <button onclick="switchTab('permits')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="permits">
           <i data-lucide="file-check-2" class="w-5 h-5 mb-0.5"></i>
           <span class="text-[9px] font-medium">Permits</span>
         </button>
-        <button onclick="switchTab('labour')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="labour">
+        <button onclick="switchTab('labour')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="labour">
           <i data-lucide="users-2" class="w-5 h-5 mb-0.5"></i>
           <span class="text-[9px] font-medium">Manpower</span>
         </button>
-        <button onclick="switchTab('reports')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="reports">
+        <button onclick="switchTab('reports')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="reports">
           <i data-lucide="alert-triangle" class="w-5 h-5 mb-0.5"></i>
           <span class="text-[9px] font-medium">Observe</span>
         </button>
@@ -3523,7 +3486,7 @@ service cloud.firestore {
       // specifically rather than something every user has to scroll past.
       if (canAccessChecklists()) {
         mobileTabsHtml += `
-          <button onclick="switchTab('checklists')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="checklists">
+          <button onclick="switchTab('checklists')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="checklists">
             <i data-lucide="clipboard-check" class="w-5 h-5 mb-0.5"></i>
             <span class="text-[9px] font-medium">Checklist</span>
           </button>
@@ -3533,7 +3496,7 @@ service cloud.firestore {
       if (currentUser.role === 'Admin') {
         // Embed direct Admin tab entry explicitly inside the active mobile bottom navbar
         mobileTabsHtml += `
-          <button onclick="switchTab('admin')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="admin">
+          <button onclick="switchTab('admin')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="admin">
             <i data-lucide="shield-alert" class="w-5 h-5 mb-0.5"></i>
             <span class="text-[9px] font-medium">Admin</span>
           </button>
@@ -3541,7 +3504,7 @@ service cloud.firestore {
       } else {
         // Fallback standard safety shortcuts
         mobileTabsHtml += `
-          <button onclick="switchTab('emergency')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1 px-2.5" data-tab-mobile="emergency">
+          <button onclick="switchTab('emergency')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="emergency">
             <i data-lucide="phone-call" class="w-5 h-5 mb-0.5"></i>
             <span class="text-[9px] font-medium">SOS</span>
           </button>
@@ -3618,7 +3581,6 @@ service cloud.firestore {
         const n = checkPermitExpiry();
         if (n > 0) showToast(`⚠ ${n} permit${n>1?'s are':' is'} past end time — please close ${n>1?'them':'it'}.`, 'info');
         checkChecklistDueDates();
-        if (user.role === 'Admin') checkWeeklyPermitEmailDue();
       }, 1500);
     }
 
@@ -4178,6 +4140,9 @@ service cloud.firestore {
     }
 
     function renderDashboardStats() {
+      const banner = document.getElementById('dashboard-skyline-banner');
+      if (banner && !banner.innerHTML) banner.innerHTML = dashboardSkylineBannerSVG();
+
       const today = getTodayStr();
       const entry = getManpowerForDate(today);
 
@@ -4915,6 +4880,71 @@ service cloud.firestore {
 
     // Checklists tab — Inspections + PPE Compliance (Admin & Reviewers only)
     // Shared by both Inspection and PPE cards — colour-coded due-date line
+    // ============================================================
+    // EMPTY-STATE ILLUSTRATIONS — small inline SVGs (no external images,
+    // so they work fully offline like everything else here). Reused across
+    // every "no records yet" panel instead of plain gray italic text.
+    // ============================================================
+    function illustrationEmptyClipboard() {
+      return `<svg width="100" height="86" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-2" style="opacity:.9">
+        <circle cx="70" cy="60" r="50" fill="#2A4566" opacity="0.4"/>
+        <rect x="40" y="30" width="60" height="76" rx="6" fill="#15294A" stroke="#3a5580" stroke-width="2"/>
+        <rect x="52" y="22" width="36" height="14" rx="4" fill="#105BA8"/>
+        <line x1="50" y1="50" x2="90" y2="50" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
+        <line x1="50" y1="62" x2="90" y2="62" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
+        <line x1="50" y1="74" x2="78" y2="74" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="95" cy="88" r="18" fill="#F4BE42"/>
+        <path d="M87 88 L93 94 L104 81" stroke="#060D1A" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+    }
+
+    function illustrationAllClearShield() {
+      return `<svg width="90" height="78" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-2" style="opacity:.9">
+        <circle cx="70" cy="60" r="50" fill="#1f4a2e" opacity="0.4"/>
+        <path d="M70 20 L100 32 V60 C100 84 88 98 70 106 C52 98 40 84 40 60 V32 Z" fill="#78BD46" opacity="0.15" stroke="#78BD46" stroke-width="2.5"/>
+        <path d="M52 60 L65 73 L90 45" stroke="#78BD46" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+    }
+
+    function illustrationAttentionTriangle() {
+      return `<svg width="70" height="60" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-2" style="opacity:.9">
+        <circle cx="70" cy="60" r="50" fill="#4a3a1a" opacity="0.35"/>
+        <path d="M70 28 L104 92 H36 Z" fill="#F4BE42" opacity="0.18" stroke="#F4BE42" stroke-width="3" stroke-linejoin="round"/>
+        <rect x="66" y="50" width="8" height="22" rx="3" fill="#F4BE42"/>
+        <circle cx="70" cy="80" r="4.5" fill="#F4BE42"/>
+      </svg>`;
+    }
+
+    // Decorative dashboard banner — small site skyline + crane + safety
+    // check, purely visual (no data), sits above the Notice Board.
+    function dashboardSkylineBannerSVG() {
+      return `<svg viewBox="0 0 700 90" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto block" preserveAspectRatio="none" role="img" aria-label="Decorative site illustration">
+        <rect width="700" height="90" fill="#162d52"/>
+        <circle cx="610" cy="28" r="16" fill="#F4BE42" opacity="0.85"/>
+        <rect x="0" y="68" width="700" height="3" fill="#2A4566"/>
+        <rect x="260" y="32" width="34" height="36" fill="#1f3d6b"/>
+        <rect x="266" y="38" width="8" height="8" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="280" y="38" width="8" height="8" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="266" y="50" width="8" height="8" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="280" y="50" width="8" height="8" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="298" y="14" width="44" height="54" fill="#1f3d6b"/>
+        <rect x="306" y="22" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="322" y="22" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="306" y="38" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="322" y="38" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="306" y="54" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="322" y="54" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
+        <rect x="346" y="40" width="28" height="28" fill="#1f3d6b"/>
+        <line x1="400" y1="68" x2="400" y2="20" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
+        <line x1="400" y1="20" x2="450" y2="20" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
+        <line x1="400" y1="32" x2="430" y2="20" stroke="#3a5580" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="436" y1="20" x2="436" y2="36" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
+        <rect x="430" y="34" width="13" height="9" fill="#F4BE42"/>
+        <circle cx="500" cy="46" r="15" fill="#F4BE42"/>
+        <path d="M491 47 L497 53 L510 38" stroke="#162d52" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+    }
+
     function dueDateBadgeHtml(dueDate) {
       if (!dueDate) return '';
       const today = todayKey();
@@ -4944,7 +4974,7 @@ service cloud.firestore {
       if (inspPanel) {
         const inspections = dbState.inspections || [];
         if (!inspections.length) {
-          inspPanel.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-4">No inspections recorded yet.</p>';
+          inspPanel.innerHTML = `<div class="text-center py-4">${illustrationEmptyClipboard()}<p class="text-slate-500 text-xs italic">No inspections recorded yet.</p></div>`;
         } else {
           inspPanel.innerHTML = inspections.map(r => {
             const badgeColor = r.type === 'scaffolding' ? 'bg-blue-600/20 text-blue-400' : 'bg-indigo-600/20 text-indigo-400';
@@ -4980,7 +5010,7 @@ service cloud.firestore {
       if (penPanel) {
         const penalties = dbState.penaltyNotices || [];
         if (!penalties.length) {
-          penPanel.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-4">No penalty notices issued yet.</p>';
+          penPanel.innerHTML = `<div class="text-center py-4">${illustrationAllClearShield()}<p class="text-slate-500 text-xs italic">No penalty notices issued yet.</p></div>`;
         } else {
           penPanel.innerHTML = penalties.map(p => {
             const riskColor = p.riskLevel==='High' ? 'text-red-400' : p.riskLevel==='Medium' ? 'text-yellow-400' : 'text-emerald-400';
@@ -5250,7 +5280,7 @@ service cloud.firestore {
       if (!panel) return;
       const checks = dbState.ppeChecks || [];
       if (!checks.length) {
-        panel.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-4 sm:col-span-2">No PPE compliance checks recorded yet.</p>';
+        panel.innerHTML = `<div class="text-center py-4 sm:col-span-2">${illustrationEmptyClipboard()}<p class="text-slate-500 text-xs italic">No PPE compliance checks recorded yet.</p></div>`;
         return;
       }
       const isAdmin = currentUser && currentUser.role === 'Admin';
@@ -5391,112 +5421,6 @@ service cloud.firestore {
       setV('tg-field-groupid', cfg.groupChatId);
       const lbl = document.getElementById('tg-saved-label');
       if (lbl) lbl.innerText = cfg.savedAt ? `Last saved by ${cfg.savedBy} · ${cfg.savedAt}` : 'Not configured yet.';
-    }
-
-    // ============================================================
-    // WEEKLY PERMIT EMAIL — client-side only (EmailJS), no backend.
-    // Checked once per login/periodic interval rather than on a true
-    // schedule: whenever anyone opens the app and it's been 7+ days since
-    // the last send, it sends then. For an app used daily, this reliably
-    // produces a "weekly" email without needing a paid Cloud Functions
-    // backend just for this.
-    // ============================================================
-    function renderWeeklyEmailAdmin() {
-      const cfg = dbState.weeklyEmailConfig || {};
-      const setV = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
-      setV('we-field-to',        cfg.toEmail);
-      setV('we-field-service',   cfg.serviceId);
-      setV('we-field-template',  cfg.templateId);
-      setV('we-field-publickey', cfg.publicKey);
-      const lbl = document.getElementById('we-status-label');
-      if (lbl) lbl.innerText = cfg.lastSentAt ? `Last sent: ${cfg.lastSentAt}` : 'Not sent yet.';
-    }
-
-    function saveWeeklyEmailConfig() {
-      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can save this.', 'error'); return; }
-      dbState.weeklyEmailConfig = dbState.weeklyEmailConfig || {};
-      dbState.weeklyEmailConfig.toEmail    = document.getElementById('we-field-to').value.trim();
-      dbState.weeklyEmailConfig.serviceId  = document.getElementById('we-field-service').value.trim();
-      dbState.weeklyEmailConfig.templateId = document.getElementById('we-field-template').value.trim();
-      dbState.weeklyEmailConfig.publicKey  = document.getElementById('we-field-publickey').value.trim();
-      saveCurrentState();
-      showToast('Weekly email settings saved.', 'success');
-    }
-
-    // Permit IDs are formatted prm-<timestamp-of-original-creation> and this
-    // is NOT overwritten on resubmission/edit, unlike updatedAt — so it
-    // reliably answers "when was this permit first submitted" even for
-    // permits that were later returned and resubmitted.
-    function permitCreatedAt(p) {
-      const m = /^prm-(\d+)/.exec(p.id || '');
-      return m ? new Date(parseInt(m[1], 10)) : null;
-    }
-
-    function getPermitsFromLastNDays(n) {
-      const cutoff = new Date(Date.now() - n * 24 * 60 * 60 * 1000);
-      return (dbState.permits || []).filter(p => {
-        const created = permitCreatedAt(p);
-        return created && created >= cutoff;
-      }).sort((a, b) => permitCreatedAt(a) - permitCreatedAt(b));
-    }
-
-    function buildWeeklyPermitSummaryText(permits) {
-      if (!permits.length) return 'No new permits were submitted this week.';
-      return permits.map((p, i) => {
-        const created = permitCreatedAt(p);
-        return `${i + 1}. ${p.permitNo} — ${p.type}
-   Contractor: ${p.contractor}
-   Location: ${p.location}
-   Status: ${p.status}
-   Submitted: ${created ? fmtDT(created) : '—'}`;
-      }).join('\n\n');
-    }
-
-    async function sendWeeklyPermitEmail(isTest) {
-      const cfg = dbState.weeklyEmailConfig || {};
-      if (!cfg.toEmail || !cfg.serviceId || !cfg.templateId || !cfg.publicKey) {
-        showToast('Fill in and save all Weekly Permit Email fields first.', 'error');
-        return;
-      }
-      if (typeof emailjs === 'undefined') {
-        showToast('Email service did not load — check your internet connection.', 'error');
-        return;
-      }
-
-      const permits = getPermitsFromLastNDays(7);
-      const today = todayKey();
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const summaryText = buildWeeklyPermitSummaryText(permits);
-
-      try {
-        await emailjs.send(cfg.serviceId, cfg.templateId, {
-          to_email: cfg.toEmail,
-          week_range: `${fmtDate(weekAgo.toISOString().slice(0,10))} – ${fmtDate(today)}`,
-          permit_count: permits.length,
-          permits_summary: summaryText
-        }, { publicKey: cfg.publicKey });
-
-        if (!isTest) {
-          dbState.weeklyEmailConfig.lastSentAt = fmtDT(new Date());
-          saveCurrentState();
-        }
-        showToast(isTest ? 'Test email sent — check your inbox.' : 'Weekly permit email sent.', 'success');
-        renderWeeklyEmailAdmin();
-      } catch (err) {
-        console.error('Weekly permit email failed:', err);
-        showToast('Could not send the email — double check your EmailJS settings.', 'error');
-      }
-    }
-
-    // Called on login + periodic interval. Sends automatically once 7+
-    // days have passed since the last send (or it's never been sent and
-    // is fully configured) — silent on success/no-op, only surfaces errors.
-    function checkWeeklyPermitEmailDue() {
-      const cfg = dbState.weeklyEmailConfig || {};
-      if (!cfg.toEmail || !cfg.serviceId || !cfg.templateId || !cfg.publicKey) return; // not set up yet
-      const last = cfg.lastSentAt ? new Date(cfg.lastSentAt) : null;
-      const dueSince = !last || (Date.now() - last.getTime()) >= 7 * 24 * 60 * 60 * 1000;
-      if (dueSince) sendWeeklyPermitEmail(false);
     }
 
     // ============================================================
@@ -5735,6 +5659,84 @@ service cloud.firestore {
         });
       } catch (e) { console.error('TG exception:', e); }
     }
+
+    // ============================================================
+    // PDF GENERATION — builds a REAL PDF file (not just a print-ready
+    // webpage) so it can be attached to Telegram as an actual document.
+    // Reuses _lastPrintHTML, the exact same content already built by
+    // previewPermit()/previewInspection()/etc — no duplicate HTML-building
+    // logic needed. NOTE: this depends on cdnjs.cloudflare.com being
+    // reachable (jsPDF + html2canvas load from there); it needs an active
+    // internet connection, same as Telegram itself does.
+    // ============================================================
+    async function generatePDFBlobFromLastPrint() {
+      if (!_lastPrintHTML) throw new Error('Nothing to convert — open the document preview first.');
+      if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+        throw new Error('PDF library did not load — check your internet connection.');
+      }
+
+      // Render the same content into an off-screen container (not
+      // display:none — html2canvas needs it actually laid out to capture
+      // it, just not visible to the person using the app).
+      const container = document.createElement('div');
+      container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;background:#fff;';
+      container.innerHTML = _lastPrintHTML;
+      document.body.appendChild(container);
+
+      try {
+        const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        const { jsPDF } = jspdf;
+        const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+        const pageWidth  = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth   = pageWidth;
+        const imgHeight  = (canvas.height * imgWidth) / canvas.width;
+        const imgData    = canvas.toDataURL('image/png');
+
+        if (imgHeight <= pageHeight) {
+          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        } else {
+          // Content taller than one page — slice it across multiple pages.
+          let heightLeft = imgHeight;
+          let position = 0;
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+          while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+          }
+        }
+
+        return pdf.output('blob');
+      } finally {
+        container.remove();
+      }
+    }
+
+    // Sends an actual file to Telegram (sendDocument) — different from
+    // sendTelegram()'s sendPhoto, which only works with an existing public
+    // URL. A freshly-generated PDF only exists as in-memory bytes, so this
+    // uploads it directly via multipart/form-data instead.
+    async function sendTelegramDocument(blob, filename, caption) {
+      const cfg = dbState.telegramConfig || {};
+      if (!cfg.token || !cfg.chatId) throw new Error('Telegram is not configured (Admin → Telegram Notifications).');
+
+      const targets = [cfg.chatId, cfg.groupChatId].filter(Boolean);
+      const results = await Promise.all(targets.map(async chatId => {
+        const form = new FormData();
+        form.append('chat_id', chatId);
+        if (caption) form.append('caption', caption);
+        form.append('document', blob, filename);
+        const res = await fetch(`https://api.telegram.org/bot${cfg.token}/sendDocument`, { method: 'POST', body: form });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.description || 'Telegram rejected the document.');
+        return data;
+      }));
+      return results;
+    }
     let _pendingAnnouncementPhoto = null;
     let editingAnnouncementId = null; // compressed dataURL awaiting post
 
@@ -5967,7 +5969,7 @@ service cloud.firestore {
       }
 
       if (dbState.notifications.length === 0) {
-        list.innerHTML = '<p class="text-slate-500 italic text-center py-4">No recent notifications</p>';
+        list.innerHTML = `<div class="text-center py-4">${illustrationEmptyClipboard()}<p class="text-slate-500 italic">No recent notifications</p></div>`;
         dList.innerHTML = '<p class="text-slate-500 italic py-2">All systems running smoothly.</p>';
         return;
       }
@@ -6582,7 +6584,7 @@ ${editCtrLines}
       const observations = (dbState.hazards || []).filter(h => matchesObsFilters(h, h.status !== 'Closed'));
       const obsTotalCount = (dbState.hazards || []).length;
       if (!observations.length) {
-        obsList.innerHTML = `<p class="text-slate-500 text-xs italic text-center py-6">${obsTotalCount === 0 ? 'No observations recorded.' : 'No observations match your search/filter.'}</p>`;
+        obsList.innerHTML = `<div class="text-center py-6">${obsTotalCount === 0 ? illustrationEmptyClipboard() : ''}<p class="text-slate-500 text-xs italic">${obsTotalCount === 0 ? 'No observations recorded.' : 'No observations match your search/filter.'}</p></div>`;
       } else {
         obsList.innerHTML = observations.map(h => {
           const open = h.status !== 'Closed';
@@ -6658,7 +6660,7 @@ ${editCtrLines}
       const incTotalCount = (dbState.incidents || []).length;
       const incidents = (dbState.incidents || []).filter(i => matchesObsFilters(i, i.status !== 'Closed'));
       if (!incidents.length) {
-        incidentsList.innerHTML = `<p class="text-slate-500 text-xs italic text-center py-6">${incTotalCount === 0 ? 'All clear. No site incidents reported.' : 'No incidents match your search/filter.'}</p>`;
+        incidentsList.innerHTML = `<div class="text-center py-6">${incTotalCount === 0 ? illustrationAllClearShield() : ''}<p class="text-slate-500 text-xs italic">${incTotalCount === 0 ? 'All clear. No site incidents reported.' : 'No incidents match your search/filter.'}</p></div>`;
       } else {
         incidentsList.innerHTML = incidents.map(i => {
           const open = i.status !== 'Closed';
@@ -7467,6 +7469,7 @@ ${editCtrLines}
 
       if (list.length === 0) {
         document.getElementById('empty-permits-message').classList.remove('hidden');
+        document.getElementById('empty-permits-illustration').innerHTML = illustrationEmptyClipboard();
         return;
       } else {
         document.getElementById('empty-permits-message').classList.add('hidden');
@@ -8193,6 +8196,36 @@ ${sec('Manpower &amp; Exposure Log')}
       clearHSESignature();
     }
 
+    // Builds a real PDF of a permit and sends it to Telegram as a document.
+    // Archived permits live in a separate cache, not dbState.permits — so
+    // if this is one of those, splice it in for the whole operation (both
+    // previewPermit() and the PDF step need to find it), then remove it
+    // again afterward either way.
+    async function sendPermitPDFToTelegram(id) {
+      let p = (dbState.permits || []).find(p => p.id === id);
+      const isArchived = !p;
+      if (isArchived) p = (_archivedPermitsCache || []).find(p => p.id === id);
+      if (!p) return;
+      if (!(dbState.telegramConfig && dbState.telegramConfig.token && dbState.telegramConfig.chatId)) {
+        showToast('Telegram is not set up yet — Admin → Telegram Notifications.', 'error');
+        return;
+      }
+
+      showToast('Building PDF — this can take a few seconds…', 'info');
+      if (isArchived) dbState.permits.push(p);
+      try {
+        previewPermit(id); // builds & shows the preview, and sets _lastPrintHTML
+        const blob = await generatePDFBlobFromLastPrint();
+        await sendTelegramDocument(blob, `${p.permitNo}.pdf`, `📋 Permit ${p.permitNo} (${p.type}) — ${p.status}`);
+        showToast('Permit PDF sent to Telegram.', 'success');
+      } catch (err) {
+        console.error('Send permit PDF to Telegram failed:', err);
+        showToast(err.message || 'Could not send the PDF to Telegram.', 'error');
+      } finally {
+        if (isArchived) dbState.permits = dbState.permits.filter(x => x.id !== p.id);
+      }
+    }
+
     function previewPermit(id) {
       const p = dbState.permits.find(p => p.id === id);
       if (!p) return;
@@ -8430,6 +8463,7 @@ ${sec('Manpower &amp; Exposure Log')}
         <div class="no-print" style="position:sticky;top:0;z-index:10;background:#0f172a;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f97316;">
           <button onclick="hidePrintArea()" style="background:#4b5563;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">✕ Close</button>
           <button onclick="printDocNow()" style="background:#ea580c;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">🖨 Print / Save PDF</button>
+          <button onclick="sendPermitPDFToTelegram('${p.id}')" style="background:#0088cc;color:#fff;border:none;font-weight:700;font-size:13px;padding:8px 18px;border-radius:6px;cursor:pointer;">📤 Send PDF to Telegram</button>
           <span style="color:#94a3b8;font-size:11px;margin-left:auto;">Tap Close to return to the app</span>
         </div>
         ${html}`;
@@ -8475,8 +8509,21 @@ ${sec('Manpower &amp; Exposure Log')}
     let _lastPrintHTML = '';
     let _lastPrintTitle = 'Document';
 
+    // Filenames can't contain / \ : * ? " < > | — permit numbers like
+    // "CPSPL/02/CTO-0001" need those stripped before being used as one.
+    function sanitizeFilename(str) {
+      return String(str || 'Document').replace(/[\/\\:*?"<>|]/g, '-').trim();
+    }
+
     function printDocNow() {
       if (!_lastPrintHTML) { showToast('Nothing to print.', 'error'); return; }
+
+      // The OS's "Save as PDF" dialog suggests a filename based on the
+      // BROWSER TAB's title — not the iframe's own internal <title>, which
+      // is invisible to it. Without this, every download was suggested as
+      // "CTO-ConNect" (the app's normal tab title) regardless of which
+      // document was actually being printed. Swapped back in hidePrintArea().
+      document.title = sanitizeFilename(_lastPrintTitle);
 
       // Remove any iframe left over from a previous print
       const old = document.getElementById('hidden-print-frame');
@@ -8548,6 +8595,7 @@ ${sec('Manpower &amp; Exposure Log')}
       el.innerHTML   = '';
       el.style.cssText = '';
       el.classList.add('hidden');
+      document.title = 'CTO-ConNect'; // restore the normal tab title after the temporary swap in printDocNow()
     }
 
     // ADMIN PERSONNEL MANAGER (WITH PASSWORD RESET COMPACT INTERACTION)
@@ -9166,7 +9214,6 @@ ${sec('Manpower &amp; Exposure Log')}
         if (currentUser) {
           checkPermitExpiry();
           checkChecklistDueDates();
-          if (currentUser.role === 'Admin') checkWeeklyPermitEmailDue();
         }
       }, 15 * 60 * 1000);
     };
