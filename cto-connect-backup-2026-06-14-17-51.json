@@ -1,0 +1,230 @@
+{
+  "contractors": [
+    {
+      "name": "Puvi Projects",
+      "id": "ctr-1781454340374"
+    },
+    {
+      "id": "ctr-1781454345974",
+      "name": "Govindaraj"
+    },
+    {
+      "id": "ctr-1781454350293",
+      "name": "Build Care"
+    }
+  ],
+  "users": [
+    {
+      "mustChangePassword": false,
+      "fullname": "Manu B",
+      "role": "Admin",
+      "id": "usr-0",
+      "phone": "+91 97888 28715",
+      "isDefaultPin": false,
+      "pin": "AbiAkara20",
+      "designation": "Senior Safety Officer",
+      "username": "admin"
+    },
+    {
+      "canManageManpower": false,
+      "fullname": "Kamalendu Parida",
+      "mustChangePassword": true,
+      "canApprove": true,
+      "isDefaultPin": false,
+      "pin": "CtoSite26",
+      "designation": "HSE Manager",
+      "username": "kamal",
+      "role": "Staff",
+      "id": "usr-1781453985424",
+      "phone": "+91 87789 17234"
+    },
+    {
+      "canManageManpower": false,
+      "fullname": "Ganesan",
+      "canApprove": true,
+      "mustChangePassword": true,
+      "pin": "CtoSite26",
+      "isDefaultPin": false,
+      "username": "ganesan",
+      "designation": "Project Manager",
+      "role": "Staff",
+      "phone": "+91 99652 50435",
+      "id": "usr-1781454024034"
+    },
+    {
+      "mustChangePassword": true,
+      "canApprove": true,
+      "canManageManpower": true,
+      "fullname": "Ranjith P",
+      "role": "Staff",
+      "phone": "+91 63825 34144",
+      "id": "usr-1781454087146",
+      "pin": "CtoSite26",
+      "isDefaultPin": false,
+      "username": "ranjith",
+      "designation": "Safety Supervisor"
+    },
+    {
+      "canApprove": false,
+      "mustChangePassword": true,
+      "fullname": "Pandiyarajan",
+      "canManageManpower": false,
+      "phone": "+91 79040 65703",
+      "id": "usr-1781454115136",
+      "role": "Staff",
+      "username": "pandiyarajan",
+      "designation": "Engineer",
+      "pin": "CtoSite26",
+      "isDefaultPin": false
+    },
+    {
+      "id": "usr-1781454140329",
+      "phone": "+91 84389 06772",
+      "role": "Staff",
+      "designation": "Civil Foreman",
+      "username": "binoy",
+      "isDefaultPin": false,
+      "pin": "CtoSite26",
+      "canApprove": true,
+      "mustChangePassword": true,
+      "fullname": "Binoy",
+      "canManageManpower": true
+    },
+    {
+      "role": "Staff",
+      "id": "usr-1781454167172",
+      "phone": "+91 78711 58216",
+      "isDefaultPin": false,
+      "pin": "CtoSite26",
+      "designation": "Night Supervisor/Operator",
+      "username": "jagadeesh",
+      "canApprove": false,
+      "mustChangePassword": true,
+      "canManageManpower": false,
+      "fullname": "Jagadeesh"
+    },
+    {
+      "phone": "+91 98945 96586",
+      "id": "usr-1781454252592",
+      "role": "Contractor",
+      "username": "puvi01",
+      "designation": "Sub Contractor",
+      "pin": "CtoSite26",
+      "isDefaultPin": false,
+      "canApprove": false,
+      "mustChangePassword": true,
+      "fullname": "Puviyarasan",
+      "canManageManpower": false
+    },
+    {
+      "isDefaultPin": false,
+      "pin": "CtoSite26",
+      "designation": "Sub Contractor",
+      "username": "govind02",
+      "role": "Contractor",
+      "id": "usr-1781454286328",
+      "phone": "+91 98848 77867",
+      "canManageManpower": false,
+      "fullname": "Govindaraj",
+      "mustChangePassword": true,
+      "canApprove": false
+    }
+  ],
+  "_pwPolicyV2": true,
+  "manpower": [],
+  "notifications": [
+    {
+      "id": "not-1781454350297",
+      "timestamp": "Just now",
+      "message": "Admin added contractor: Build Care."
+    },
+    {
+      "timestamp": "Just now",
+      "message": "Admin added contractor: Govindaraj.",
+      "id": "not-1781454345979"
+    },
+    {
+      "id": "not-1781454340381",
+      "message": "Admin added contractor: Puvi Projects.",
+      "timestamp": "Just now"
+    },
+    {
+      "message": "First-time admin credentials activated. Setup requires modification.",
+      "timestamp": "Just now",
+      "id": "not-1"
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-1",
+      "category": "Standard Operating Procedure",
+      "title": "CTO Project General Safety Framework",
+      "filename": "General_Safety_Framework.pdf"
+    },
+    {
+      "id": "doc-2",
+      "title": "Scaffolding Clearance Guidelines",
+      "category": "Safety Checklist",
+      "filename": "Scaffolding_Clearance.pdf"
+    },
+    {
+      "filename": "Height_Harness_SOP.pdf",
+      "id": "doc-3",
+      "title": "Work At Height - Double Harness SOP",
+      "category": "Standard Operating Procedure"
+    }
+  ],
+  "hazards": [],
+  "incidents": [],
+  "permits": [],
+  "contacts": [
+    {
+      "phone": "+91 99652 50435",
+      "name": "Ganesan",
+      "designation": "Project Manager",
+      "id": "con-1"
+    },
+    {
+      "id": "con-2",
+      "designation": "HSE Manager",
+      "name": "Kamalendu Parida",
+      "phone": "+91 87789 17234"
+    },
+    {
+      "phone": "+91 97888 28715",
+      "name": "Manu B",
+      "designation": "Senior Safety Officer",
+      "id": "con-3"
+    },
+    {
+      "phone": "+91 63825 34144",
+      "name": "Ranjith P",
+      "designation": "Safety Supervisor",
+      "id": "con-4"
+    },
+    {
+      "name": "Apollo Hospital Greams Lane",
+      "phone": " 080 6904 9756",
+      "id": "con-1781454747635",
+      "designation": "Nearest Hospital"
+    },
+    {
+      "id": "con-1781454832311",
+      "designation": "E-3 Teynampet Police Station",
+      "name": "Police",
+      "phone": "044-24349795"
+    },
+    {
+      "phone": "+91 94450 86048",
+      "name": "Fire",
+      "designation": "Teynampet Fire Station",
+      "id": "con-1781454879477"
+    },
+    {
+      "name": "Ambulance",
+      "phone": "108",
+      "id": "con-1781454923452",
+      "designation": "Accident Helpline/Ambulance"
+    }
+  ]
+}
