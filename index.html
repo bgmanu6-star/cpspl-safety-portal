@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.9.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.9.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -4724,19 +4724,14 @@ service cloud.firestore {
       // Auto-fit to a single A4 page, same approach proven on the HSE
       // report: measure the actual rendered height and shrink (via CSS
       // zoom) only if it would otherwise spill onto a 2nd page.
-      const inspRootEl = document.getElementById('insp-print-root');
-      if (inspRootEl) {
-        const mmToPx = 96 / 25.4;
-        const targetHeight = (297 - 20) * mmToPx - 24;
-        const naturalHeight = inspRootEl.scrollHeight;
-        if (naturalHeight > targetHeight) {
-          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
-          inspRootEl.style.zoom = zoomFactor;
-          _lastPrintHTML = html.replace(
-            '<div id="insp-print-root" style="',
-            `<div id="insp-print-root" style="zoom:${zoomFactor};`
-          );
-        }
+      const inspZoom = computeAutoFitZoom(html, 800);
+      if (inspZoom < 1) {
+        const inspRootEl = document.getElementById('insp-print-root');
+        if (inspRootEl) inspRootEl.style.zoom = inspZoom;
+        _lastPrintHTML = html.replace(
+          '<div id="insp-print-root" style="',
+          `<div id="insp-print-root" style="zoom:${inspZoom};`
+        );
       }
     }
 
@@ -4886,19 +4881,14 @@ service cloud.firestore {
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       pa.scrollTop = 0;
 
-      const penaltyRootEl = document.getElementById('penalty-print-root');
-      if (penaltyRootEl) {
-        const mmToPx = 96 / 25.4;
-        const targetHeight = (297 - 20) * mmToPx - 24;
-        const naturalHeight = penaltyRootEl.scrollHeight;
-        if (naturalHeight > targetHeight) {
-          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
-          penaltyRootEl.style.zoom = zoomFactor;
-          _lastPrintHTML = html.replace(
-            '<div id="penalty-print-root" style="',
-            `<div id="penalty-print-root" style="zoom:${zoomFactor};`
-          );
-        }
+      const penaltyZoom = computeAutoFitZoom(html, 700);
+      if (penaltyZoom < 1) {
+        const penaltyRootEl = document.getElementById('penalty-print-root');
+        if (penaltyRootEl) penaltyRootEl.style.zoom = penaltyZoom;
+        _lastPrintHTML = html.replace(
+          '<div id="penalty-print-root" style="',
+          `<div id="penalty-print-root" style="zoom:${penaltyZoom};`
+        );
       }
     }
 
@@ -4918,6 +4908,30 @@ service cloud.firestore {
     // so they work fully offline like everything else here). Reused across
     // every "no records yet" panel instead of plain gray italic text.
     // ============================================================
+    // ============================================================
+    // SINGLE-PAGE AUTO-FIT — measures content at its TRUE rendering width
+    // in an offscreen container, NOT the live on-screen preview. On a
+    // narrow phone, the live preview wraps content much taller than it
+    // would actually render at its real ~800px print width, which was
+    // causing this to think documents needed far more shrinking than they
+    // actually did (the "covers only half the page" bug). Measuring at a
+    // fixed width sidesteps that entirely, regardless of the device
+    // viewing the in-app preview.
+    // ============================================================
+    function computeAutoFitZoom(htmlContent, maxWidthPx) {
+      const measureContainer = document.createElement('div');
+      measureContainer.style.cssText = `position:fixed;top:0;left:-9999px;width:${maxWidthPx}px;`;
+      measureContainer.innerHTML = htmlContent;
+      document.body.appendChild(measureContainer);
+      const naturalHeight = measureContainer.scrollHeight;
+      document.body.removeChild(measureContainer);
+
+      const mmToPx = 96 / 25.4;
+      const targetHeight = (297 - 20) * mmToPx - 24; // A4 minus 10mm margins minus a small safety buffer
+      if (naturalHeight <= targetHeight) return 1;
+      return Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
+    }
+
     function illustrationEmptyClipboard() {
       return `<svg width="100" height="86" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-2" style="opacity:.9">
         <circle cx="70" cy="60" r="50" fill="#2A4566" opacity="0.4"/>
@@ -5247,19 +5261,14 @@ service cloud.firestore {
       pa.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       pa.scrollTop = 0;
 
-      const ppeRootEl = document.getElementById('ppe-print-root');
-      if (ppeRootEl) {
-        const mmToPx = 96 / 25.4;
-        const targetHeight = (297 - 20) * mmToPx - 24;
-        const naturalHeight = ppeRootEl.scrollHeight;
-        if (naturalHeight > targetHeight) {
-          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
-          ppeRootEl.style.zoom = zoomFactor;
-          _lastPrintHTML = html.replace(
-            '<div id="ppe-print-root" style="',
-            `<div id="ppe-print-root" style="zoom:${zoomFactor};`
-          );
-        }
+      const ppeZoom = computeAutoFitZoom(html, 800);
+      if (ppeZoom < 1) {
+        const ppeRootEl = document.getElementById('ppe-print-root');
+        if (ppeRootEl) ppeRootEl.style.zoom = ppeZoom;
+        _lastPrintHTML = html.replace(
+          '<div id="ppe-print-root" style="',
+          `<div id="ppe-print-root" style="zoom:${ppeZoom};`
+        );
       }
     }
 
@@ -8238,22 +8247,19 @@ ${sec('Manpower &amp; Exposure Log')}
       pa.scrollTop = 0;
 
       // Keep the report to a single A4 page: measure the actual rendered
-      // height and, only if it would spill onto a 2nd page, shrink it
+      // height (at the document's true 800px print width, not whatever
+      // narrow width the live preview happens to be displayed at on a
+      // phone) and, only if it would spill onto a 2nd page, shrink it
       // (via CSS zoom, well supported in WebKit/Safari/Chrome) by just
       // enough to fit — rather than guessing at font sizes ahead of time.
-      const rootEl = document.getElementById('hse-report-root');
-      if (rootEl) {
-        const mmToPx = 96 / 25.4;
-        const targetHeight = (297 - 20) * mmToPx - 24; // A4 minus 10mm margins minus a small safety buffer
-        const naturalHeight = rootEl.scrollHeight;
-        if (naturalHeight > targetHeight) {
-          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
-          rootEl.style.zoom = zoomFactor;
-          _lastPrintHTML = reportHTML.replace(
-            '<div id="hse-report-root" style="',
-            `<div id="hse-report-root" style="zoom:${zoomFactor};`
-          );
-        }
+      const hseZoom = computeAutoFitZoom(reportHTML, 800);
+      if (hseZoom < 1) {
+        const rootEl = document.getElementById('hse-report-root');
+        if (rootEl) rootEl.style.zoom = hseZoom;
+        _lastPrintHTML = reportHTML.replace(
+          '<div id="hse-report-root" style="',
+          `<div id="hse-report-root" style="zoom:${hseZoom};`
+        );
       }
 
       showToast('Report ready — tap Print to save as PDF.', 'success');
@@ -8539,19 +8545,14 @@ ${sec('Manpower &amp; Exposure Log')}
       printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
       printContainer.scrollTop = 0;
 
-      const permitRootEl = document.getElementById('permit-print-root');
-      if (permitRootEl) {
-        const mmToPx = 96 / 25.4;
-        const targetHeight = (297 - 20) * mmToPx - 24;
-        const naturalHeight = permitRootEl.scrollHeight;
-        if (naturalHeight > targetHeight) {
-          const zoomFactor = Math.max(0.55, +(targetHeight / naturalHeight).toFixed(3));
-          permitRootEl.style.zoom = zoomFactor;
-          _lastPrintHTML = html.replace(
-            '<div id="permit-print-root" style="',
-            `<div id="permit-print-root" style="zoom:${zoomFactor};`
-          );
-        }
+      const permitZoom = computeAutoFitZoom(html, 800);
+      if (permitZoom < 1) {
+        const permitRootEl = document.getElementById('permit-print-root');
+        if (permitRootEl) permitRootEl.style.zoom = permitZoom;
+        _lastPrintHTML = html.replace(
+          '<div id="permit-print-root" style="',
+          `<div id="permit-print-root" style="zoom:${permitZoom};`
+        );
       }
       } catch (err) {
         console.error('previewPermit error:', err);
