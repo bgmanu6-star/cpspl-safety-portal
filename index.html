@@ -23,6 +23,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-messaging-compat.js"></script>
   
   <script>
     tailwind.config = {
@@ -305,7 +306,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.2.3</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.3.1</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1254,6 +1255,16 @@ service cloud.firestore {
                   <input id="restore-file-input" type="file" accept="application/json,.json" class="hidden" onchange="importBackupFile(this)">
                 </div>
               </div>
+              <div class="border-t border-construction-border pt-3 mt-1">
+                <div class="flex items-center justify-between mb-1">
+                  <p class="text-[10px] font-bold uppercase text-slate-400">Cloud Storage Used</p>
+                  <p class="text-[10px] font-mono" id="db-size-label">—</p>
+                </div>
+                <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div id="db-size-bar" class="h-full rounded-full transition-all" style="width:0%;background:#10b981;"></div>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1" id="db-size-note">Firebase stores all data in a single 1 MB document. "Save to cloud failed" usually means this is full.</p>
+              </div>
             </div>
 
             <!-- Monthly HSE Report -->
@@ -1321,6 +1332,29 @@ service cloud.firestore {
                 <button onclick="saveTelegramConfig()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5">
                   <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
                 </button>
+              </div>
+            </div>
+
+            <!-- Push Notifications Setup -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="bell-ring" class="w-4 h-4 text-yellow-400"></i> Push Notifications
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-3">Send alerts straight to people's phones/devices via Firebase Cloud Messaging — free, no extra backend needed for manual broadcasts.</p>
+              <div class="bg-slate-900 border border-construction-border rounded-lg p-3 text-[11px] text-slate-400 space-y-2">
+                <p class="font-bold text-slate-300">One-time setup (you, the Admin, do this once):</p>
+                <ol class="list-decimal list-inside space-y-1">
+                  <li>Firebase Console → Project Settings → Cloud Messaging → Web configuration → <strong>"Generate key pair"</strong></li>
+                  <li>Copy that key into <code class="bg-slate-800 px-1 rounded">VAPID_KEY</code> near the top of <code class="bg-slate-800 px-1 rounded">index.html</code></li>
+                </ol>
+                <p class="font-bold text-slate-300 pt-1">To send a notification to people who've enabled it:</p>
+                <ol class="list-decimal list-inside space-y-1">
+                  <li>Firebase Console → Engage → Messaging → <strong>"New campaign"</strong> → Notifications</li>
+                  <li>Write your title/message, target this app, and publish — no code needed</li>
+                </ol>
+              </div>
+              <div class="flex items-center justify-between mt-3">
+                <p class="text-[10px]" id="push-notif-admin-status">Each person enables this for themselves under their own Profile.</p>
               </div>
             </div>
 
@@ -2430,6 +2464,17 @@ service cloud.firestore {
             <p class="text-[9px] text-slate-500 mt-1">This user will only see their own company's manpower data.</p>
           </div>
 
+          <!-- Push notifications — only relevant when editing your OWN
+               profile, since it's tied to this specific browser/device,
+               not to the user account being edited. -->
+          <div id="edit-profile-push-wrap" class="hidden bg-slate-900 border border-construction-border rounded-lg p-3">
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Push Notifications</p>
+            <p class="text-[10px] mb-2" id="push-notif-status">—</p>
+            <button type="button" onclick="enablePushNotifications()" class="text-[10px] bg-construction-orange/20 text-construction-orange hover:bg-construction-orange hover:text-white px-3 py-1.5 rounded-lg border border-construction-orange/30 font-semibold">
+              Enable on this device
+            </button>
+          </div>
+
           <div class="flex justify-end gap-2 pt-4">
             <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg">Cancel</button>
             <button type="submit" class="px-5 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold rounded-lg">Save Changes</button>
@@ -2551,6 +2596,10 @@ service cloud.firestore {
   messagingSenderId: "222167051757",
   appId: "1:222167051757:web:9c3dd4db151a89b5d9cbe4"
 };
+    // Push notifications (Firebase Cloud Messaging) need a VAPID key —
+    // get this from Firebase Console → Project Settings → Cloud Messaging
+    // → Web configuration → "Generate key pair". Paste the value here.
+    const VAPID_KEY = 'YOUR_VAPID_KEY';
     // Firestore path: /cpspl_safety/state (single shared document)
     const FS_COL = 'cpspl_safety';
     const FS_DOC = 'state';
@@ -2972,7 +3021,17 @@ service cloud.firestore {
             setFirebaseStatus('online');
           } catch (err) {
             console.error('Firestore save error:', err);
-            showToast('Save to cloud failed — kept a local copy. Will retry when online.', 'error');
+            // Firestore's 1MB document-size error is distinct from a real
+            // connectivity problem — "will retry when online" is actively
+            // misleading here, since retrying the same oversized payload
+            // will never succeed until something is actually removed.
+            const msg = (err && err.message) || '';
+            const isSizeError = /too large|exceeds the maximum|1048576|maximum size/i.test(msg);
+            if (isSizeError) {
+              showToast('Save failed — your cloud data has hit Firebase\'s 1 MB size limit. Check Admin → Data Backup & Restore for details.', 'error');
+            } else {
+              showToast('Save to cloud failed — kept a local copy. Will retry when online.', 'error');
+            }
             saveToLocalStorage();
             _hasPendingOfflineChanges = true;
             setFirebaseStatus('offline');
@@ -3302,6 +3361,7 @@ service cloud.firestore {
         renderTelegramAlerts();
         renderImgbbAdmin();
         initHSEReportInputs();
+        renderDbSizeMeter();
       }
 
       lucide.createIcons();
@@ -5267,6 +5327,42 @@ service cloud.firestore {
       showToast('ImgBB API key saved to Firebase.', 'success');
     }
 
+    // ============================================================
+    // CLOUD STORAGE SIZE DIAGNOSTIC — Firestore caps each document at 1 MB.
+    // Everything in this app lives in ONE document, so as permits/
+    // inspections/signatures accumulate over time, "Save to cloud failed"
+    // on seemingly random actions is almost always this limit being hit —
+    // whatever action happens to push the payload over 1 MB fails, not
+    // necessarily because that specific action did anything wrong.
+    // ============================================================
+    function renderDbSizeMeter() {
+      const bar = document.getElementById('db-size-bar');
+      const label = document.getElementById('db-size-label');
+      const note = document.getElementById('db-size-note');
+      if (!bar || !label) return;
+
+      const LIMIT_BYTES = 1024 * 1024; // Firestore's 1 MiB per-document cap
+      let totalBytes = 0;
+      try { totalBytes = new Blob([JSON.stringify(dbState)]).size; }
+      catch (e) { totalBytes = JSON.stringify(dbState).length; } // rough fallback
+
+      const pct = Math.min(100, (totalBytes / LIMIT_BYTES) * 100);
+      const kb = (totalBytes / 1024).toFixed(0);
+      const limitKb = (LIMIT_BYTES / 1024).toFixed(0);
+
+      label.textContent = `${kb} KB / ${limitKb} KB (${pct.toFixed(1)}%)`;
+      bar.style.width = pct + '%';
+      bar.style.background = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#10b981';
+
+      if (pct >= 90) {
+        note.innerHTML = '<span class="text-red-400 font-bold">⚠ Critically full — saves will start failing very soon (or already have). Download a backup now, then ask to archive old records.</span>';
+      } else if (pct >= 70) {
+        note.innerHTML = '<span class="text-yellow-400 font-bold">⚠ Getting full — worth planning to archive older closed/cancelled permits soon.</span>';
+      } else {
+        note.textContent = 'Firebase stores all data in a single 1 MB document. "Save to cloud failed" usually means this is full.';
+      }
+    }
+
     function renderImgbbAdmin() {
       const cfg = dbState.imgbbConfig || {};
       const keyEl = document.getElementById('imgbb-field-key');
@@ -5580,6 +5676,89 @@ service cloud.firestore {
       dbState.notifications.unshift({ id: `not-${Date.now()}`, message: msg, timestamp: 'Just now' });
       saveCurrentState();
       renderNotifications();
+    }
+
+    // ============================================================
+    // PUSH NOTIFICATIONS (Firebase Cloud Messaging)
+    // Each device that enables this stores its own FCM token against the
+    // logged-in user's record in Firestore. Sending notifications is done
+    // from the Firebase Console (Cloud Messaging → New notification) —
+    // no extra backend/Cloud Function needed for manual/broadcast alerts.
+    // ============================================================
+    let fcmMessaging = null;
+
+    function isPushSupported() {
+      return ('serviceWorker' in navigator) && ('PushManager' in window) && !!firebase.messaging;
+    }
+
+    async function enablePushNotifications() {
+      if (!isPushSupported()) {
+        showToast('Push notifications are not supported on this browser/device.', 'error');
+        return;
+      }
+      if (VAPID_KEY === 'YOUR_VAPID_KEY') {
+        showToast('Push notifications need a VAPID key set up first — see Admin → Push Notifications.', 'error');
+        return;
+      }
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          showToast('Notification permission was not granted.', 'info');
+          return;
+        }
+
+        if (!fcmMessaging) fcmMessaging = firebase.messaging();
+        const registration = await navigator.serviceWorker.ready;
+        const token = await fcmMessaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
+        if (!token) {
+          showToast('Could not get a notification token — please try again.', 'error');
+          return;
+        }
+
+        // Store the token against the logged-in user so it can be targeted
+        // later (e.g. copied into Firebase Console's "Send test message").
+        if (currentUser) {
+          const idx = dbState.users.findIndex(u => u.id === currentUser.id);
+          if (idx !== -1) {
+            dbState.users[idx].fcmToken = token;
+            currentUser.fcmToken = token;
+            saveCurrentState();
+          }
+        }
+
+        showToast('Push notifications enabled on this device.', 'success');
+        renderPushNotificationStatus();
+        setupForegroundPushHandler();
+      } catch (err) {
+        console.error('Push notification setup failed:', err);
+        showToast('Could not enable push notifications on this device.', 'error');
+      }
+    }
+
+    // Foreground messages (app open & focused) — background messages are
+    // handled separately inside sw.js since this page code isn't running then.
+    let _foregroundPushHandlerSet = false;
+    function setupForegroundPushHandler() {
+      if (_foregroundPushHandlerSet || !fcmMessaging) return;
+      _foregroundPushHandlerSet = true;
+      fcmMessaging.onMessage(payload => {
+        const title = payload.notification?.title || 'CTO-ConNect';
+        const body  = payload.notification?.body || '';
+        showToast(`${title}: ${body}`, 'info');
+        pushNotification(`${title}${body ? ' — ' + body : ''}`);
+      });
+    }
+
+    function renderPushNotificationStatus() {
+      const el = document.getElementById('push-notif-status');
+      if (!el) return;
+      if (!isPushSupported()) {
+        el.innerHTML = '<span class="text-slate-500">Not supported on this browser/device.</span>';
+      } else if (currentUser && currentUser.fcmToken) {
+        el.innerHTML = '<span class="text-emerald-400">✅ Enabled on this device</span>';
+      } else {
+        el.innerHTML = '<span class="text-slate-400">Not enabled yet on this device.</span>';
+      }
     }
 
     function renderDashboardSOSShortcuts() {
@@ -7427,7 +7606,7 @@ ${editCtrLines}
       pushNotification(`Permit ${p.permitNo} ${newStatus.toLowerCase()} by ${currentUser.fullname}.`);
       const closeEmoji = newStatus === 'Closed' ? '🔒' : '🚫';
       sendTelegram(
-`${closeEmoji} <b>Permit ${newStatus.toUpperCase()}</b>
+`${closeEmoji} Permit ${newStatus.toUpperCase()}
 📋 Permit No: ${p.permitNo} (${p.type})
 👷 Contractor: ${p.contractor}
 📍 Location: ${p.location}
@@ -8295,6 +8474,20 @@ ${sec('Manpower &amp; Exposure Log')}
           wrap.classList.add('hidden');
         }
       }
+
+      // Push notifications only make sense for the device you're actually
+      // using right now — hide this section when an Admin is editing
+      // someone else's profile.
+      const pushWrap = document.getElementById('edit-profile-push-wrap');
+      if (pushWrap) {
+        if (currentUser && id === currentUser.id) {
+          pushWrap.classList.remove('hidden');
+          renderPushNotificationStatus();
+        } else {
+          pushWrap.classList.add('hidden');
+        }
+      }
+
       openModal('modal-edit-profile');
     }
 
