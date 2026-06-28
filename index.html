@@ -24,6 +24,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-messaging-compat.js"></script>
+  <!-- EmailJS — sends the weekly permit summary email, no backend needed -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   
   <script>
     tailwind.config = {
@@ -306,7 +308,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.4.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.5.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1363,6 +1365,51 @@ service cloud.firestore {
               </div>
               <div class="flex items-center justify-between mt-3">
                 <p class="text-[10px]" id="push-notif-admin-status">Each person enables this for themselves under their own Profile.</p>
+              </div>
+            </div>
+
+            <!-- Weekly Permit Email -->
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-5">
+              <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-1">
+                <i data-lucide="mail" class="w-4 h-4 text-emerald-400"></i> Weekly Permit Email
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-3">Automatically emails a summary of that week's permits — no extra backend, uses <a href="https://www.emailjs.com" target="_blank" class="text-blue-400 underline">EmailJS</a>'s free tier. Sends once every 7 days, checked whenever anyone opens the app.</p>
+              <div class="bg-slate-900 border border-construction-border rounded-lg p-3 text-[11px] text-slate-400 space-y-1 mb-3">
+                <p class="font-bold text-slate-300">One-time setup:</p>
+                <ol class="list-decimal list-inside space-y-1">
+                  <li>Free sign up at <a href="https://www.emailjs.com" target="_blank" class="text-blue-400 underline">emailjs.com</a>, connect your email (Gmail etc.)</li>
+                  <li>Create a Template with body containing just: <code class="bg-slate-800 px-1 rounded">{{permits_summary}}</code></li>
+                  <li>Copy your Service ID, Template ID and Public Key into the fields below</li>
+                </ol>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Destination Email</label>
+                  <input id="we-field-to" type="email" placeholder="you@example.com" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Service ID</label>
+                  <input id="we-field-service" type="text" placeholder="service_xxxxxxx" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Template ID</label>
+                  <input id="we-field-template" type="text" placeholder="template_xxxxxxx" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Public Key</label>
+                  <input id="we-field-publickey" type="text" placeholder="xxxxxxxxxxxxxxx" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs font-mono">
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-3 flex-wrap gap-2">
+                <p id="we-status-label" class="text-[10px] text-slate-500 italic">Not sent yet.</p>
+                <div class="flex gap-2">
+                  <button onclick="sendWeeklyPermitEmail(true)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs py-2 px-3 rounded-lg flex items-center gap-1.5">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i> Send Now (Test)
+                  </button>
+                  <button onclick="saveWeeklyEmailConfig()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center gap-1.5">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -2725,6 +2772,11 @@ service cloud.firestore {
       if (!dbState.penaltyNotices)  dbState.penaltyNotices  = [];
       if (!dbState.ppeChecks)       dbState.ppeChecks       = [];
       if (!dbState.permitAlertLog) dbState.permitAlertLog   = {};
+      // Archive shard index — defaults to the original single archive doc
+      // so permits already archived before sharding existed are still
+      // found correctly (treated as the first shard).
+      if (!Array.isArray(dbState.archiveShardNames)) dbState.archiveShardNames = [FS_ARCHIVE_DOC];
+      if (!dbState.weeklyEmailConfig) dbState.weeklyEmailConfig = { toEmail: '', serviceId: '', templateId: '', publicKey: '', lastSentAt: '' };
       if (!dbState.checklistDueAlertLog) dbState.checklistDueAlertLog = {};
       // Sequential permit numbering — seed once from however many permits
       // already exist, so the serial continues naturally rather than
@@ -3387,6 +3439,7 @@ service cloud.firestore {
         renderImgbbAdmin();
         initHSEReportInputs();
         renderDbSizeMeter();
+        renderWeeklyEmailAdmin();
       }
 
       lucide.createIcons();
@@ -3565,6 +3618,7 @@ service cloud.firestore {
         const n = checkPermitExpiry();
         if (n > 0) showToast(`⚠ ${n} permit${n>1?'s are':' is'} past end time — please close ${n>1?'them':'it'}.`, 'info');
         checkChecklistDueDates();
+        if (user.role === 'Admin') checkWeeklyPermitEmailDue();
       }, 1500);
     }
 
@@ -5340,6 +5394,112 @@ service cloud.firestore {
     }
 
     // ============================================================
+    // WEEKLY PERMIT EMAIL — client-side only (EmailJS), no backend.
+    // Checked once per login/periodic interval rather than on a true
+    // schedule: whenever anyone opens the app and it's been 7+ days since
+    // the last send, it sends then. For an app used daily, this reliably
+    // produces a "weekly" email without needing a paid Cloud Functions
+    // backend just for this.
+    // ============================================================
+    function renderWeeklyEmailAdmin() {
+      const cfg = dbState.weeklyEmailConfig || {};
+      const setV = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+      setV('we-field-to',        cfg.toEmail);
+      setV('we-field-service',   cfg.serviceId);
+      setV('we-field-template',  cfg.templateId);
+      setV('we-field-publickey', cfg.publicKey);
+      const lbl = document.getElementById('we-status-label');
+      if (lbl) lbl.innerText = cfg.lastSentAt ? `Last sent: ${cfg.lastSentAt}` : 'Not sent yet.';
+    }
+
+    function saveWeeklyEmailConfig() {
+      if (!(currentUser && currentUser.role === 'Admin')) { showToast('Only Admin can save this.', 'error'); return; }
+      dbState.weeklyEmailConfig = dbState.weeklyEmailConfig || {};
+      dbState.weeklyEmailConfig.toEmail    = document.getElementById('we-field-to').value.trim();
+      dbState.weeklyEmailConfig.serviceId  = document.getElementById('we-field-service').value.trim();
+      dbState.weeklyEmailConfig.templateId = document.getElementById('we-field-template').value.trim();
+      dbState.weeklyEmailConfig.publicKey  = document.getElementById('we-field-publickey').value.trim();
+      saveCurrentState();
+      showToast('Weekly email settings saved.', 'success');
+    }
+
+    // Permit IDs are formatted prm-<timestamp-of-original-creation> and this
+    // is NOT overwritten on resubmission/edit, unlike updatedAt — so it
+    // reliably answers "when was this permit first submitted" even for
+    // permits that were later returned and resubmitted.
+    function permitCreatedAt(p) {
+      const m = /^prm-(\d+)/.exec(p.id || '');
+      return m ? new Date(parseInt(m[1], 10)) : null;
+    }
+
+    function getPermitsFromLastNDays(n) {
+      const cutoff = new Date(Date.now() - n * 24 * 60 * 60 * 1000);
+      return (dbState.permits || []).filter(p => {
+        const created = permitCreatedAt(p);
+        return created && created >= cutoff;
+      }).sort((a, b) => permitCreatedAt(a) - permitCreatedAt(b));
+    }
+
+    function buildWeeklyPermitSummaryText(permits) {
+      if (!permits.length) return 'No new permits were submitted this week.';
+      return permits.map((p, i) => {
+        const created = permitCreatedAt(p);
+        return `${i + 1}. ${p.permitNo} — ${p.type}
+   Contractor: ${p.contractor}
+   Location: ${p.location}
+   Status: ${p.status}
+   Submitted: ${created ? fmtDT(created) : '—'}`;
+      }).join('\n\n');
+    }
+
+    async function sendWeeklyPermitEmail(isTest) {
+      const cfg = dbState.weeklyEmailConfig || {};
+      if (!cfg.toEmail || !cfg.serviceId || !cfg.templateId || !cfg.publicKey) {
+        showToast('Fill in and save all Weekly Permit Email fields first.', 'error');
+        return;
+      }
+      if (typeof emailjs === 'undefined') {
+        showToast('Email service did not load — check your internet connection.', 'error');
+        return;
+      }
+
+      const permits = getPermitsFromLastNDays(7);
+      const today = todayKey();
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const summaryText = buildWeeklyPermitSummaryText(permits);
+
+      try {
+        await emailjs.send(cfg.serviceId, cfg.templateId, {
+          to_email: cfg.toEmail,
+          week_range: `${fmtDate(weekAgo.toISOString().slice(0,10))} – ${fmtDate(today)}`,
+          permit_count: permits.length,
+          permits_summary: summaryText
+        }, { publicKey: cfg.publicKey });
+
+        if (!isTest) {
+          dbState.weeklyEmailConfig.lastSentAt = fmtDT(new Date());
+          saveCurrentState();
+        }
+        showToast(isTest ? 'Test email sent — check your inbox.' : 'Weekly permit email sent.', 'success');
+        renderWeeklyEmailAdmin();
+      } catch (err) {
+        console.error('Weekly permit email failed:', err);
+        showToast('Could not send the email — double check your EmailJS settings.', 'error');
+      }
+    }
+
+    // Called on login + periodic interval. Sends automatically once 7+
+    // days have passed since the last send (or it's never been sent and
+    // is fully configured) — silent on success/no-op, only surfaces errors.
+    function checkWeeklyPermitEmailDue() {
+      const cfg = dbState.weeklyEmailConfig || {};
+      if (!cfg.toEmail || !cfg.serviceId || !cfg.templateId || !cfg.publicKey) return; // not set up yet
+      const last = cfg.lastSentAt ? new Date(cfg.lastSentAt) : null;
+      const dueSince = !last || (Date.now() - last.getTime()) >= 7 * 24 * 60 * 60 * 1000;
+      if (dueSince) sendWeeklyPermitEmail(false);
+    }
+
+    // ============================================================
     // IMGBB PHOTO HOSTING
     // ============================================================
     function saveImgbbConfig() {
@@ -5410,11 +5570,36 @@ service cloud.firestore {
       // Step 1: write to the archive FIRST. Nothing is ever lost regardless
       // of what happens in step 2, since this is verified successful before
       // anything gets removed from the live state.
+      //
+      // The archive itself is a Firestore document too, so it has the SAME
+      // 1MB limit — left unbounded, it would eventually hit the exact same
+      // wall the live database just did. To avoid that ever happening again,
+      // archived permits are split across multiple "shard" documents
+      // (archive_permits, archive_permits_2, archive_permits_3, ...),
+      // automatically starting a new one whenever the current one gets
+      // close to full. dbState.archiveShardNames just remembers which
+      // shards exist — a tiny list of strings, negligible size impact on
+      // the live document.
       try {
-        const archiveRef = db.collection(FS_COL).doc(FS_ARCHIVE_DOC);
-        const snap = await archiveRef.get();
-        const existing = snap.exists ? (snap.data().permits || []) : [];
-        await archiveRef.set({ permits: existing.concat(toArchive) });
+        if (!Array.isArray(dbState.archiveShardNames) || !dbState.archiveShardNames.length) {
+          dbState.archiveShardNames = [FS_ARCHIVE_DOC];
+        }
+        let shardName = dbState.archiveShardNames[dbState.archiveShardNames.length - 1];
+        let shardRef  = db.collection(FS_COL).doc(shardName);
+        let snap      = await shardRef.get();
+        let existing  = snap.exists ? (snap.data().permits || []) : [];
+        let merged    = existing.concat(toArchive);
+        let mergedSize = new Blob([JSON.stringify(merged)]).size;
+
+        const SHARD_SAFE_LIMIT = 900 * 1024; // leave headroom below Firestore's hard 1MB cap
+        if (mergedSize > SHARD_SAFE_LIMIT) {
+          shardName = `${FS_ARCHIVE_DOC}_${dbState.archiveShardNames.length + 1}`;
+          dbState.archiveShardNames.push(shardName);
+          shardRef = db.collection(FS_COL).doc(shardName);
+          merged = toArchive; // fresh shard, starts with just this batch
+        }
+
+        await shardRef.set({ permits: merged });
       } catch (err) {
         console.error('Archive write failed:', err);
         showToast('Could not write to archive storage — nothing was changed. Please try again.', 'error');
@@ -5446,8 +5631,12 @@ service cloud.firestore {
     async function viewArchivedPermits() {
       if (!db || !_firebaseMode) { showToast('Viewing archived permits requires an active cloud connection.', 'error'); return; }
       try {
-        const snap = await db.collection(FS_COL).doc(FS_ARCHIVE_DOC).get();
-        const archived = snap.exists ? (snap.data().permits || []) : [];
+        const shardNames = (Array.isArray(dbState.archiveShardNames) && dbState.archiveShardNames.length)
+          ? dbState.archiveShardNames : [FS_ARCHIVE_DOC];
+        const snaps = await Promise.all(shardNames.map(name => db.collection(FS_COL).doc(name).get()));
+        let archived = [];
+        snaps.forEach(snap => { if (snap.exists) archived = archived.concat(snap.data().permits || []); });
+
         _archivedPermitsCache = archived;
         if (!archived.length) { showToast('No archived permits yet.', 'info'); return; }
         renderArchivedPermitsModal(archived);
@@ -8967,7 +9156,11 @@ ${sec('Manpower &amp; Exposure Log')}
 
       // Periodic permit expiry + checklist due-date check (every 15 min)
       setInterval(() => {
-        if (currentUser) { checkPermitExpiry(); checkChecklistDueDates(); }
+        if (currentUser) {
+          checkPermitExpiry();
+          checkChecklistDueDates();
+          if (currentUser.role === 'Admin') checkWeeklyPermitEmailDue();
+        }
       }, 15 * 60 * 1000);
     };
   </script>
