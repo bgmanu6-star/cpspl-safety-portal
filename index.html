@@ -197,6 +197,9 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
+    /* Spin animation for the manual refresh button while it's fetching */
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
     /* Respect the OS-level "reduce motion" accessibility setting */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -313,7 +316,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.9.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.10.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -348,6 +351,9 @@ service cloud.firestore {
               <p id="user-display-name" class="text-xs font-bold text-slate-200">Engineer Name</p>
               <p id="user-display-role" class="text-[10px] text-construction-orange uppercase tracking-wider font-semibold">Admin</p>
             </div>
+            <button onclick="manualRefresh()" id="manual-refresh-btn" class="p-2 text-slate-400 hover:text-construction-gold hover:bg-slate-800 rounded-lg transition-colors" title="Refresh — fetch the latest data now">
+              <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+            </button>
             <button onclick="toggleLightMode()" id="theme-toggle-btn" class="p-2 text-slate-400 hover:text-yellow-400 hover:bg-slate-800 rounded-lg transition-colors" title="Toggle Light/Dark Mode">
               <i data-lucide="sun" class="w-5 h-5"></i>
             </button>
@@ -2840,9 +2846,17 @@ service cloud.firestore {
       let skipFirst = true;
       _fsListenerOff = db.collection(FS_COL).doc(FS_DOC).onSnapshot({ includeMetadataChanges: false },
         snap => {
-          // Ignore our own un-acknowledged writes and anything served from cache.
-          if (snap.metadata.hasPendingWrites || snap.metadata.fromCache) return;
-          // A confirmed server snapshot means we are truly synced.
+          // Ignore only OUR OWN un-acknowledged writes — we already applied
+          // those to dbState directly when we made them, no need to
+          // re-process. We used to ALSO skip anything flagged fromCache,
+          // but Firestore can legitimately flag a genuinely new remote
+          // change that way too (it's not exclusively "stale data") — that
+          // was silently dropping other people's updates, which is exactly
+          // why permits/changes weren't appearing until a full sign-out and
+          // back in forced a fresh fetch that bypassed this listener
+          // entirely. Removed; hasPendingWrites alone is the correct filter.
+          if (snap.metadata.hasPendingWrites) return;
+          // A confirmed snapshot means we are truly synced.
           if (snap.exists) {
             _serverLoaded = true;
             if (skipFirst) { skipFirst = false; saveBackupSnapshot(); return; }
@@ -2862,16 +2876,50 @@ service cloud.firestore {
       );
     }
 
+    // ------ manual refresh button (Admin/everyone) ------
+    // Forces a direct read from the SERVER, completely bypassing the
+    // onSnapshot listener and any local cache — a guaranteed way to get
+    // current data without needing to sign out and back in.
+    async function manualRefresh() {
+      const btn = document.getElementById('manual-refresh-btn');
+      const icon = btn ? btn.querySelector('svg') : null;
+      if (icon) icon.style.animation = 'spin 0.8s linear infinite';
+
+      if (!db || !_firebaseMode) {
+        showToast('Not connected to the cloud — nothing to refresh from.', 'error');
+        if (icon) icon.style.animation = '';
+        return;
+      }
+      try {
+        const snap = await db.collection(FS_COL).doc(FS_DOC).get({ source: 'server' });
+        if (snap.exists) {
+          dbState = snap.data();
+          runMigrations();
+          _serverLoaded = true;
+          saveBackupSnapshot();
+          refreshCurrentView();
+          buildDynamicNavs();
+          showToast('Up to date.', 'success');
+        }
+      } catch (err) {
+        console.error('Manual refresh failed:', err);
+        showToast('Could not refresh — check your connection.', 'error');
+      } finally {
+        if (icon) setTimeout(() => { icon.style.animation = ''; }, 400);
+      }
+    }
+
     // ------ refresh currently active view ------
     function refreshCurrentView() {
       if (!currentUser) return;
-      if      (activeTab === 'dashboard') renderDashboardStats();
-      else if (activeTab === 'labour')    renderLabourHistory();
-      else if (activeTab === 'permits')   renderPermitsTable();
-      else if (activeTab === 'reports')   renderObservations();
-      else if (activeTab === 'emergency') renderEmergencyGrid();
-      else if (activeTab === 'documents') renderDocumentLibrary();
-      else if (activeTab === 'admin')     { renderPersonnelTable(); renderContractorRegistry(); renderContractorScorecard(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderTelegramAlerts(); renderImgbbAdmin(); initHSEReportInputs(); }
+      if      (activeTab === 'dashboard')   renderDashboardStats();
+      else if (activeTab === 'labour')      renderLabourHistory();
+      else if (activeTab === 'permits')     renderPermitsTable();
+      else if (activeTab === 'reports')     renderObservations();
+      else if (activeTab === 'checklists')  renderChecklistsTab();
+      else if (activeTab === 'emergency')   renderEmergencyGrid();
+      else if (activeTab === 'documents')   renderDocumentLibrary();
+      else if (activeTab === 'admin')       { renderPersonnelTable(); renderContractorRegistry(); renderContractorScorecard(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderTelegramAlerts(); renderImgbbAdmin(); initHSEReportInputs(); renderDbSizeMeter(); }
     }
 
     // ------ Firestore load (SERVER-AUTHORITATIVE — never seeds from cache) ------
@@ -4594,7 +4642,7 @@ service cloud.firestore {
       }).join('');
 
       openModal('modal-inspection');
-      setTimeout(setupInspectionSignaturePad, 200);
+      setTimeout(setupInspectionSignaturePad, 350);
     }
 
     function submitInspection() {
@@ -5135,7 +5183,7 @@ service cloud.firestore {
         </div>`).join('');
 
       openModal('modal-ppe');
-      setTimeout(setupPPESignaturePad, 200);
+      setTimeout(setupPPESignaturePad, 350);
     }
 
     function submitPPECheck() {
@@ -5304,7 +5352,7 @@ service cloud.firestore {
       document.getElementById('pm-sign-remarks').value = '';
 
       openModal('modal-checklist-pm-sign');
-      setTimeout(setupPMSignSignaturePad, 200);
+      setTimeout(setupPMSignSignaturePad, 350);
     }
 
     function submitChecklistPMSign() {
@@ -7369,7 +7417,7 @@ ${editCtrLines}
       }
 
       openModal('modal-permit-form');
-      setTimeout(setupApplicantSignaturePad, 200);
+      setTimeout(setupApplicantSignaturePad, 350);
     }
 
     function renderFormChecklist(type) {
@@ -7682,7 +7730,7 @@ ${editCtrLines}
       }
 
       openModal('modal-permit-form');
-      setTimeout(setupApplicantSignaturePad, 200);
+      setTimeout(setupApplicantSignaturePad, 350);
     }
 
     // SIGNATURE PAD IMPLEMENTATIONS (CANVAS LOGIC)
@@ -7728,7 +7776,14 @@ ${editCtrLines}
           dirty = false;
         },
         isEmpty() { return !dirty; },
-        toDataURL() { return canvas.toDataURL('image/jpeg', 0.95); }  // JPEG = smaller, no transparency
+        // PNG, not JPEG: JPEG has no transparency channel, so if the white
+        // background fill ever ran before the canvas had its final size
+        // (e.g. on a slower device, racing the modal's open animation),
+        // any unpainted area exports as solid BLACK instead of just
+        // looking blank — that's what was happening to some signatures.
+        // PNG instead, so any such area would just be transparent
+        // (rendering as white against the page) — never black.
+        toDataURL() { return canvas.toDataURL('image/png'); }
       };
     }
 
@@ -7811,7 +7866,7 @@ ${editCtrLines}
 
       document.getElementById('review-comment').value = '';
       openModal('modal-permit-review');
-      setTimeout(setupSignaturePad, 200);
+      setTimeout(setupSignaturePad, 350);
     }
 
     function triggerReviewAction() {
@@ -7939,7 +7994,7 @@ ${editCtrLines}
       if (!isCancelling) {
         setTimeout(() => {
           _permitCloseSigPad = createSignaturePad('permit-close-sig-canvas');
-        }, 100);
+        }, 350);
       }
     }
 
@@ -8090,7 +8145,7 @@ ${editCtrLines}
       const yel = document.getElementById('hse-report-year');
       if (mel) mel.value = now.getMonth() + 1;
       if (yel) yel.value = now.getFullYear();
-      setTimeout(setupHSESignaturePad, 200);
+      setTimeout(setupHSESignaturePad, 350);
     }
 
     function generateHSEReport() {
