@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CTO-ConNect</title>
   <meta name="description" content="Chettinad Products & Services – Site Safety Management Portal">
-  <meta name="theme-color" content="#105BA8">
+  <meta name="theme-color" content="#16803C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -27,6 +27,8 @@
   <!-- jsPDF + html2canvas — generates a real PDF file (used for Telegram document attachments) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- JSZip — bundles multiple permit PDFs into a single downloadable zip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   
   <script>
     tailwind.config = {
@@ -35,20 +37,15 @@
         extend: {
           colors: {
             construction: {
-              /* ── Brand palette sampled directly from the CTO-ConNect &
-                 Chettinad logos — navy blue + gold + green, replacing the
-                 previous generic construction-orange theme. ── */
-              orange: '#105BA8',      /* Brand Blue — primary accent (was orange) */
-              orangeDeep: '#0B3D7A',  /* Darker blue — hover/active state for the line above */
-              gold: '#F4BE42',        /* Brand Gold/Amber — from the CTO hard-hat icon */
-              goldDeep: '#D89A1F',    /* Darker gold — hover/active state for gold buttons */
-              green: '#78BD46',       /* Brand Green — from the Chettinad triangle mark */
-              /* Page background deepened and card surface lightened versus
-                 before — they sat too close in shade, so cards barely
-                 "lifted" off the page. More separation = more depth. */
-              darkBg: '#060D1A',      /* Deep navy-black background */
-              cardBg: '#1A3258',      /* Navy card surface — now clearly lighter than the page */
-              border: '#2A4566'       /* Navy-blue border tone */
+              /* ── Brand palette — CTO-ConNect safety green theme ── */
+              orange: '#16803C',      /* Brand Green — primary accent */
+              orangeDeep: '#0F5C2E',  /* Deep Green — hover/active state */
+              gold: '#F4BE42',        /* Brand Gold — from the CTO hard-hat icon */
+              goldDeep: '#D89A1F',    /* Deep Gold — hover/active state */
+              green: '#78BD46',       /* Brand Leaf Green — from the Chettinad triangle mark */
+              darkBg: '#050F07',      /* Near-black green-tinted background */
+              cardBg: '#163825',      /* Dark green card surface */
+              border: '#244D32'       /* Dark green border tone */
             }
           }
         }
@@ -147,8 +144,8 @@
     body.light-mode .text-blue-400 { color: #1d4ed8 !important; }
 
     body.light-mode [class*="bg-construction-orange\/10"],
-    body.light-mode [class*="bg-construction-orange\/20"] { background-color: #dbe9fb !important; }
-    body.light-mode .text-construction-orange { color: #0b3d7a !important; }
+    body.light-mode [class*="bg-construction-orange\/20"] { background-color: #dcfce7 !important; }
+    body.light-mode .text-construction-orange { color: #0F5C2E !important; }
     body.light-mode .text-construction-gold,
     body.light-mode [class*="text-construction-gold"] { color: #92660d !important; }
     body.light-mode [class*="bg-construction-gold\/10"],
@@ -316,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.10.0</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.10.2</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2353,6 +2350,20 @@ service cloud.firestore {
           <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
         <p class="text-[11px] text-slate-400 mb-3">Closed/Cancelled permits moved out of the live database to free up space. Still fully viewable and printable.</p>
+
+        <!-- Bulk actions -->
+        <div class="flex gap-2 mb-4">
+          <button onclick="downloadAllArchivedAsPDF()" id="archive-zip-btn"
+            class="flex-1 bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+            <i data-lucide="archive-restore" class="w-3.5 h-3.5"></i>
+            <span id="archive-zip-label">Download All as ZIP</span>
+          </button>
+          <button onclick="confirmDeleteArchive()"
+            class="bg-red-900/50 hover:bg-red-800 text-red-400 hover:text-white border border-red-800 font-bold text-xs py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete Archive
+          </button>
+        </div>
+
         <div id="archived-permits-list" class="space-y-2">
           <!-- Rendered by renderArchivedPermitsModal() -->
         </div>
@@ -3103,9 +3114,35 @@ service cloud.firestore {
           setFirebaseStatus('syncing');
           try {
             await db.collection(FS_COL).doc(FS_DOC).set(dbState);
+
+            // IMPORTANT: the line above resolving does NOT mean this reached
+            // the server — with offline persistence enabled, .set() resolves
+            // the instant the write is queued LOCALLY, even with zero real
+            // connectivity. On a flaky mobile connection this meant the app
+            // showed "saved" while the data sat stuck on that one device,
+            // never reaching anyone else (e.g. Vijay's submissions never
+            // appearing for reviewers). waitForPendingWrites() only resolves
+            // once the backend has actually acknowledged it — wait for that,
+            // with a timeout so a single save can never hang indefinitely.
+            const confirmed = await Promise.race([
+              db.waitForPendingWrites().then(() => true),
+              new Promise(resolve => setTimeout(() => resolve(false), 8000))
+            ]);
+
             saveBackupSnapshot();
-            _hasPendingOfflineChanges = false;
-            setFirebaseStatus('online');
+            if (confirmed) {
+              _hasPendingOfflineChanges = false;
+              setFirebaseStatus('online');
+            } else {
+              // Still unacknowledged after 8s — connectivity is too poor/
+              // unstable to confirm this reached the server right now. Be
+              // honest about that instead of falsely claiming success; it
+              // will keep retrying in the background and sync once a
+              // connection holds long enough.
+              _hasPendingOfflineChanges = true;
+              setFirebaseStatus('offline');
+              showToast('Saved on this device, but not yet confirmed on the server — your connection may be weak. It will keep trying in the background; please check again once you have a stronger signal.', 'error');
+            }
           } catch (err) {
             console.error('Firestore save error:', err);
             // Firestore's 1MB document-size error is distinct from a real
@@ -3131,6 +3168,54 @@ service cloud.firestore {
           saveToLocalStorage();
         }
       }, 600); // 600 ms debounce — batches rapid edits into one write
+    }
+
+    // ============================================================
+    // For HIGH-STAKES, one-time actions (permit submission, review
+    // decisions) where the person needs to know RIGHT NOW whether their
+    // action genuinely reached the server — not the usual debounced,
+    // fire-and-forget save used for routine edits. Writes immediately and
+    // waits for real backend confirmation (with a timeout), returning
+    // true/false so the caller can show an honest success/failure message
+    // instead of assuming success the moment the local write is queued.
+    // ============================================================
+    async function saveCurrentStateAndConfirm() {
+      if (_saveDebounce) { clearTimeout(_saveDebounce); _saveDebounce = null; } // we're saving right now instead
+
+      if (!isOnline) {
+        saveToLocalStorage();
+        _hasPendingOfflineChanges = true;
+        setFirebaseStatus('offline');
+        return false;
+      }
+      if (!(_firebaseMode && db && _serverLoaded)) {
+        saveToLocalStorage();
+        return false;
+      }
+
+      setFirebaseStatus('syncing');
+      try {
+        await db.collection(FS_COL).doc(FS_DOC).set(dbState);
+        const confirmed = await Promise.race([
+          db.waitForPendingWrites().then(() => true),
+          new Promise(resolve => setTimeout(() => resolve(false), 8000))
+        ]);
+        saveBackupSnapshot();
+        if (confirmed) {
+          _hasPendingOfflineChanges = false;
+          setFirebaseStatus('online');
+          return true;
+        }
+        _hasPendingOfflineChanges = true;
+        setFirebaseStatus('offline');
+        return false;
+      } catch (err) {
+        console.error('saveCurrentStateAndConfirm failed:', err);
+        saveToLocalStorage();
+        _hasPendingOfflineChanges = true;
+        setFirebaseStatus('offline');
+        return false;
+      }
     }
 
     // Legacy alias kept so any code that calls loadSavedState() still works
@@ -4982,14 +5067,14 @@ service cloud.firestore {
 
     function illustrationEmptyClipboard() {
       return `<svg width="100" height="86" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-2" style="opacity:.9">
-        <circle cx="70" cy="60" r="50" fill="#2A4566" opacity="0.4"/>
-        <rect x="40" y="30" width="60" height="76" rx="6" fill="#15294A" stroke="#3a5580" stroke-width="2"/>
-        <rect x="52" y="22" width="36" height="14" rx="4" fill="#105BA8"/>
-        <line x1="50" y1="50" x2="90" y2="50" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
-        <line x1="50" y1="62" x2="90" y2="62" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
-        <line x1="50" y1="74" x2="78" y2="74" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="70" cy="60" r="50" fill="#244D32" opacity="0.4"/>
+        <rect x="40" y="30" width="60" height="76" rx="6" fill="#153A20" stroke="#2e6e3e" stroke-width="2"/>
+        <rect x="52" y="22" width="36" height="14" rx="4" fill="#16803C"/>
+        <line x1="50" y1="50" x2="90" y2="50" stroke="#2e6e3e" stroke-width="3" stroke-linecap="round"/>
+        <line x1="50" y1="62" x2="90" y2="62" stroke="#2e6e3e" stroke-width="3" stroke-linecap="round"/>
+        <line x1="50" y1="74" x2="78" y2="74" stroke="#2e6e3e" stroke-width="3" stroke-linecap="round"/>
         <circle cx="95" cy="88" r="18" fill="#F4BE42"/>
-        <path d="M87 88 L93 94 L104 81" stroke="#060D1A" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M87 88 L93 94 L104 81" stroke="#050F07" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
     }
 
@@ -5014,29 +5099,29 @@ service cloud.firestore {
     // check, purely visual (no data), sits above the Notice Board.
     function dashboardSkylineBannerSVG() {
       return `<svg viewBox="0 0 700 90" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto block" preserveAspectRatio="none" role="img" aria-label="Decorative site illustration">
-        <rect width="700" height="90" fill="#162d52"/>
+        <rect width="700" height="90" fill="#142b1c"/>
         <circle cx="610" cy="28" r="16" fill="#F4BE42" opacity="0.85"/>
-        <rect x="0" y="68" width="700" height="3" fill="#2A4566"/>
-        <rect x="260" y="32" width="34" height="36" fill="#1f3d6b"/>
-        <rect x="266" y="38" width="8" height="8" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="280" y="38" width="8" height="8" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="266" y="50" width="8" height="8" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="280" y="50" width="8" height="8" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="298" y="14" width="44" height="54" fill="#1f3d6b"/>
-        <rect x="306" y="22" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="322" y="22" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="306" y="38" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="322" y="38" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="306" y="54" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="322" y="54" width="9" height="9" fill="#3a6ba8" opacity="0.7"/>
-        <rect x="346" y="40" width="28" height="28" fill="#1f3d6b"/>
-        <line x1="400" y1="68" x2="400" y2="20" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
-        <line x1="400" y1="20" x2="450" y2="20" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
-        <line x1="400" y1="32" x2="430" y2="20" stroke="#3a5580" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="436" y1="20" x2="436" y2="36" stroke="#3a5580" stroke-width="3" stroke-linecap="round"/>
+        <rect x="0" y="68" width="700" height="3" fill="#244D32"/>
+        <rect x="260" y="32" width="34" height="36" fill="#1a4a28"/>
+        <rect x="266" y="38" width="8" height="8" fill="#3d8a52" opacity="0.7"/>
+        <rect x="280" y="38" width="8" height="8" fill="#3d8a52" opacity="0.7"/>
+        <rect x="266" y="50" width="8" height="8" fill="#3d8a52" opacity="0.7"/>
+        <rect x="280" y="50" width="8" height="8" fill="#3d8a52" opacity="0.7"/>
+        <rect x="298" y="14" width="44" height="54" fill="#1a4a28"/>
+        <rect x="306" y="22" width="9" height="9" fill="#3d8a52" opacity="0.7"/>
+        <rect x="322" y="22" width="9" height="9" fill="#3d8a52" opacity="0.7"/>
+        <rect x="306" y="38" width="9" height="9" fill="#3d8a52" opacity="0.7"/>
+        <rect x="322" y="38" width="9" height="9" fill="#3d8a52" opacity="0.7"/>
+        <rect x="306" y="54" width="9" height="9" fill="#3d8a52" opacity="0.7"/>
+        <rect x="322" y="54" width="9" height="9" fill="#3d8a52" opacity="0.7"/>
+        <rect x="346" y="40" width="28" height="28" fill="#1a4a28"/>
+        <line x1="400" y1="68" x2="400" y2="20" stroke="#2e6e3e" stroke-width="3" stroke-linecap="round"/>
+        <line x1="400" y1="20" x2="450" y2="20" stroke="#2e6e3e" stroke-width="3" stroke-linecap="round"/>
+        <line x1="400" y1="32" x2="430" y2="20" stroke="#2e6e3e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="436" y1="20" x2="436" y2="36" stroke="#2e6e3e" stroke-width="3" stroke-linecap="round"/>
         <rect x="430" y="34" width="13" height="9" fill="#F4BE42"/>
         <circle cx="500" cy="46" r="15" fill="#F4BE42"/>
-        <path d="M491 47 L497 53 L510 38" stroke="#162d52" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M491 47 L497 53 L510 38" stroke="#142b1c" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
     }
 
@@ -5702,6 +5787,130 @@ service cloud.firestore {
       dbState.permits.push(p);
       previewPermit(p.id);
       dbState.permits = dbState.permits.filter(x => x.id !== p.id);
+    }
+
+    // ============================================================
+    // BULK ARCHIVE DOWNLOAD — generates one PDF per archived permit
+    // and bundles them all into a single ZIP file for one-click download.
+    // Uses the same proven generatePDFBlobFromLastPrint() approach, just
+    // loops over every permit in the cache instead of doing one at a time.
+    // ============================================================
+    async function downloadAllArchivedAsPDF() {
+      if (!_archivedPermitsCache || !_archivedPermitsCache.length) {
+        showToast('No archived permits loaded — open "View Archived" first.', 'error');
+        return;
+      }
+      if (typeof JSZip === 'undefined') {
+        showToast('ZIP library did not load — check your internet connection and try again.', 'error');
+        return;
+      }
+      if (typeof jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+        showToast('PDF library did not load — check your internet connection and try again.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('archive-zip-btn');
+      const lbl = document.getElementById('archive-zip-label');
+      if (lbl) lbl.textContent = 'Building PDFs…';
+      if (btn) btn.disabled = true;
+
+      const zip = new JSZip();
+      const total = _archivedPermitsCache.length;
+      let done = 0;
+      let failed = 0;
+
+      _batchPDFMode = true; // suppress the full-screen overlay during batch generation
+      for (const p of _archivedPermitsCache) {
+        if (lbl) lbl.textContent = `Building ${done + 1} of ${total}…`;
+        try {
+          // Temporarily splice permit into live list so previewPermit()
+          // can find and render it (same approach as previewArchivedPermit)
+          dbState.permits.push(p);
+          previewPermit(p.id);
+          dbState.permits = dbState.permits.filter(x => x.id !== p.id);
+
+          const blob = await generatePDFBlobFromLastPrint();
+          const filename = sanitizeFilename(p.permitNo || p.id) + '.pdf';
+          zip.file(filename, blob);
+          done++;
+        } catch (err) {
+          console.error(`PDF failed for ${p.permitNo}:`, err);
+          failed++;
+        }
+      }
+      _batchPDFMode = false;
+
+      if (lbl) lbl.textContent = 'Preparing ZIP…';
+
+      try {
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Archived_Permits_${todayKey()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+
+        const msg = failed
+          ? `ZIP downloaded — ${done} permits included, ${failed} could not be converted.`
+          : `ZIP downloaded — all ${done} archived permits included.`;
+        showToast(msg, failed ? 'info' : 'success');
+      } catch (err) {
+        console.error('ZIP generation failed:', err);
+        showToast('Could not generate the ZIP file. Please try again.', 'error');
+      } finally {
+        if (lbl) lbl.textContent = 'Download All as ZIP';
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // ============================================================
+    // DELETE ARCHIVE — permanently removes all archived permit
+    // documents from Firestore. Only safe to do AFTER downloading the
+    // ZIP, so the confirmation dialog makes that order explicit.
+    // ============================================================
+    function confirmDeleteArchive() {
+      if (!currentUser || currentUser.role !== 'Admin') {
+        showToast('Only Admin can delete the archive.', 'error');
+        return;
+      }
+      if (!_archivedPermitsCache || !_archivedPermitsCache.length) {
+        showToast('No archived permits to delete.', 'info');
+        return;
+      }
+      const count = _archivedPermitsCache.length;
+      const confirmed = confirm(
+        `⚠ PERMANENT DELETION — This cannot be undone.\n\n` +
+        `This will permanently delete all ${count} archived permit${count > 1 ? 's' : ''} from the cloud.\n\n` +
+        `Make sure you have already downloaded the ZIP backup before continuing.\n\n` +
+        `Type OK to confirm.`
+      );
+      if (!confirmed) return;
+      deleteArchivePermitted();
+    }
+
+    async function deleteArchivePermitted() {
+      if (!db || !_firebaseMode) { showToast('Cloud connection required to delete the archive.', 'error'); return; }
+      showToast('Deleting archive…', 'info');
+      try {
+        const shardNames = (Array.isArray(dbState.archiveShardNames) && dbState.archiveShardNames.length)
+          ? dbState.archiveShardNames : [FS_ARCHIVE_DOC];
+
+        // Delete all shard documents in parallel
+        await Promise.all(shardNames.map(name => db.collection(FS_COL).doc(name).delete()));
+
+        // Reset the shard registry so the next archive starts fresh
+        dbState.archiveShardNames = [FS_ARCHIVE_DOC];
+        _archivedPermitsCache = [];
+        saveCurrentState();
+
+        showToast(`Archive deleted — all ${shardNames.length} shard${shardNames.length > 1 ? 's' : ''} cleared.`, 'success');
+        closeModal();
+      } catch (err) {
+        console.error('Archive deletion failed:', err);
+        showToast('Could not delete the archive — please try again.', 'error');
+      }
     }
 
     function renderImgbbAdmin() {
@@ -7444,7 +7653,7 @@ ${editCtrLines}
       });
     }
 
-    function triggerSubmitPermitForm() {
+    async function triggerSubmitPermitForm() {
       // Applicant must sign before the permit can be submitted
       if (!applicantSigPad || applicantSigPad.isEmpty()) {
         showToast('Please add the applicant signature before submitting.', 'error');
@@ -7520,10 +7729,8 @@ ${editCtrLines}
         permitObject.id = currentEditPermit.id;
         permitObject.status = 'Submitted'; 
         dbState.permits[idx] = permitObject;
-        showToast('Work Permit resubmitted successfully for review.', 'success');
       } else {
         dbState.permits.push(permitObject);
-        showToast('Work Permit submitted successfully.', 'success');
       }
 
       // A resubmit may change the validity window, so clear any previous
@@ -7531,13 +7738,25 @@ ${editCtrLines}
       // never trigger a fresh expiry/expiring-soon alert.
       if (dbState.permitAlertLog) delete dbState.permitAlertLog[permitObject.id];
 
-      saveCurrentState();
+      const isEdit = !!currentEditPermit;
       closeModal();
+
+      // Wait for genuine server confirmation before telling the person it
+      // worked — showing "submitted successfully" unconditionally and
+      // immediately (the old behaviour) is exactly what was misleading
+      // people on a weak connection: the message played regardless of
+      // whether the data ever actually reached the shared database.
+      const confirmed = await saveCurrentStateAndConfirm();
+      if (confirmed) {
+        showToast(isEdit ? 'Work Permit resubmitted successfully for review.' : 'Work Permit submitted successfully.', 'success');
+      } else {
+        showToast('Permit saved on this device, but could not confirm it reached the server — your connection may be weak. Please check again shortly; if it still hasn\'t appeared for reviewers, try resubmitting once you have a stronger signal.', 'error');
+      }
+
       pushNotification(`New ${selectedPermitType} Permit submitted: ${permitNo} by ${contractor}`);
       renderPermitsTable();
-      const isEdit = !!currentEditPermit;
       sendTelegram(
-`📝 <b>Permit ${isEdit ? 'Resubmitted' : 'Submitted'}</b>
+`📝 Permit ${isEdit ? 'Resubmitted' : 'Submitted'}
 📋 Permit No: ${permitNo}
 🏗 Type: ${selectedPermitType.toUpperCase()}
 👷 Contractor: ${escapeHtml(contractor)}
@@ -8595,6 +8814,11 @@ ${sec('Manpower &amp; Exposure Log')}
 
       _lastPrintHTML = html;
       _lastPrintTitle = `Permit ${p.permitNo} — ${p.type}`;
+
+      // In batch ZIP mode we only need _lastPrintHTML set above —
+      // skip showing the full-screen overlay entirely.
+      if (_batchPDFMode) return;
+
       printContainer.innerHTML = wrapper;
       printContainer.classList.remove('hidden');
       printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
@@ -8611,10 +8835,14 @@ ${sec('Manpower &amp; Exposure Log')}
       }
       } catch (err) {
         console.error('previewPermit error:', err);
-        printContainer.innerHTML = `<div style="padding:24px;font-family:Arial;color:#c00;background:#fff;"><strong>Could not render permit preview.</strong><br><span style="font-size:13px;">${err.message}</span></div>`;
-        printContainer.classList.remove('hidden');
-        printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
-        showToast('Preview error: ' + err.message, 'error');
+        if (!_batchPDFMode) {
+          printContainer.innerHTML = `<div style="padding:24px;font-family:Arial;color:#c00;background:#fff;"><strong>Could not render permit preview.</strong><br><span style="font-size:13px;">${err.message}</span></div>`;
+          printContainer.classList.remove('hidden');
+          printContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:#fff;';
+          showToast('Preview error: ' + err.message, 'error');
+        } else {
+          throw err; // let the batch handler catch it per-permit
+        }
       }
     }
 
@@ -8642,6 +8870,10 @@ ${sec('Manpower &amp; Exposure Log')}
     //     the current page, there is nothing to get stuck on.
     // ============================================================
     let _lastPrintHTML = '';
+    // When true, previewPermit() builds _lastPrintHTML but skips
+    // showing the full-screen overlay — used during batch ZIP generation
+    // so 40 permits don't flash onto the screen one by one.
+    let _batchPDFMode = false;
     let _lastPrintTitle = 'Document';
 
     // Filenames can't contain / \ : * ? " < > | — permit numbers like

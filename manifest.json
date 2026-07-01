@@ -1,11 +1,11 @@
 {
   "name": "CTO-ConNect Safety Portal",
   "short_name": "CTO Safety",
-  "description": "Chettinad Products & Services – Site Safety Management",
+  "description": "Chettinad Products & Services \u2013 Site Safety Management",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0A1A30",
-  "theme_color": "#105BA8",
+  "background_color": "#050F07",
+  "theme_color": "#16803C",
   "orientation": "portrait-primary",
   "icons": [
     {

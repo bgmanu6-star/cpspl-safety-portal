@@ -24,3 +24,35 @@ self.addEventListener('fetch', event => {
     fetch(event.request).catch(() => caches.match(event.request))
   );
 });
+
+// ============================================================
+// PUSH NOTIFICATIONS (Firebase Cloud Messaging)
+// Handles notifications that arrive while the app/tab is closed or in the
+// background — this code runs separately from index.html's own JS, in the
+// service worker's own context, which is why Firebase needs to be
+// initialized again here with the same project config.
+// ============================================================
+importScripts('https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.11.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyDSfDVHm4v1-wakACAhlWzjwvz9GLKxcBE",
+  authDomain: "cpspl-safety-portal.firebaseapp.com",
+  projectId: "cpspl-safety-portal",
+  storageBucket: "cpspl-safety-portal.firebasestorage.app",
+  messagingSenderId: "222167051757",
+  appId: "1:222167051757:web:9c3dd4db151a89b5d9cbe4"
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage(payload => {
+  const title = (payload.notification && payload.notification.title) || 'CTO-ConNect Safety Portal';
+  const options = {
+    body: (payload.notification && payload.notification.body) || '',
+    icon: 'icon-192.png',
+    badge: 'icon-192.png'
+  };
+  self.registration.showNotification(title, options);
+});
+
