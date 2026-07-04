@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.10.5</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.10.7</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -4802,7 +4802,7 @@ service cloud.firestore {
         <table style="width:100%;border-collapse:collapse;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;"><tr>
           <td style="vertical-align:middle;">
             <table style="border-collapse:collapse;"><tr>
-              <td style="vertical-align:middle;padding-right:12px;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;"></td>
+              <td style="vertical-align:middle;padding-right:12px;white-space:nowrap;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;width:98px;display:block;"></td>
               <td style="vertical-align:middle;">
                 <p style="font-size:13px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
                 <p style="font-size:10px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
@@ -4949,7 +4949,7 @@ service cloud.firestore {
       const rfText = rec.riskFactors && rec.riskFactors.length ? rec.riskFactors.join(' / ') : '—';
       const html = `<div id="penalty-print-root" style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;font-size:12px;color:#000;padding:16px;">
         <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:8px;"><tr>
-          <td style="vertical-align:middle;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;"></td>
+          <td style="vertical-align:middle;white-space:nowrap;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;width:98px;display:block;"></td>
           <td style="vertical-align:middle;text-align:right;font-size:10px;color:#555;padding-right:8px;">CPSPL/02/F24/R0</td>
           <td style="vertical-align:middle;width:1%;white-space:nowrap;">${generateQRCodeSVG(`Penalty Notice | Person: ${rec.personName} | Contractor: ${rec.contractor||'—'} | Risk: ${rec.riskLevel} | Date: ${fmtDate(rec.date)} | Amount: ₹${rec.penaltyAmount||0}`, 56)}</td>
         </tr></table>
@@ -5053,7 +5053,10 @@ service cloud.firestore {
     // ============================================================
     function computeAutoFitZoom(htmlContent, maxWidthPx) {
       const measureContainer = document.createElement('div');
-      measureContainer.style.cssText = `position:fixed;top:0;left:-9999px;width:${maxWidthPx}px;`;
+      // all:initial isolates this element from any page-level CSS (including
+      // Tailwind's img { height:auto } reset) so measurements reflect the
+      // document's OWN styles, not the hosting page's stylesheet.
+      measureContainer.style.cssText = `position:fixed;top:0;left:-9999px;width:${maxWidthPx}px;all:initial;font-family:Arial,sans-serif;`;
       measureContainer.innerHTML = htmlContent;
       document.body.appendChild(measureContainer);
       const naturalHeight = measureContainer.scrollHeight;
@@ -5342,7 +5345,7 @@ service cloud.firestore {
 
       const html = `<div id="ppe-print-root" style="max-width:800px;margin:0 auto;font-family:Arial,sans-serif;font-size:12px;color:#000;padding:16px;">
         <table style="width:100%;border-collapse:collapse;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px;"><tr>
-          <td style="vertical-align:middle;width:50px;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;"></td>
+          <td style="vertical-align:middle;white-space:nowrap;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;width:98px;display:block;"></td>
           <td style="vertical-align:middle;">
             <p style="font-size:13px;font-weight:bold;margin:0;">Chettinad Products & Services Pvt. Ltd.</p>
             <p style="font-size:10px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
@@ -5992,26 +5995,33 @@ service cloud.firestore {
       // Render the same content into an off-screen container (not
       // display:none — html2canvas needs it actually laid out to capture
       // it, just not visible to the person using the app).
+      // The container sits inside the main-page DOM, so Tailwind's base
+      // reset (img { height: auto }) could override the logo's inline
+      // height:40px — forcing all-inherit on the inner wrapper isolates
+      // the print HTML from any page-level CSS.
       const container = document.createElement('div');
-      container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;background:#fff;';
+      container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;background:#fff;all:initial;font-family:Arial,sans-serif;';
       container.innerHTML = _lastPrintHTML;
       document.body.appendChild(container);
 
-      // Even base64 data-URI images (the logo, every signature) still need
-      // the browser to decode them into actual pixels before html2canvas
-      // can capture them — that decode is asynchronous, so without this
-      // wait, html2canvas was screenshotting before the logo (and
-      // sometimes signatures) had actually finished rendering, producing a
-      // PDF with them missing.
+      // img.decode() is the correct async API for "the image is fully
+      // decoded and ready to be painted" — unlike the 'load' event, which
+      // can fire before decoding is complete, or the naturalWidth check,
+      // which can be 0 even for a correctly-set data URI that the browser
+      // just hasn't decoded yet. Falls back to a 3-second timeout for any
+      // browser that doesn't support decode().
       const imgs = Array.from(container.querySelectorAll('img'));
-      await Promise.all(imgs.map(img => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise(resolve => {
-          img.addEventListener('load', resolve, { once: true });
-          img.addEventListener('error', resolve, { once: true }); // don't hang on a broken image
-          setTimeout(resolve, 3000); // safety net
-        });
-      }));
+      await Promise.all(imgs.map(img =>
+        (typeof img.decode === 'function'
+          ? img.decode().catch(() => {})
+          : new Promise(resolve => {
+              if (img.complete && img.naturalWidth > 0) { resolve(); return; }
+              img.addEventListener('load', resolve, { once: true });
+              img.addEventListener('error', resolve, { once: true });
+              setTimeout(resolve, 3000);
+            })
+        )
+      ));
 
       try {
         const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
@@ -8452,7 +8462,7 @@ ${editCtrLines}
       <div style="font-size:8px;color:#64748b;margin-top:2px;">Chettinad Products and Services Pvt. Ltd.</div>
     </td>
     <td style="padding:13px 16px;vertical-align:middle;text-align:right;width:100px;">
-      ${logoSrc ? `<img src="${logoSrc}" style="height:42px;width:auto;background:#fff;padding:4px 6px;border-radius:3px;">` : ''}
+      ${logoSrc ? `<img src="${logoSrc}" style="height:42px;width:103px;display:block;background:#fff;padding:4px 6px;border-radius:3px;">` : ''}
     </td>
     <td style="padding:13px 12px;vertical-align:middle;width:1%;white-space:nowrap;">
       ${generateQRCodeSVG(`HSE Monthly Report | ${monthName} ${year} | CTO Chennai | Prepared by: ${currentUser.fullname}`, 50)}
@@ -8736,7 +8746,7 @@ ${sec('Manpower &amp; Exposure Log')}
           <table style="width:100%;border-collapse:collapse;border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:10px;"><tr>
             <td style="vertical-align:middle;">
               <table style="border-collapse:collapse;"><tr>
-                <td style="vertical-align:middle;padding-right:10px;width:1%;white-space:nowrap;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;width:auto;object-fit:contain;"></td>
+                <td style="vertical-align:middle;padding-right:10px;white-space:nowrap;"><img src="${CHETTINAD_LOGO_DATA_URI}" style="height:40px;width:98px;display:block;"></td>
                 <td style="vertical-align:middle;">
                   <p style="font-size:13px;font-weight:800;margin:0;color:#111;">Chettinad Products &amp; Services Pvt. Ltd.</p>
                   <p style="font-size:10px;margin:2px 0 0;color:#555;">Project : CTO, Chennai</p>
