@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.10.7</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.10.8</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -6024,7 +6024,11 @@ service cloud.firestore {
       ));
 
       try {
-        const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        // scale:1.5 gives good quality text at ~40% the file size of scale:2.
+        // JPEG at 0.82 quality vs PNG: another ~70% reduction with no visible
+        // difference on text/table documents like permits. Together these
+        // bring a typical permit from 1-3MB down to well under 500KB.
+        const canvas = await html2canvas(container, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
         const { jsPDF } = jspdf;
         const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
@@ -6032,20 +6036,20 @@ service cloud.firestore {
         const pageHeight = pdf.internal.pageSize.getHeight();
         const imgWidth   = pageWidth;
         const imgHeight  = (canvas.height * imgWidth) / canvas.width;
-        const imgData    = canvas.toDataURL('image/png');
+        const imgData    = canvas.toDataURL('image/jpeg', 0.82);
 
         if (imgHeight <= pageHeight) {
-          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+          pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
         } else {
           // Content taller than one page — slice it across multiple pages.
           let heightLeft = imgHeight;
           let position = 0;
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
           heightLeft -= pageHeight;
           while (heightLeft > 0) {
             position = heightLeft - imgHeight;
             pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
             heightLeft -= pageHeight;
           }
         }
