@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.11.1</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.11.2</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -903,6 +903,35 @@ service cloud.firestore {
                3. WORK PERMIT MODULE VIEW
                ============================================== -->
           <div id="view-permits" class="space-y-6 hidden no-print">
+
+            <!-- PERMIT SYSTEM NOTICE — static HTML, always visible,
+                 no JS required. Shown from today as advance notice,
+                 remains after 13 July as the permanent revocation notice. -->
+            <div class="rounded-xl overflow-hidden border-2 border-red-600 shadow-lg shadow-red-900/30">
+              <div class="bg-red-700 px-4 py-3 flex items-center gap-3">
+                <i data-lucide="alert-octagon" class="w-6 h-6 text-white shrink-0"></i>
+                <div>
+                  <p class="text-white font-black text-xs uppercase tracking-widest">⚠ Important Notice — Permit System Change</p>
+                  <p class="text-red-200 text-[10px]">CTO Project, Chennai · Chettinad Products &amp; Services Pvt. Ltd.</p>
+                </div>
+              </div>
+              <div class="bg-red-950/80 px-4 py-3 space-y-2">
+                <p class="text-red-100 text-xs font-bold">With effect from <span class="text-white underline">13th July 2026</span>, the digital work permit submission system on the CTO Project site has been <span class="text-white">discontinued</span>.</p>
+                <p class="text-red-200 text-[11px]">All work permits must be submitted as <strong class="text-white">physical printed copies</strong>, duly signed and approved before commencement of any site work. Digital submissions will not be accepted.</p>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <div class="bg-red-900/50 rounded-lg px-3 py-2">
+                    <p class="text-[10px] font-bold text-red-300 mb-1">⛔ No longer available</p>
+                    <p class="text-[10px] text-red-200">New permit submissions</p>
+                  </div>
+                  <div class="bg-green-900/40 rounded-lg px-3 py-2">
+                    <p class="text-[10px] font-bold text-green-300 mb-1">✅ Still working normally</p>
+                    <p class="text-[10px] text-green-200">Manpower · Observations · Inspections · HSE Reports</p>
+                  </div>
+                </div>
+                <p class="text-[10px] text-red-400 text-center pt-1">For queries contact the Site Safety Officer.</p>
+              </div>
+            </div>
+
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h2 class="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
@@ -3558,9 +3587,6 @@ service cloud.firestore {
         renderDashboardStats();
       } else if (tabId === 'permits') {
         renderPermitsTable();
-        // Show revocation notice every time the Permits tab is opened —
-        // from today as an advance warning, blocking from 13 July.
-        setTimeout(() => showPermitRevocationBanner(), 300);
       } else if (tabId === 'labour') {
         renderLabourHistory();
       } else if (tabId === 'reports') {
