@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.10.8</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.11.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -2342,6 +2342,50 @@ service cloud.firestore {
         </form>
       </div>
 
+      <!-- PERMIT SYSTEM REVOCATION NOTICE — shown to all users when they
+           open the Permits tab on or after 13 July 2026 -->
+      <div id="modal-permit-revoked" class="bg-construction-darkBg border-2 border-red-600 rounded-xl shadow-2xl max-w-lg w-full p-0 hidden overflow-hidden">
+        <!-- Red alert header -->
+        <div class="bg-red-700 px-6 py-4 flex items-center gap-3">
+          <i data-lucide="alert-octagon" class="w-8 h-8 text-white shrink-0"></i>
+          <div>
+            <p class="text-white font-black text-sm uppercase tracking-widest" id="permit-revoke-header-title">Important Notice</p>
+            <p class="text-red-200 text-[11px] font-semibold">CTO Project, Chennai — Chettinad Products &amp; Services</p>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="px-6 py-5 space-y-4">
+          <div class="bg-red-950/60 border border-red-700 rounded-xl p-4 text-center">
+            <p class="text-red-300 font-black text-base uppercase tracking-wider mb-1" id="permit-revoke-title">⛔ Digital Permit System — Discontinuing</p>
+            <p class="text-red-200 text-[11px]" id="permit-revoke-body">With effect from <strong class="text-white">13th July 2026</strong>, the online work permit submission system will be <strong class="text-white">discontinued</strong> on the CTO Project site.</p>
+          </div>
+
+          <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 text-center">
+            <p class="text-construction-gold font-black text-sm uppercase tracking-wider mb-1">✅ Printed Permits Only</p>
+            <p class="text-slate-300 text-[11px]">All work permits must now be submitted as <strong class="text-white">physical printed copies</strong>, duly signed and approved by the concerned authority before commencement of any work on site.</p>
+          </div>
+
+          <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4 space-y-1.5">
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">What still works normally</p>
+            <p class="text-[11px] text-slate-300">✅ Manpower entry &amp; daily attendance</p>
+            <p class="text-[11px] text-slate-300">✅ Safety observations &amp; incident reporting</p>
+            <p class="text-[11px] text-slate-300">✅ PPE compliance checks &amp; inspections</p>
+            <p class="text-[11px] text-slate-300">✅ HSE monthly report generation</p>
+            <p class="text-[11px] text-red-400">⛔ New permit submissions — not allowed</p>
+          </div>
+
+          <p class="text-[10px] text-slate-500 text-center">For clarification contact the Site Safety Officer.<br>Chettinad Products &amp; Services Pvt. Ltd. — CTO Project</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 pb-5">
+          <button onclick="closeModal()" class="w-full py-3 bg-red-700 hover:bg-red-600 text-white font-black text-sm rounded-xl transition-colors uppercase tracking-wider">
+            I Understand — Close
+          </button>
+        </div>
+      </div>
+
       <!-- ARCHIVED PERMITS — read-only, stored separately from the live
            database to keep the live document small -->
       <div id="modal-archived-permits" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-lg w-full p-6 hidden max-h-[90vh] overflow-y-auto">
@@ -3514,6 +3558,9 @@ service cloud.firestore {
         renderDashboardStats();
       } else if (tabId === 'permits') {
         renderPermitsTable();
+        // Show revocation notice every time the Permits tab is opened —
+        // from today as an advance warning, blocking from 13 July.
+        setTimeout(() => showPermitRevocationBanner(), 300);
       } else if (tabId === 'labour') {
         renderLabourHistory();
       } else if (tabId === 'reports') {
@@ -7585,6 +7632,13 @@ ${editCtrLines}
     }
 
     function startPermitCreation(type) {
+      // Digital permit submission was discontinued on 13 July 2026 —
+      // printed permits only from that date.
+      if (new Date() >= new Date('2026-07-13T00:00:00')) {
+        showPermitRevocationBanner();
+        return;
+      }
+
       selectedPermitType = type;
       currentEditPermit = null;
       closeModal();
@@ -7668,6 +7722,14 @@ ${editCtrLines}
     }
 
     async function triggerSubmitPermitForm() {
+      // Digital permit submission discontinued from 13 July 2026
+      if (new Date() >= new Date('2026-07-13T00:00:00')) {
+        showToast('Digital permit submission has been discontinued. Printed permits only.', 'error');
+        closeModal();
+        showPermitRevocationBanner();
+        return;
+      }
+
       // Applicant must sign before the permit can be submitted
       if (!applicantSigPad || applicantSigPad.isEmpty()) {
         showToast('Please add the applicant signature before submitting.', 'error');
@@ -7779,6 +7841,26 @@ ${editCtrLines}
 🕐 Valid: ${fmtDateTimeLocal(validityStart)} → ${fmtDateTimeLocal(validityEnd)}`,
         [], 'permit_submit'
       );
+    }
+
+    function showPermitRevocationBanner() {
+      const REVOKE_DATE = new Date('2026-07-13T00:00:00');
+      const isPast = new Date() >= REVOKE_DATE;
+
+      const headerTitle = document.getElementById('permit-revoke-header-title');
+      const title       = document.getElementById('permit-revoke-title');
+      const body        = document.getElementById('permit-revoke-body');
+
+      if (headerTitle) headerTitle.textContent = isPast ? 'System Discontinued' : 'Advance Notice — Action Required';
+      if (title) title.textContent = isPast
+        ? '⛔ Digital Permit System — Discontinued'
+        : '⚠ Digital Permit System — Discontinuing on 13 July 2026';
+      if (body) body.innerHTML = isPast
+        ? 'The online work permit submission system has been <strong class="text-white">discontinued</strong> effective <strong class="text-white">13th July 2026</strong>. Digital permit submissions are <strong class="text-white">no longer accepted</strong>.'
+        : 'Please be informed that the online work permit submission system will be <strong class="text-white">discontinued from 13th July 2026</strong>. This is an advance notice — permits can still be submitted digitally until that date.';
+
+      showPermitRevocationBanner();
+      lucide.createIcons();
     }
 
     function renderPermitsTable() {
