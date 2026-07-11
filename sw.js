@@ -1,7 +1,7 @@
 // CTO-ConNect Safety Portal — Service Worker v2
 // Enables PWA install + handles push notifications in the background.
 
-const CACHE_NAME = 'cto-safety-v2';
+const CACHE_NAME = 'cto-safety-v3';
 
 self.addEventListener('install', event => {
   self.skipWaiting(); // activate immediately, never block page load
