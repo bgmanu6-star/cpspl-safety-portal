@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.11.3</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.11.4</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -5753,11 +5753,12 @@ service cloud.firestore {
     // from the document that has to be re-written on every single save.
     // ============================================================
     // ============================================================
-    // BULK CLOSE ALL PENDING PERMITS
-    // One-time use for transitioning to paper permits. Finds every permit
-    // that is still in-progress (anything except Closed/Cancelled/Rejected),
-    // stamps a PM approval signature (programmatically generated), sets
-    // status to Approved then Closed with an administrative note.
+    // BULK CLOSE ALL PENDING PERMITS — batch mode
+    // At 96% storage, adding signature images to 32 permits in one
+    // write pushes straight past the 1MB limit and the save fails
+    // silently. Fix: process 5 at a time, archive immediately after
+    // each batch so space is freed before the next batch starts.
+    // No image stamps — just status + text note, minimal data.
     // ============================================================
     async function bulkCloseAllPendingPermits() {
       if (!currentUser || currentUser.role !== 'Admin') {
@@ -5768,136 +5769,124 @@ service cloud.firestore {
         !['Closed','Cancelled','Rejected'].includes(p.status)
       );
       if (!pending.length) {
-        showToast('No pending permits found — all permits are already in a terminal state.', 'info');
+        showToast('No pending permits — all already in a terminal state.', 'info');
         return;
       }
 
-      // Find PM user for the name
       const pmUser = (dbState.users || []).find(u => u.role === 'Staff' && u.isProjectManager);
       const pmName = pmUser ? pmUser.fullname : 'Project Manager';
 
       if (!confirm(
-        `This will approve and close ${pending.length} pending permit${pending.length > 1 ? 's' : ''} using the PM name "${pmName}".\n\n` +
-        `A digital approval stamp will be generated in place of a handwritten signature.\n\n` +
-        `This cannot be undone. Continue?`
+        `Close ${pending.length} pending permit${pending.length > 1 ? 's' : ''}?\n\n` +
+        `PM: ${pmName}\n` +
+        `Processed in batches of 5 with archiving in between to stay within storage limits.\n\n` +
+        `Continue?`
       )) return;
 
-      showToast(`Processing ${pending.length} permits — please wait…`, 'info');
+      const BATCH = 5;
+      const now   = fmtDT(new Date());
+      const note  = `Approved and closed on ${now} by ${currentUser.fullname} (Admin) · PM: ${pmName} · Transitioning to paper permit system effective 13 July 2026.`;
+      let totalDone = 0;
+      let batchNum  = 0;
+      const totalBatches = Math.ceil(pending.length / BATCH);
 
-      // Generate a simple approval stamp on a canvas — looks like a rubber
-      // stamp rather than a blank or missing signature.
-      const stampDataURI = await generateApprovalStamp(pmName);
-      const now          = fmtDT(new Date());
-      const closingNote  = `Administratively approved and closed on ${now} by ${currentUser.fullname} (Admin) — transitioning to paper permit system effective 13 July 2026.`;
+      for (let i = 0; i < pending.length; i += BATCH) {
+        batchNum++;
+        const batch = pending.slice(i, i + BATCH);
+        showToast(`Closing batch ${batchNum} of ${totalBatches} (${batch.length} permits)…`, 'info');
 
-      pending.forEach(p => {
-        if (!p.signatures) p.signatures = {};
-        if (!p.comments)   p.comments   = [];
+        // Apply minimal changes — no images, just status + text
+        batch.forEach(p => {
+          if (!p.signatures) p.signatures = {};
+          if (!p.comments)   p.comments   = [];
 
-        // PM approval stamp
-        p.signatures['ProjectManager'] = {
-          image:       stampDataURI,
-          signerName:  pmName,
-          signerRole:  'Project Manager (Administrative Closure)',
-          timestamp:   now
-        };
-
-        // Admin checked-by stamp if not already present
-        if (!p.signatures['Admin']) {
-          p.signatures['Admin'] = {
-            image:       stampDataURI,
-            signerName:  currentUser.fullname,
-            signerRole:  'Admin — Checked By',
-            timestamp:   now
+          // Text-only PM approval record (no canvas image)
+          p.signatures['ProjectManager'] = {
+            image:      null,
+            signerName: pmName,
+            signerRole: 'Project Manager — Administrative Closure',
+            timestamp:  now
           };
+
+          p.status      = 'Closed';
+          p.closedAt    = now;
+          p.closedBy    = currentUser.fullname;
+          p.closeComment = note;
+          p.comments.push({
+            author:      currentUser.fullname,
+            role:        'Admin',
+            designation: currentUser.designation || 'Senior Safety Officer',
+            text:        note,
+            timestamp:   now
+          });
+        });
+
+        // Save this batch to the cloud
+        const saved = await saveCurrentStateAndConfirm();
+        if (!saved) {
+          showToast(`Batch ${batchNum} save failed — storage may be too full. Try "Archive Closed/Cancelled Permits" first to free space, then run this again.`, 'error');
+          renderPermitsTable();
+          renderDbSizeMeter();
+          return;
         }
 
-        // Closing signature
-        p.signatures['Closure'] = {
-          image:      stampDataURI,
-          signerName: currentUser.fullname,
-          signerRole: 'Admin',
-          timestamp:  now
-        };
+        totalDone += batch.length;
 
-        p.status    = 'Closed';
-        p.closedAt  = now;
-        p.closedBy  = currentUser.fullname;
-        p.closeComment = closingNote;
-        p.comments.push({
-          author:      currentUser.fullname,
-          role:        'Admin',
-          designation: currentUser.designation || 'Senior Safety Officer',
-          text:        closingNote,
-          timestamp:   now
-        });
-      });
-
-      const confirmed = await saveCurrentStateAndConfirm();
-      if (confirmed) {
-        showToast(`✅ ${pending.length} permit${pending.length > 1 ? 's' : ''} approved and closed successfully. You can now archive them all using "Archive Closed/Cancelled Permits".`, 'success');
-        renderPermitsTable();
-        renderDashboardStats();
-        renderDbSizeMeter();
-      } else {
-        showToast('Permits updated locally but cloud save not confirmed — tap Refresh and try again if needed.', 'error');
+        // Archive this batch immediately to free up space before the next batch
+        if (i + BATCH < pending.length) {
+          showToast(`Batch ${batchNum} saved — archiving to free space for next batch…`, 'info');
+          await archiveClosedCancelledPermits(true); // silent mode
+        }
       }
+
+      showToast(`✅ All ${totalDone} permits approved and closed. Archiving final batch…`, 'success');
+      await archiveClosedCancelledPermits(true);
+      renderPermitsTable();
+      renderDashboardStats();
+      renderDbSizeMeter();
+      showToast(`✅ Done — all ${totalDone} permits closed and archived. Download the ZIP from "View Archived".`, 'success');
     }
 
     // Generates a simple text-based approval stamp as a data URI.
-    // Looks like a dated rubber stamp — clearly distinguishable from
-    // a genuine handwritten signature, which is intentional.
     function generateApprovalStamp(name) {
       return new Promise(resolve => {
         const canvas = document.createElement('canvas');
         canvas.width  = 320;
         canvas.height = 100;
         const ctx = canvas.getContext('2d');
-
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Outer border
         ctx.strokeStyle = '#b91c1c';
         ctx.lineWidth   = 3;
         ctx.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
-
-        // Inner border
         ctx.lineWidth = 1;
         ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-
-        // APPROVED text
-        ctx.fillStyle   = '#b91c1c';
-        ctx.font        = 'bold 22px Arial';
-        ctx.textAlign   = 'center';
+        ctx.fillStyle = '#b91c1c';
+        ctx.font      = 'bold 22px Arial';
+        ctx.textAlign = 'center';
         ctx.fillText('APPROVED', canvas.width / 2, 42);
-
-        // Name
         ctx.font      = 'bold 12px Arial';
         ctx.fillStyle = '#7f1d1d';
         ctx.fillText(name, canvas.width / 2, 62);
-
-        // Date
         ctx.font      = '11px Arial';
         ctx.fillStyle = '#b91c1c';
         ctx.fillText('Administrative Closure · ' + new Date().toLocaleDateString('en-IN'), canvas.width / 2, 82);
-
         resolve(canvas.toDataURL('image/png'));
       });
     }
 
-    async function archiveClosedCancelledPermits() {
+    async function archiveClosedCancelledPermits(silent = false) {
       if (!currentUser || currentUser.role !== 'Admin') { showToast('Only Admin can archive permits.', 'error'); return; }
       if (!db || !_firebaseMode) { showToast('Archiving requires an active cloud connection.', 'error'); return; }
 
       const toArchive = (dbState.permits || []).filter(p => p.status === 'Closed' || p.status === 'Cancelled');
       if (toArchive.length === 0) {
-        showToast('No closed or cancelled permits to archive right now.', 'info');
+        if (!silent) showToast('No closed or cancelled permits to archive right now.', 'info');
         return;
       }
-      if (!confirm(`Archive ${toArchive.length} closed/cancelled permit(s) to free up space?\n\nThey stay fully accessible via "View Archived Permits" — this only moves them out of the live database.`)) return;
+      if (!silent && !confirm(`Archive ${toArchive.length} closed/cancelled permit(s) to free up space?\n\nThey stay fully accessible via "View Archived Permits" — this only moves them out of the live database.`)) return;
 
-      showToast('Archiving — please wait…', 'info');
+      if (!silent) showToast('Archiving — please wait…', 'info');
 
       // Step 1: write to the archive FIRST. Nothing is ever lost regardless
       // of what happens in step 2, since this is verified successful before
