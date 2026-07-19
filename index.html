@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.11.2</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.11.3</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1312,6 +1312,14 @@ service cloud.firestore {
                   </button>
                   <button onclick="viewArchivedPermits()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-construction-border font-semibold text-xs py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5">
                     <i data-lucide="folder-open" class="w-3.5 h-3.5"></i> View Archived
+                  </button>
+                </div>
+                <!-- Bulk close — one-time use for transitioning to paper permits -->
+                <div class="mt-3 bg-amber-950/40 border border-amber-700/50 rounded-lg p-3">
+                  <p class="text-[10px] font-bold text-amber-400 mb-1">⚠ Bulk Close All Pending Permits</p>
+                  <p class="text-[10px] text-slate-400 mb-2">One-time use — automatically approves and closes all permits that are still in progress (Submitted, Pending Review, Pending PM Approval, Approved). Uses the Project Manager's name and the current date. Use this to transition to the paper permit system.</p>
+                  <button onclick="bulkCloseAllPendingPermits()" class="w-full bg-amber-700 hover:bg-amber-600 text-white font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+                    <i data-lucide="check-check" class="w-3.5 h-3.5"></i> Approve &amp; Close All Pending Permits
                   </button>
                 </div>
               </div>
@@ -5744,6 +5752,140 @@ service cloud.firestore {
     // fully viewable via "View Archived Permits"; this only removes them
     // from the document that has to be re-written on every single save.
     // ============================================================
+    // ============================================================
+    // BULK CLOSE ALL PENDING PERMITS
+    // One-time use for transitioning to paper permits. Finds every permit
+    // that is still in-progress (anything except Closed/Cancelled/Rejected),
+    // stamps a PM approval signature (programmatically generated), sets
+    // status to Approved then Closed with an administrative note.
+    // ============================================================
+    async function bulkCloseAllPendingPermits() {
+      if (!currentUser || currentUser.role !== 'Admin') {
+        showToast('Only Admin can do this.', 'error'); return;
+      }
+
+      const pending = (dbState.permits || []).filter(p =>
+        !['Closed','Cancelled','Rejected'].includes(p.status)
+      );
+      if (!pending.length) {
+        showToast('No pending permits found — all permits are already in a terminal state.', 'info');
+        return;
+      }
+
+      // Find PM user for the name
+      const pmUser = (dbState.users || []).find(u => u.role === 'Staff' && u.isProjectManager);
+      const pmName = pmUser ? pmUser.fullname : 'Project Manager';
+
+      if (!confirm(
+        `This will approve and close ${pending.length} pending permit${pending.length > 1 ? 's' : ''} using the PM name "${pmName}".\n\n` +
+        `A digital approval stamp will be generated in place of a handwritten signature.\n\n` +
+        `This cannot be undone. Continue?`
+      )) return;
+
+      showToast(`Processing ${pending.length} permits — please wait…`, 'info');
+
+      // Generate a simple approval stamp on a canvas — looks like a rubber
+      // stamp rather than a blank or missing signature.
+      const stampDataURI = await generateApprovalStamp(pmName);
+      const now          = fmtDT(new Date());
+      const closingNote  = `Administratively approved and closed on ${now} by ${currentUser.fullname} (Admin) — transitioning to paper permit system effective 13 July 2026.`;
+
+      pending.forEach(p => {
+        if (!p.signatures) p.signatures = {};
+        if (!p.comments)   p.comments   = [];
+
+        // PM approval stamp
+        p.signatures['ProjectManager'] = {
+          image:       stampDataURI,
+          signerName:  pmName,
+          signerRole:  'Project Manager (Administrative Closure)',
+          timestamp:   now
+        };
+
+        // Admin checked-by stamp if not already present
+        if (!p.signatures['Admin']) {
+          p.signatures['Admin'] = {
+            image:       stampDataURI,
+            signerName:  currentUser.fullname,
+            signerRole:  'Admin — Checked By',
+            timestamp:   now
+          };
+        }
+
+        // Closing signature
+        p.signatures['Closure'] = {
+          image:      stampDataURI,
+          signerName: currentUser.fullname,
+          signerRole: 'Admin',
+          timestamp:  now
+        };
+
+        p.status    = 'Closed';
+        p.closedAt  = now;
+        p.closedBy  = currentUser.fullname;
+        p.closeComment = closingNote;
+        p.comments.push({
+          author:      currentUser.fullname,
+          role:        'Admin',
+          designation: currentUser.designation || 'Senior Safety Officer',
+          text:        closingNote,
+          timestamp:   now
+        });
+      });
+
+      const confirmed = await saveCurrentStateAndConfirm();
+      if (confirmed) {
+        showToast(`✅ ${pending.length} permit${pending.length > 1 ? 's' : ''} approved and closed successfully. You can now archive them all using "Archive Closed/Cancelled Permits".`, 'success');
+        renderPermitsTable();
+        renderDashboardStats();
+        renderDbSizeMeter();
+      } else {
+        showToast('Permits updated locally but cloud save not confirmed — tap Refresh and try again if needed.', 'error');
+      }
+    }
+
+    // Generates a simple text-based approval stamp as a data URI.
+    // Looks like a dated rubber stamp — clearly distinguishable from
+    // a genuine handwritten signature, which is intentional.
+    function generateApprovalStamp(name) {
+      return new Promise(resolve => {
+        const canvas = document.createElement('canvas');
+        canvas.width  = 320;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Outer border
+        ctx.strokeStyle = '#b91c1c';
+        ctx.lineWidth   = 3;
+        ctx.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
+
+        // Inner border
+        ctx.lineWidth = 1;
+        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+        // APPROVED text
+        ctx.fillStyle   = '#b91c1c';
+        ctx.font        = 'bold 22px Arial';
+        ctx.textAlign   = 'center';
+        ctx.fillText('APPROVED', canvas.width / 2, 42);
+
+        // Name
+        ctx.font      = 'bold 12px Arial';
+        ctx.fillStyle = '#7f1d1d';
+        ctx.fillText(name, canvas.width / 2, 62);
+
+        // Date
+        ctx.font      = '11px Arial';
+        ctx.fillStyle = '#b91c1c';
+        ctx.fillText('Administrative Closure · ' + new Date().toLocaleDateString('en-IN'), canvas.width / 2, 82);
+
+        resolve(canvas.toDataURL('image/png'));
+      });
+    }
+
     async function archiveClosedCancelledPermits() {
       if (!currentUser || currentUser.role !== 'Admin') { showToast('Only Admin can archive permits.', 'error'); return; }
       if (!db || !_firebaseMode) { showToast('Archiving requires an active cloud connection.', 'error'); return; }
