@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.11.4</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.11.5</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -5800,12 +5800,18 @@ service cloud.firestore {
           if (!p.signatures) p.signatures = {};
           if (!p.comments)   p.comments   = [];
 
-          // Text-only PM approval record (no canvas image)
+          // Text-only PM approval record (no canvas image).
+          // Store BOTH field name conventions so the PDF renderer finds
+          // the name/designation regardless of which version it reads.
+          const safePMName = pmName || 'Project Manager';
           p.signatures['ProjectManager'] = {
-            image:      null,
-            signerName: pmName,
-            signerRole: 'Project Manager — Administrative Closure',
-            timestamp:  now
+            signatureImage: null,
+            image:          null,
+            name:           safePMName,
+            signerName:     safePMName,
+            designation:    'Project Manager',
+            signerRole:     'Project Manager — Administrative Closure',
+            timestamp:      now
           };
 
           p.status      = 'Closed';
@@ -8879,12 +8885,20 @@ ${sec('Manpower &amp; Exposure Log')}
           const s   = sigs[role];
           const lbl = reviewerLabel(role);
           const isPM = role === 'ProjectManager';
+          // Handle both field name conventions — old permits use signatureImage/name,
+          // bulk-closed permits use image/signerName
+          const imgSrc  = s.signatureImage || s.image || null;
+          const sigName = s.name || s.signerName || '—';
+          const sigDesig = s.designation || s.signerRole || '';
+          const imgHtml = imgSrc
+            ? `<img src="${imgSrc}" style="height:18px;display:block;margin:0 auto;max-width:100%;">`
+            : `<p style="font-size:7px;color:${isPM ? '#f97316' : '#888'};font-style:italic;margin:2px 0;">Administrative${isPM ? '<br>Closure' : ''}</p>`;
           return `<td style="padding:0 2.5px;vertical-align:bottom;"><div style="border:${isPM ? '1.5px solid #f97316' : '1px solid #aaa'};border-radius:3px;padding:3px 4px;text-align:center;background:${isPM ? '#fff8f0' : '#fff'};">
             <p style="font-size:7.5px;font-weight:800;text-transform:uppercase;color:${isPM ? '#f97316' : '#555'};letter-spacing:0.4px;margin:0 0 3px;">${lbl}</p>
-            <img src="${s.signatureImage}" style="height:18px;display:block;margin:0 auto;max-width:100%;">
-            <p style="font-size:9.5px;font-weight:bold;color:#000;margin:3px 0 0;">${s.name}</p>
-            <p style="font-size:8px;color:#444;margin:1px 0 0;">${s.designation || ''}</p>
-            <p style="font-size:7.5px;color:#999;margin:1px 0 0;">${s.timestamp}</p>
+            ${imgHtml}
+            <p style="font-size:9.5px;font-weight:bold;color:#000;margin:3px 0 0;">${sigName}</p>
+            <p style="font-size:8px;color:#444;margin:1px 0 0;">${sigDesig}</p>
+            <p style="font-size:7.5px;color:#999;margin:1px 0 0;">${s.timestamp || ''}</p>
           </div></td>`;
         }).join('');
 
