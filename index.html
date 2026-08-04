@@ -313,7 +313,7 @@ service cloud.firestore {
           <div>
             <div class="flex items-center gap-1.5">
               <span class="text-xs font-bold uppercase tracking-wider bg-construction-gold/20 text-construction-gold px-1.5 py-0.5 rounded">CTO Project</span>
-              <span class="text-[10px] text-slate-400 font-mono">v3.11.5</span>
+              <span class="text-[10px] text-slate-400 font-mono">v3.12.0</span>
             </div>
             <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight leading-tight">
               Chettinad <span class="text-slate-300 font-medium">Products & Services</span>
@@ -1247,6 +1247,45 @@ service cloud.firestore {
           <!-- ==============================================
                7. DOCUMENT LIBRARY VIEW
                ============================================== -->
+          <!-- SAFETY MATERIAL STOCK REGISTER VIEW -->
+          <div id="view-stock" class="space-y-5 hidden no-print">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-bold uppercase tracking-wider text-construction-gold flex items-center gap-2">
+                  <i data-lucide="package" class="w-5 h-5"></i> Safety Material Stock Register
+                </h2>
+                <p class="text-xs text-slate-400">Track incoming materials, issues to contractors, and current stock balance.</p>
+              </div>
+              <div class="flex gap-2 flex-wrap w-full sm:w-auto">
+                <button onclick="openAddMaterialModal()" class="flex-1 sm:flex-none bg-construction-cardBg hover:bg-slate-700 text-slate-200 border border-construction-border font-semibold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Material
+                </button>
+                <button onclick="openReceiptModal()" class="flex-1 sm:flex-none bg-construction-orange hover:bg-construction-orangeDeep text-white font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+                  <i data-lucide="package-plus" class="w-3.5 h-3.5"></i> Record Receipt
+                </button>
+                <button onclick="openIssueModal()" class="flex-1 sm:flex-none bg-construction-gold hover:bg-yellow-600 text-construction-darkBg font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5">
+                  <i data-lucide="package-minus" class="w-3.5 h-3.5"></i> Issue to Contractor
+                </button>
+              </div>
+            </div>
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-3"><i data-lucide="bar-chart-3" class="w-4 h-4 text-construction-gold"></i> Current Stock Balance</h3>
+              <div id="stock-summary-table"></div>
+            </div>
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-3"><i data-lucide="hard-hat" class="w-4 h-4 text-cyan-400"></i> Contractor-wise Holdings</h3>
+              <div id="stock-contractor-cards" class="space-y-2"></div>
+            </div>
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-3"><i data-lucide="inbox" class="w-4 h-4 text-construction-green"></i> Receipt Log</h3>
+              <div id="stock-receipt-log" class="space-y-2"></div>
+            </div>
+            <div class="bg-construction-cardBg border border-construction-border rounded-xl p-4">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2 mb-3"><i data-lucide="send" class="w-4 h-4 text-amber-400"></i> Issue Log</h3>
+              <div id="stock-issue-log" class="space-y-2"></div>
+            </div>
+          </div>
+
           <div id="view-documents" class="space-y-6 hidden no-print">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
@@ -2381,6 +2420,112 @@ service cloud.firestore {
 
       <!-- PERMIT SYSTEM REVOCATION NOTICE — shown to all users when they
            open the Permits tab on or after 13 July 2026 -->
+      <!-- ADD MATERIAL -->
+      <div id="modal-add-material" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-sm w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200" id="add-material-title">Add Material</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Material Name <span class="text-red-400">*</span></label>
+            <input id="mat-field-name" type="text" placeholder="e.g. Safety Helmet, Full Body Harness" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Unit <span class="text-red-400">*</span></label>
+              <select id="mat-field-unit" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                <option value="Nos">Nos</option><option value="Pairs">Pairs</option><option value="Sets">Sets</option>
+                <option value="Metres">Metres</option><option value="Rolls">Rolls</option><option value="Boxes">Boxes</option>
+                <option value="Kgs">Kgs</option><option value="Litres">Litres</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Category</label>
+              <select id="mat-field-category" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+                <option value="PPE">PPE</option><option value="Fall Protection">Fall Protection</option>
+                <option value="Fire Safety">Fire Safety</option><option value="Signage">Signage</option>
+                <option value="First Aid">First Aid</option><option value="Tools">Tools/Equipment</option><option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-5">
+          <button onclick="closeModal()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg">Cancel</button>
+          <button onclick="saveMaterial()" class="flex-1 py-2 bg-construction-orange hover:bg-construction-orangeDeep text-white text-xs font-bold rounded-lg">Save Material</button>
+        </div>
+        <input type="hidden" id="mat-field-id">
+      </div>
+
+      <!-- RECORD RECEIPT -->
+      <div id="modal-record-receipt" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-sm w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Record Receipt</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Material <span class="text-red-400">*</span></label>
+            <select id="rcpt-field-material" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs"></select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Quantity <span class="text-red-400">*</span></label>
+              <input id="rcpt-field-qty" type="number" min="1" placeholder="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Date <span class="text-red-400">*</span></label>
+              <input id="rcpt-field-date" type="date" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Supplier / Invoice <span class="text-slate-500 font-normal">(optional)</span></label>
+            <input id="rcpt-field-remarks" type="text" placeholder="Supplier name or invoice reference" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+          </div>
+        </div>
+        <div class="flex gap-2 mt-5">
+          <button onclick="closeModal()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg">Cancel</button>
+          <button onclick="saveReceipt()" class="flex-1 py-2 bg-construction-green hover:bg-green-700 text-white text-xs font-bold rounded-lg">Save Receipt</button>
+        </div>
+      </div>
+
+      <!-- ISSUE TO CONTRACTOR -->
+      <div id="modal-issue-material" class="bg-construction-cardBg border border-construction-border rounded-xl shadow-2xl max-w-sm w-full p-6 hidden">
+        <div class="flex items-center justify-between border-b border-construction-border pb-3 mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-200">Issue to Contractor</h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Material <span class="text-red-400">*</span></label>
+            <select id="iss-field-material" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs" onchange="updateIssueBalance()"></select>
+            <p class="text-[10px] text-construction-gold mt-1" id="iss-balance-label"></p>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contractor <span class="text-red-400">*</span></label>
+            <select id="iss-field-contractor" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs"></select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Quantity <span class="text-red-400">*</span></label>
+              <input id="iss-field-qty" type="number" min="1" placeholder="0" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Date <span class="text-red-400">*</span></label>
+              <input id="iss-field-date" type="date" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Remarks <span class="text-slate-500 font-normal">(optional)</span></label>
+            <input id="iss-field-remarks" type="text" placeholder="Purpose or notes" class="w-full px-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 text-xs">
+          </div>
+        </div>
+        <div class="flex gap-2 mt-5">
+          <button onclick="closeModal()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg">Cancel</button>
+          <button onclick="saveIssue()" class="flex-1 py-2 bg-construction-gold hover:bg-yellow-600 text-construction-darkBg text-xs font-bold rounded-lg">Issue</button>
+        </div>
+      </div>
+
       <div id="modal-permit-revoked" class="bg-construction-darkBg border-2 border-red-600 rounded-xl shadow-2xl max-w-lg w-full p-0 hidden overflow-hidden">
         <!-- Red alert header -->
         <div class="bg-red-700 px-6 py-4 flex items-center gap-3">
@@ -2865,8 +3010,13 @@ service cloud.firestore {
       // Safety net for any user added before the flag existed
       dbState.users.forEach(u => {
         if (u.role === 'Staff' && typeof u.canManageManpower === 'undefined') u.canManageManpower = false;
+        if (u.role === 'Staff' && typeof u.canManageStock    === 'undefined') u.canManageStock    = false;
         if (typeof u.mustChangePassword === 'undefined') u.mustChangePassword = false;
       });
+      if (!dbState.safetyStock) dbState.safetyStock = { materials:[], receipts:[], issues:[] };
+      if (!Array.isArray(dbState.safetyStock.materials)) dbState.safetyStock.materials = [];
+      if (!Array.isArray(dbState.safetyStock.receipts))  dbState.safetyStock.receipts  = [];
+      if (!Array.isArray(dbState.safetyStock.issues))    dbState.safetyStock.issues    = [];
 
       // ---- One-time permit-authority correction (v3.2 — PM is the final
       // authority on permits; Admin only checks and forwards) ----
@@ -3009,6 +3159,7 @@ service cloud.firestore {
       else if (activeTab === 'permits')     renderPermitsTable();
       else if (activeTab === 'reports')     renderObservations();
       else if (activeTab === 'checklists')  renderChecklistsTab();
+      else if (activeTab === 'stock')       { if (canAccessStock()) renderStockView(); }
       else if (activeTab === 'emergency')   renderEmergencyGrid();
       else if (activeTab === 'documents')   renderDocumentLibrary();
       else if (activeTab === 'admin')       { renderPersonnelTable(); renderContractorRegistry(); renderContractorScorecard(); renderAdminManpower(); renderSafetyMetricsAdmin(); renderBaselineAdmin(); renderTelegramAdmin(); renderTelegramAlerts(); renderImgbbAdmin(); initHSEReportInputs(); renderDbSizeMeter(); }
@@ -3363,6 +3514,9 @@ service cloud.firestore {
     function canAccessChecklists() {
       return !!currentUser && (currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canApprove));
     }
+    function canAccessStock() {
+      return !!currentUser && (currentUser.role === 'Admin' || (currentUser.role === 'Staff' && currentUser.canManageStock));
+    }
     // Project Manager sign-off on checklists — same PM concept used for
     // permits. PM can only sign + add a remark, never edit checklist items.
     function isProjectManagerUser() {
@@ -3558,7 +3712,7 @@ service cloud.firestore {
       activeTab = tabId;
       
       // Hide all standard views
-      const views = ['view-dashboard', 'view-permits', 'view-labour', 'view-reports', 'view-checklists', 'view-emergency', 'view-documents', 'view-admin', 'view-force-pin'];
+      const views = ['view-dashboard', 'view-permits', 'view-labour', 'view-reports', 'view-checklists', 'view-stock', 'view-emergency', 'view-documents', 'view-admin', 'view-force-pin'];
       views.forEach(v => {
         const el = document.getElementById(v);
         el.classList.add('hidden');
@@ -3601,6 +3755,9 @@ service cloud.firestore {
         renderObservations();
       } else if (tabId === 'checklists') {
         renderChecklistsTab();
+      } else if (tabId === 'stock') {
+        if (!canAccessStock()) { switchTab('dashboard'); return; }
+        renderStockView();
       } else if (tabId === 'emergency') {
         renderEmergencyGrid();
       } else if (tabId === 'documents') {
@@ -3664,6 +3821,14 @@ service cloud.firestore {
           </button>
         `);
       }
+      if (canAccessStock()) {
+        sidebar.insertAdjacentHTML('beforeend', `
+          <button onclick="switchTab('stock')" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left font-medium transition-all text-slate-300 hover:bg-slate-800" data-tab-desktop="stock">
+            <i data-lucide="package" class="w-4 h-4"></i>
+            <span>Stock Register</span>
+          </button>
+        `);
+      }
 
       if (currentUser.role === 'Admin') {
         sidebar.insertAdjacentHTML('beforeend', `
@@ -3703,6 +3868,14 @@ service cloud.firestore {
           <button onclick="switchTab('checklists')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="checklists">
             <i data-lucide="clipboard-check" class="w-5 h-5 mb-0.5"></i>
             <span class="text-[9px] font-medium">Checklist</span>
+          </button>
+        `;
+      }
+      if (canAccessStock()) {
+        mobileTabsHtml += `
+          <button onclick="switchTab('stock')" class="flex flex-col items-center justify-center text-slate-400 hover:text-construction-orange transition-all py-1.5 px-2.5 rounded-lg" data-tab-mobile="stock">
+            <i data-lucide="package" class="w-5 h-5 mb-0.5"></i>
+            <span class="text-[9px] font-medium">Stock</span>
           </button>
         `;
       }
@@ -5718,6 +5891,201 @@ service cloud.firestore {
     // whatever action happens to push the payload over 1 MB fails, not
     // necessarily because that specific action did anything wrong.
     // ============================================================
+    // ============================================================
+    // SAFETY MATERIAL STOCK REGISTER
+    // ============================================================
+    function stockComputeBalance() {
+      const ss = dbState.safetyStock || {};
+      const result = {};
+      (ss.materials||[]).forEach(m => { result[m.id] = { received:0, issued:0, balance:0 }; });
+      (ss.receipts ||[]).forEach(r => { if (result[r.materialId]) result[r.materialId].received += Number(r.qty)||0; });
+      (ss.issues   ||[]).forEach(i => { if (result[i.materialId]) result[i.materialId].issued   += Number(i.qty)||0; });
+      Object.keys(result).forEach(id => { result[id].balance = result[id].received - result[id].issued; });
+      return result;
+    }
+
+    function renderStockView() {
+      renderStockSummary(); renderContractorStockCards(); renderReceiptLog(); renderIssueLog(); lucide.createIcons();
+    }
+
+    function renderStockSummary() {
+      const el = document.getElementById('stock-summary-table'); if (!el) return;
+      const mats = (dbState.safetyStock||{}).materials||[];
+      if (!mats.length) { el.innerHTML = `<div class="text-center py-6">${illustrationEmptyClipboard()}<p class="text-slate-500 text-xs italic">No materials yet. Tap "Add Material" to start.</p></div>`; return; }
+      const bal = stockComputeBalance();
+      el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="border-bottom:2px solid #244D32;">
+          <th style="text-align:left;padding:6px 8px;color:#94a3b8;font-size:10px;text-transform:uppercase;">Material</th>
+          <th style="text-align:center;padding:6px 8px;color:#94a3b8;font-size:10px;">Unit</th>
+          <th style="text-align:center;padding:6px 8px;color:#4ade80;font-size:10px;">Received</th>
+          <th style="text-align:center;padding:6px 8px;color:#fbbf24;font-size:10px;">Issued</th>
+          <th style="text-align:center;padding:6px 8px;color:#e2e8f0;font-size:10px;font-weight:800;">Balance</th>
+          <th style="width:24px;"></th>
+        </tr></thead><tbody>
+        ${mats.map(m => {
+          const b = bal[m.id]||{received:0,issued:0,balance:0};
+          const col = b.balance<=0?'#f87171':b.balance<5?'#fbbf24':'#4ade80';
+          return `<tr style="border-bottom:1px solid #244D32;">
+            <td style="padding:7px 8px;color:#e2e8f0;font-weight:600;">${m.name}<br><span style="color:#64748b;font-size:9px;">${m.category||''}</span></td>
+            <td style="text-align:center;padding:7px 8px;color:#94a3b8;">${m.unit}</td>
+            <td style="text-align:center;padding:7px 8px;color:#4ade80;">${b.received}</td>
+            <td style="text-align:center;padding:7px 8px;color:#fbbf24;">${b.issued}</td>
+            <td style="text-align:center;padding:7px 8px;font-weight:800;color:${col};font-size:14px;">${b.balance}</td>
+            <td style="text-align:center;"><button onclick="deleteMaterial('${m.id}')" style="color:#f87171;background:none;border:none;cursor:pointer;font-size:11px;">✕</button></td>
+          </tr>`;
+        }).join('')}
+        </tbody></table>`;
+    }
+
+    function renderContractorStockCards() {
+      const el = document.getElementById('stock-contractor-cards'); if (!el) return;
+      const issues = (dbState.safetyStock||{}).issues||[];
+      if (!issues.length) { el.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-2">No issues recorded yet.</p>'; return; }
+      const byC = {};
+      issues.forEach(i => {
+        const k = i.contractorId||i.contractorName||'Unknown';
+        if (!byC[k]) byC[k] = { name:i.contractorName, items:{} };
+        if (!byC[k].items[i.materialName]) byC[k].items[i.materialName] = { qty:0, unit:i.unit };
+        byC[k].items[i.materialName].qty += Number(i.qty)||0;
+      });
+      el.innerHTML = Object.values(byC).map(c => `
+        <div class="bg-slate-900 border border-construction-border rounded-lg p-3">
+          <p class="text-xs font-bold text-construction-gold mb-2">🏗 ${c.name}</p>
+          <div class="grid grid-cols-2 gap-1">
+            ${Object.entries(c.items).map(([n,d]) => `<div class="bg-slate-800 rounded px-2 py-1.5"><p class="text-[10px] text-slate-400">${n}</p><p class="text-xs font-bold text-cyan-300">${d.qty} ${d.unit}</p></div>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    function renderReceiptLog() {
+      const el = document.getElementById('stock-receipt-log'); if (!el) return;
+      const list = [...((dbState.safetyStock||{}).receipts||[])].reverse();
+      if (!list.length) { el.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-2">No receipts recorded yet.</p>'; return; }
+      el.innerHTML = list.map(r => `<div class="bg-slate-900 border border-construction-border rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+        <div><p class="text-xs font-bold text-slate-200">${r.materialName} <span class="text-construction-green font-black">+${r.qty} ${r.unit}</span></p>
+        <p class="text-[10px] text-slate-500">${r.date} · ${r.receivedBy}${r.remarks?' · '+r.remarks:''}</p></div>
+        <button onclick="deleteReceipt('${r.id}')" class="text-red-400 hover:text-red-300 text-[10px] shrink-0">✕</button>
+      </div>`).join('');
+    }
+
+    function renderIssueLog() {
+      const el = document.getElementById('stock-issue-log'); if (!el) return;
+      const list = [...((dbState.safetyStock||{}).issues||[])].reverse();
+      if (!list.length) { el.innerHTML = '<p class="text-slate-500 text-xs italic text-center py-2">No issues recorded yet.</p>'; return; }
+      el.innerHTML = list.map(i => `<div class="bg-slate-900 border border-construction-border rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+        <div><p class="text-xs font-bold text-slate-200">${i.materialName} <span class="text-amber-400 font-black">−${i.qty} ${i.unit}</span> → <span class="text-cyan-300">${i.contractorName}</span></p>
+        <p class="text-[10px] text-slate-500">${i.date} · ${i.issuedBy}${i.remarks?' · '+i.remarks:''}</p></div>
+        <button onclick="deleteIssue('${i.id}')" class="text-red-400 hover:text-red-300 text-[10px] shrink-0">✕</button>
+      </div>`).join('');
+    }
+
+    function openAddMaterialModal(id) {
+      const m = id ? (dbState.safetyStock.materials||[]).find(x => x.id===id) : null;
+      document.getElementById('add-material-title').textContent = m ? 'Edit Material' : 'Add Material';
+      document.getElementById('mat-field-id').value       = m ? m.id : '';
+      document.getElementById('mat-field-name').value     = m ? m.name : '';
+      document.getElementById('mat-field-unit').value     = m ? m.unit : 'Nos';
+      document.getElementById('mat-field-category').value = m ? (m.category||'PPE') : 'PPE';
+      openModal('modal-add-material');
+    }
+
+    function saveMaterial() {
+      const name = document.getElementById('mat-field-name').value.trim();
+      const unit = document.getElementById('mat-field-unit').value;
+      const cat  = document.getElementById('mat-field-category').value;
+      if (!name) { showToast('Enter a material name.', 'error'); return; }
+      if (!dbState.safetyStock) dbState.safetyStock = { materials:[], receipts:[], issues:[] };
+      const id = document.getElementById('mat-field-id').value;
+      if (id) {
+        const m = dbState.safetyStock.materials.find(x => x.id===id);
+        if (m) { m.name=name; m.unit=unit; m.category=cat; }
+      } else {
+        dbState.safetyStock.materials.push({ id:`mat-${Date.now()}`, name, unit, category:cat });
+      }
+      saveCurrentState(); closeModal(); renderStockView();
+      showToast(`Material "${name}" saved.`, 'success');
+    }
+
+    function deleteMaterial(id) {
+      if (!confirm('Remove this material from the catalog?')) return;
+      dbState.safetyStock.materials = dbState.safetyStock.materials.filter(m => m.id!==id);
+      saveCurrentState(); renderStockView(); showToast('Material removed.', 'info');
+    }
+
+    function openReceiptModal() {
+      const mats = (dbState.safetyStock||{}).materials||[];
+      if (!mats.length) { showToast('Add at least one material first.', 'error'); return; }
+      document.getElementById('rcpt-field-material').innerHTML = mats.map(m => `<option value="${m.id}">${m.name} (${m.unit})</option>`).join('');
+      document.getElementById('rcpt-field-qty').value     = '';
+      document.getElementById('rcpt-field-date').value    = todayKey();
+      document.getElementById('rcpt-field-remarks').value = '';
+      openModal('modal-record-receipt');
+    }
+
+    function saveReceipt() {
+      const matId = document.getElementById('rcpt-field-material').value;
+      const qty   = Number(document.getElementById('rcpt-field-qty').value);
+      const date  = document.getElementById('rcpt-field-date').value;
+      if (!matId||!qty||qty<=0||!date) { showToast('Fill in material, quantity and date.', 'error'); return; }
+      const mat = (dbState.safetyStock.materials||[]).find(m => m.id===matId);
+      dbState.safetyStock.receipts.push({ id:`rcpt-${Date.now()}`, materialId:matId, materialName:mat.name, unit:mat.unit, qty, date, receivedBy:currentUser.fullname, remarks:document.getElementById('rcpt-field-remarks').value.trim() });
+      saveCurrentState(); closeModal(); renderStockView();
+      showToast(`Receipt of ${qty} ${mat.unit} recorded.`, 'success');
+    }
+
+    function deleteReceipt(id) {
+      if (!confirm('Delete this receipt record?')) return;
+      dbState.safetyStock.receipts = dbState.safetyStock.receipts.filter(r => r.id!==id);
+      saveCurrentState(); renderStockView(); showToast('Receipt deleted.', 'info');
+    }
+
+    function openIssueModal() {
+      const mats = (dbState.safetyStock||{}).materials||[];
+      const ctrs = dbState.contractors||[];
+      if (!mats.length) { showToast('Add at least one material first.', 'error'); return; }
+      if (!ctrs.length) { showToast('No contractors registered in Admin.', 'error'); return; }
+      document.getElementById('iss-field-material').innerHTML   = mats.map(m => `<option value="${m.id}">${m.name} (${m.unit})</option>`).join('');
+      document.getElementById('iss-field-contractor').innerHTML = ctrs.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      document.getElementById('iss-field-qty').value     = '';
+      document.getElementById('iss-field-date').value    = todayKey();
+      document.getElementById('iss-field-remarks').value = '';
+      document.getElementById('iss-balance-label').textContent = '';
+      updateIssueBalance();
+      openModal('modal-issue-material');
+    }
+
+    function updateIssueBalance() {
+      const matId = document.getElementById('iss-field-material').value;
+      const lbl   = document.getElementById('iss-balance-label');
+      if (!lbl||!matId) return;
+      const bal = stockComputeBalance();
+      const b   = bal[matId];
+      const mat = (dbState.safetyStock.materials||[]).find(m => m.id===matId);
+      lbl.textContent  = b ? `Available: ${b.balance} ${mat?mat.unit:''}` : '';
+      lbl.style.color  = b && b.balance<=0 ? '#f87171' : '#F4BE42';
+    }
+
+    function saveIssue() {
+      const matId = document.getElementById('iss-field-material').value;
+      const ctrId = document.getElementById('iss-field-contractor').value;
+      const qty   = Number(document.getElementById('iss-field-qty').value);
+      const date  = document.getElementById('iss-field-date').value;
+      if (!matId||!ctrId||!qty||qty<=0||!date) { showToast('Fill in all required fields.', 'error'); return; }
+      const mat = (dbState.safetyStock.materials||[]).find(m => m.id===matId);
+      const ctr = (dbState.contractors||[]).find(c => c.id===ctrId);
+      const bal = stockComputeBalance();
+      if (bal[matId] && qty > bal[matId].balance) { showToast(`Only ${bal[matId].balance} ${mat.unit} available.`, 'error'); return; }
+      dbState.safetyStock.issues.push({ id:`iss-${Date.now()}`, materialId:matId, materialName:mat.name, unit:mat.unit, contractorId:ctrId, contractorName:ctr?ctr.name:ctrId, qty, date, issuedBy:currentUser.fullname, remarks:document.getElementById('iss-field-remarks').value.trim() });
+      saveCurrentState(); closeModal(); renderStockView();
+      showToast(`Issued ${qty} ${mat.unit} of "${mat.name}" to ${ctr?ctr.name:ctrId}.`, 'success');
+    }
+
+    function deleteIssue(id) {
+      if (!confirm('Delete this issue record?')) return;
+      dbState.safetyStock.issues = dbState.safetyStock.issues.filter(i => i.id!==id);
+      saveCurrentState(); renderStockView(); showToast('Issue record deleted.', 'info');
+    }
+
     function renderDbSizeMeter() {
       const bar = document.getElementById('db-size-bar');
       const label = document.getElementById('db-size-label');
@@ -9251,6 +9619,10 @@ ${sec('Manpower &amp; Exposure Log')}
                 <button onclick="toggleUserManpowerAuthority('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
               </div>
               <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold ${u.canManageStock ? 'text-cyan-400' : 'text-slate-400'}">${u.canManageStock ? '📦 Store Access' : 'No Store Access'}</span>
+                <button onclick="toggleUserStoreAccess('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
+              </div>
+              <div class="flex items-center gap-2">
                 <span class="text-[10px] font-bold ${u.isProjectManager ? 'text-yellow-400' : 'text-slate-400'}">${u.isProjectManager ? '⭐ Project Manager' : 'No PM Role'}</span>
                 <button onclick="toggleProjectManager('${u.id}')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[9px] rounded text-slate-300">Toggle</button>
               </div>
@@ -9443,6 +9815,15 @@ ${sec('Manpower &amp; Exposure Log')}
       renderPersonnelTable();
       if (currentUser && currentUser.id === id) { currentUser.canManageManpower = user.canManageManpower; applyManpowerPermissions(); }
       showToast(`Manpower authority updated for: ${user.fullname}`, 'success');
+    }
+    function toggleUserStoreAccess(id) {
+      const user = dbState.users.find(u => u.id === id);
+      if (!user) return;
+      user.canManageStock = !user.canManageStock;
+      saveCurrentState();
+      renderPersonnelTable();
+      if (currentUser && currentUser.id === id) { currentUser.canManageStock = user.canManageStock; buildDynamicNavs(); }
+      showToast(`Store access ${user.canManageStock ? 'enabled' : 'disabled'} for: ${user.fullname}`, 'success');
     }
 
     function deleteUser(id) {
