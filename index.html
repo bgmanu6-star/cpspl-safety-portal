@@ -1375,7 +1375,8 @@ service cloud.firestore {
 
       // Fetch dynamic records rendering depending on section
       if (tabId === 'dashboard') {
-        renderDashboardStats(); else if (tabId === 'labour') {
+        renderDashboardStats();
+      } else if (tabId === 'labour') {
         renderLabourHistory();
       } else if (tabId === 'reports') {
         renderObservations();
