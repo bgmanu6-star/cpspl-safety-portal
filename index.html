@@ -252,16 +252,16 @@ service cloud.firestore {
                   <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none">
                     <i data-lucide="user" class="w-4 h-4"></i>
                   </span>
-                  <input id="login-username" type="text" required placeholder="Enter Username (e.g., admin)" class="w-full pl-10 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-construction-orange transition-colors">
+                  <input id="login-username" type="text" required placeholder="Enter your username" autocomplete="username" class="w-full pl-10 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-construction-orange transition-colors">
                 </div>
               </div>
               <div>
-                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Security PIN / Password</label>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Security PIN</label>
                 <div class="relative">
                   <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none">
                     <i data-lucide="lock" class="w-4 h-4"></i>
                   </span>
-                  <input id="login-pin" type="password" required placeholder="Enter 5-Digit PIN" class="w-full pl-10 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-construction-orange transition-colors">
+                  <input id="login-pin" type="password" required placeholder="Enter 5-Digit PIN" autocomplete="current-password" class="w-full pl-10 pr-3 py-2 bg-slate-900 border border-construction-border rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-construction-orange transition-colors">
                 </div>
               </div>
 
@@ -1472,7 +1472,7 @@ service cloud.firestore {
     // AUTHENTICATION LOGISTICS
     function triggerLogin() {
       const usernameInput = document.getElementById('login-username').value.trim().toLowerCase();
-      const pinInput = document.getElementById('login-pin').value.trim(); // trim() fixes mobile keyboard trailing-space issue
+      const pinInput = document.getElementById('login-pin').value.trim();
 
       // Guard: do not allow login before Firebase has loaded user data
       if (!dbState.users || dbState.users.length === 0) {
@@ -1480,8 +1480,8 @@ service cloud.firestore {
         return;
       }
 
-      // Find matched user (compare trimmed strings on both sides)
-      const user = dbState.users.find(u => u.username === usernameInput && String(u.pin).trim() === pinInput);
+      // Match by username AND PIN
+      const user = dbState.users.find(u => u.username.trim().toLowerCase() === usernameInput && String(u.pin).trim() === pinInput);
 
       if (!user) {
         showToast('Invalid credentials provided. Check username and PIN, then retry.', 'error');
