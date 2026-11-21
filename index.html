@@ -2867,31 +2867,39 @@ service cloud.firestore {
       const totalManpower = totalWorkers + totalStaff;
       const totalManhours = totalManpower * 8;
 
+      const tD = cws.reduce((s, c) => s + (parseInt(c.dayWorkers) || 0), 0);
+      const tN = cws.reduce((s, c) => s + (parseInt(c.nightWorkers) || 0), 0);
+
       let lines = [];
       lines.push(`📊 *Daily Worker Strength Report*`);
       lines.push(`📅 Date: ${dateLabel}`);
       lines.push(`🏗 Project: CTO, Chennai`);
-      lines.push(`─────────────────────`);
-      lines.push(`*Contractor-wise Workers:*`);
 
+      // DAY SHIFT
+      lines.push(`─────────────────────`);
+      lines.push(`☀️ *DAY SHIFT*`);
       contractors.forEach(c => {
         const cw = cws.find(x => x.contractorId === c.id) || {};
         const dW = parseInt(cw.dayWorkers) || 0;
-        const nW = parseInt(cw.nightWorkers) || 0;
-        if (dW || nW) {
-          lines.push(`• ${c.name}: Day ${dW} | Night ${nW} | Total ${dW + nW}`);
-        }
+        if (dW) lines.push(`  • ${c.name}: ${dW}`);
       });
+      if (dS) lines.push(`  • Staff: ${dS}`);
+      lines.push(`  👷 Day Total: *${tD + dS}*`);
 
-      const tD = cws.reduce((s, c) => s + (parseInt(c.dayWorkers) || 0), 0);
-      const tN = cws.reduce((s, c) => s + (parseInt(c.nightWorkers) || 0), 0);
+      // NIGHT SHIFT
+      lines.push(`─────────────────────`);
+      lines.push(`🌙 *NIGHT SHIFT*`);
+      contractors.forEach(c => {
+        const cw = cws.find(x => x.contractorId === c.id) || {};
+        const nW = parseInt(cw.nightWorkers) || 0;
+        if (nW) lines.push(`  • ${c.name}: ${nW}`);
+      });
+      if (nS) lines.push(`  • Staff: ${nS}`);
+      lines.push(`  👷 Night Total: *${tN + nS}*`);
 
       lines.push(`─────────────────────`);
-      lines.push(`👷 Workers (Day/Night): ${tD} / ${tN}`);
-      lines.push(`👔 Staff (Day/Night): ${dS} / ${nS}`);
-      lines.push(`─────────────────────`);
-      lines.push(`✅ *Total Manpower: ${totalManpower}*`);
-      lines.push(`⏱ Total Manhours: ${totalManhours}`);
+      lines.push(`✅ *Grand Total: ${totalManpower}*`);
+      lines.push(`⏱ Manhours: ${totalManhours}`);
       lines.push(`─────────────────────`);
       lines.push(`_Reported by: ${currentUser ? currentUser.fullname : 'HSE'}_ — CTO-ConNect`);
 
