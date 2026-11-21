@@ -973,9 +973,15 @@ service cloud.firestore {
                   </h3>
                   <p class="text-[11px] text-slate-400 mt-0.5">Live figures for <strong id="admin-manpower-date" class="text-slate-300">today</strong> from the daily log. Contractor-wise worker breakdown plus site staff.</p>
                 </div>
-                <button onclick="switchTab('labour')" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center gap-1.5">
-                  <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Add / Edit Manpower
-                </button>
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <button onclick="shareManpowerWhatsApp()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center justify-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.546 5.877L0 24l6.336-1.521A11.942 11.942 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.034-1.384l-.361-.214-3.741.898.933-3.638-.235-.374A9.818 9.818 0 1112 21.818z"/></svg>
+                    Share on WhatsApp
+                  </button>
+                  <button onclick="switchTab('labour')" class="w-full sm:w-auto bg-construction-orange hover:bg-orange-600 text-white font-bold text-xs py-2 px-4 rounded-lg shadow flex items-center justify-center gap-1.5">
+                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Add / Edit Manpower
+                  </button>
+                </div>
               </div>
 
               <!-- Contractor-wise worker table -->
@@ -2840,6 +2846,57 @@ service cloud.firestore {
 
       const emptyMsg = document.getElementById('admin-manpower-empty');
       if (emptyMsg) emptyMsg.classList.toggle('hidden', !!entry);
+    }
+
+    function shareManpowerWhatsApp() {
+      const today = getTodayStr();
+      const entry = getManpowerForDate(today);
+      const contractors = dbState.contractors || [];
+      const dateLabel = fmtDate(today);
+
+      if (!entry) {
+        showToast('No manpower logged for today.', 'error');
+        return;
+      }
+
+      const cws = entry.contractorWorkers || [];
+      const dS = parseInt(entry.dayStaff) || 0;
+      const nS = parseInt(entry.nightStaff) || 0;
+      const totalStaff   = dS + nS;
+      const totalWorkers = mpWorkers(entry);
+      const totalManpower = totalWorkers + totalStaff;
+      const totalManhours = totalManpower * 8;
+
+      let lines = [];
+      lines.push(`📊 *Daily Worker Strength Report*`);
+      lines.push(`📅 Date: ${dateLabel}`);
+      lines.push(`🏗 Project: CTO, Chennai`);
+      lines.push(`─────────────────────`);
+      lines.push(`*Contractor-wise Workers:*`);
+
+      contractors.forEach(c => {
+        const cw = cws.find(x => x.contractorId === c.id) || {};
+        const dW = parseInt(cw.dayWorkers) || 0;
+        const nW = parseInt(cw.nightWorkers) || 0;
+        if (dW || nW) {
+          lines.push(`• ${c.name}: Day ${dW} | Night ${nW} | Total ${dW + nW}`);
+        }
+      });
+
+      const tD = cws.reduce((s, c) => s + (parseInt(c.dayWorkers) || 0), 0);
+      const tN = cws.reduce((s, c) => s + (parseInt(c.nightWorkers) || 0), 0);
+
+      lines.push(`─────────────────────`);
+      lines.push(`👷 Workers (Day/Night): ${tD} / ${tN}`);
+      lines.push(`👔 Staff (Day/Night): ${dS} / ${nS}`);
+      lines.push(`─────────────────────`);
+      lines.push(`✅ *Total Manpower: ${totalManpower}*`);
+      lines.push(`⏱ Total Manhours: ${totalManhours}`);
+      lines.push(`─────────────────────`);
+      lines.push(`_Reported by: ${currentUser ? currentUser.fullname : 'HSE'}_ — CTO-ConNect`);
+
+      const text = encodeURIComponent(lines.join('\n'));
+      window.open(`https://wa.me/?text=${text}`, '_blank');
     }
 
     // CONTRACTOR REGISTRY CRUD (Admin only)
