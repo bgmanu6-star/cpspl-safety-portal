@@ -2872,7 +2872,7 @@ service cloud.firestore {
       if (shift === 'day') {
         const tD = cws.reduce((s, c) => s + (parseInt(c.dayWorkers) || 0), 0);
         const dayTotal = tD + dS;
-        lines.push(`☀️ *Day Shift — Worker Strength*`);
+        lines.push(`☀️ *Worker Strength*`);
         lines.push(`📅 ${dateLabel}`);
         lines.push(`🏗 CTO Project, Chennai`);
         lines.push(`─────────────────────`);
@@ -2881,14 +2881,15 @@ service cloud.firestore {
           const dW = parseInt(cw.dayWorkers) || 0;
           if (dW) lines.push(`• ${c.name}: ${dW}`);
         });
-        if (dS) lines.push(`• Staff: ${dS}`);
         lines.push(`─────────────────────`);
-        lines.push(`✅ *Total: ${dayTotal}*`);
+        lines.push(`👷 *Total Workers: ${tD}*`);
+        if (dS) lines.push(`👔 Staff: ${dS}`);
+        lines.push(`✅ *Grand Total: ${dayTotal}*`);
         lines.push(`⏱ Manhours: ${dayTotal * 8}`);
       } else {
         const tN = cws.reduce((s, c) => s + (parseInt(c.nightWorkers) || 0), 0);
         const nightTotal = tN + nS;
-        lines.push(`🌙 *Night Shift — Worker Strength*`);
+        lines.push(`🌙 *Worker Strength*`);
         lines.push(`📅 ${dateLabel}`);
         lines.push(`🏗 CTO Project, Chennai`);
         lines.push(`─────────────────────`);
@@ -2897,9 +2898,10 @@ service cloud.firestore {
           const nW = parseInt(cw.nightWorkers) || 0;
           if (nW) lines.push(`• ${c.name}: ${nW}`);
         });
-        if (nS) lines.push(`• Staff: ${nS}`);
         lines.push(`─────────────────────`);
-        lines.push(`✅ *Total: ${nightTotal}*`);
+        lines.push(`👷 *Total Workers: ${tN}*`);
+        if (nS) lines.push(`👔 Staff: ${nS}`);
+        lines.push(`✅ *Grand Total: ${nightTotal}*`);
         lines.push(`⏱ Manhours: ${nightTotal * 8}`);
       }
 
