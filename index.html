@@ -2170,10 +2170,7 @@ service cloud.firestore {
       // Render contractor input rows into the main form
       const noNotice = document.getElementById('no-contractors-notice');
       const rowsDiv = document.getElementById('contractor-worker-rows');
-      if (rowsDiv) {
-        buildContractorRows('contractor-worker-rows', 'labour-', null);
-        if (noNotice) noNotice.classList.toggle('hidden', (dbState.contractors||[]).length > 0);
-      }
+      if (noNotice) noNotice.classList.toggle('hidden', (dbState.contractors||[]).length > 0);
 
       const dateInput = document.getElementById('labour-date');
       if (dateInput && !dateInput.value) dateInput.value = getTodayStr();
@@ -2194,8 +2191,19 @@ service cloud.firestore {
           }
           lucide.createIcons();
         });
-        // Pre-fill for today if entry exists
-        dateInput.dispatchEvent(new Event('change'));
+      }
+
+      // Always pre-fill for the currently selected date (handles tab revisits)
+      if (dateInput) {
+        const existing = getManpowerForDate(dateInput.value);
+        if (existing) {
+          document.getElementById('labour-day-staff').value = existing.dayStaff || '';
+          document.getElementById('labour-night-staff').value = existing.nightStaff || '';
+          buildContractorRows('contractor-worker-rows', 'labour-', existing.contractorWorkers);
+        } else {
+          buildContractorRows('contractor-worker-rows', 'labour-', null);
+        }
+        lucide.createIcons();
       }
 
       // History cards — one per date, sorted desc
